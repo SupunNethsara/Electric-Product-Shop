@@ -15,7 +15,7 @@ const Login = () => {
     const location = useLocation();
     const { isLoading, error, isAuthenticated } = useSelector((state) => state.auth);
 
-    const from = location.state?.from?.pathname || '/';
+    const from = location.state?.from?.pathname || '/products';
 
     useEffect(() => {
         dispatch(clearError());

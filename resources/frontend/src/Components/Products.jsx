@@ -2,7 +2,6 @@ import ProductCard from "./ProductCard.jsx";
 
 
 const Products = () => {
-    // Mock products data - replace with actual API call
     const products = [
         {
             id: 1,
