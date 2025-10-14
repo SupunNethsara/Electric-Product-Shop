@@ -10,12 +10,12 @@ import Register from "./Pages/Register.jsx";
 import Navbar from "./Components/Navbar.jsx";
 import Products from "./Components/Products.jsx";
 import ProductCard from "./Components/ProductCard.jsx";
+import Home from "./Components/HomeComponent/Home.jsx";
 
 function App() {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        // Check if user is logged in on app load
         const token = localStorage.getItem('token');
         if (token) {
             dispatch(fetchUser());
@@ -27,32 +27,29 @@ function App() {
             <div className="App">
                 <Navbar />
                 <Routes>
-                    <Route path="/" element={<div>Home</div>} />
+                    <Route path="/" element={<Home/>} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
-                    <Route path="/products" element={<Products />} /> {/* Fixed: Use Products component */}
+                    <Route path="/products" element={<Products />} />
 
-                    {/* Protected routes */}
                     <Route
                         path="/checkout"
                         element={
                             <ProtectedRoute>
-                                <div>Checkout Page</div> {/* Add actual checkout component */}
+                                <div>Checkout Page</div>
                             </ProtectedRoute>
                         }
                     />
 
-                    {/* Admin routes */}
                     <Route
                         path="/admin/*"
                         element={
                             <AdminRoute>
-                                <div>Admin Dashboard</div> {/* Add actual admin component */}
+                                <div>Admin Dashboard</div>
                             </AdminRoute>
                         }
                     />
 
-                    {/* Super Admin routes */}
                     <Route
                         path="/super-admin/*"
                         element={
@@ -61,8 +58,6 @@ function App() {
                             </SuperAdminRoute>
                         }
                     />
-
-                    {/* Add unauthorized route */}
                     <Route path="/unauthorized" element={<div>Unauthorized Access</div>} />
                 </Routes>
             </div>
