@@ -55,7 +55,7 @@ function SliderSection() {
     return (
         <section id="home" className="flex justify-center items-center">
             <div className="w-full max-w-4xl h-[420px] sm:h-[450px] lg:h-[480px] mx-auto">
-                <div className="relative bg-gradient-to-br from-blue-200 via-blue-100 to-blue-200 rounded-2xl overflow-hidden shadow-xl border border-blue-300 h-full">
+                <div className="relative bg-gradient-to-br from-blue-200 via-blue-100 to-blue-200 rounded-2xl overflow-hidden shadow-xl  h-full">
                     <div className="relative h-full">
                         <div
                             className="flex transition-transform duration-700 ease-in-out h-full"
