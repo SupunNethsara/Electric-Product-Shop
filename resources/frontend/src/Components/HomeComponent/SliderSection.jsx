@@ -31,7 +31,7 @@ function SliderSection() {
         },
         {
             id: 2,
-            title: "Wireless Headphones Pro",
+            title: "Wireless Headphones",
             description: "Experience crystal-clear audio with noise cancellation technology.",
             price: "$199.99",
             originalPrice: "$249.99",
@@ -171,11 +171,11 @@ function SliderSection() {
 
                                             </div>
 
-                                            <h1 className="text-3xl sm:text-5xl leading-[1.2] font-medium bg-gradient-to-r from-slate-600 to-[#A0FF74] bg-clip-text text-transparent max-w-xs sm:max-w-md">
+                                            <h1 className="text-3xl sm:text-4xl leading-[1.2] font-medium bg-gradient-to-r from-slate-600 to-[#A0FF74] bg-clip-text text-transparent max-w-xs sm:max-w-md">
                                                 {slide.title}
                                             </h1>
 
-                                            <p className="text-slate-600 leading-relaxed max-w-md mx-auto md:mx-0 text-sm sm:text-base">
+                                            <p className="text-slate-600 leading-relaxed max-w-md mx-auto md:mx-0 text-sm sm:text-sm">
                                                 {slide.description}
                                             </p>
 
@@ -211,20 +211,20 @@ function SliderSection() {
                             })}
                         </div>
 
-                        <button
-                            onClick={prevSlide}
-                            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 text-slate-700 rounded-full p-3 shadow-lg hover:bg-slate-800 hover:text-white transition-all duration-300 z-30 backdrop-blur-sm"
-                            aria-label="Previous slide"
-                        >
-                            <FaChevronLeft className="h-5 w-5" />
-                        </button>
-                        <button
-                            onClick={nextSlide}
-                            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 text-slate-700 rounded-full p-3 shadow-lg hover:bg-slate-800 hover:text-white transition-all duration-300 z-30 backdrop-blur-sm"
-                            aria-label="Next slide"
-                        >
-                            <FaChevronRight className="h-5 w-5" />
-                        </button>
+                        {/*<button*/}
+                        {/*    onClick={prevSlide}*/}
+                        {/*    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 text-slate-700 rounded-full p-3 shadow-lg hover:bg-slate-800 hover:text-white transition-all duration-300 z-30 backdrop-blur-sm"*/}
+                        {/*    aria-label="Previous slide"*/}
+                        {/*>*/}
+                        {/*    <FaChevronLeft className="h-5 w-5" />*/}
+                        {/*</button>*/}
+                        {/*<button*/}
+                        {/*    onClick={nextSlide}*/}
+                        {/*    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 text-slate-700 rounded-full p-3 shadow-lg hover:bg-slate-800 hover:text-white transition-all duration-300 z-30 backdrop-blur-sm"*/}
+                        {/*    aria-label="Next slide"*/}
+                        {/*>*/}
+                        {/*    <FaChevronRight className="h-5 w-5" />*/}
+                        {/*</button>*/}
 
                         <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex gap-3 z-30">
                             {heroSlides.map((_, index) => (

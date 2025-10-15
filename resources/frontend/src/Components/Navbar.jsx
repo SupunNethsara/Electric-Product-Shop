@@ -96,9 +96,9 @@ const Navbar = () => {
 
     return (
         <>
-            <nav className="relative bg-white">
+            <nav className="relative  bg-white">
                 <div className="mx-6">
-                    <div className="flex items-center justify-between container mx-auto py-4 transition-all">
+                    <div className="flex items-center justify-between max-w-7xl mx-auto py-4 transition-all">
                         <Link
                             to="/"
                             className="relative ml-5 text-4xl font-semibold text-slate-700"
