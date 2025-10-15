@@ -36,7 +36,7 @@ const ProductCard = ({ product }) => {
                             ? 'bg-blue-600 text-white hover:bg-blue-700'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
-                    disabled={!isAuthenticated || role !== 'user'}
+                    // disabled={!isAuthenticated || role !== 'user'}
                 >
                     {isAuthenticated && role === 'user' ? 'Buy Now' : 'Login to Buy'}
                 </button>
