@@ -102,7 +102,7 @@ const Navbar = () => {
                     <div className="flex items-center justify-between max-w-7xl mx-auto py-4 transition-all">
                         <Link
                             to="/"
-                            className="relative text-4xl font-semibold text-slate-700"
+                            className="relative float-left text-4xl font-semibold text-slate-700"
                             onClick={() => setIsMobileMenuOpen(false)}
                         >
                             <span className="text-green-600">go</span>cart
