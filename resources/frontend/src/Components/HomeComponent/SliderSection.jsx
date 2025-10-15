@@ -144,7 +144,7 @@ function SliderSection() {
 
     return (
         <section className="flex justify-center items-center ">
-            <div className="w-full max-w-7xl h-[500px] sm:h-[450px] lg:h-[500px] mx-auto">
+            <div className=" max-w-7xl h-[500px] sm:h-[450px] lg:h-[500px] mx-auto">
                 <div className="relative bg-gradient-to-br from-green-200 via-green-100 to-green-200 rounded-3xl overflow-hidden shadow-xl h-full">
                     <div className="relative h-full">
                         <div

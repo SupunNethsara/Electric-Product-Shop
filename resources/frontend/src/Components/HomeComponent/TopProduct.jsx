@@ -18,7 +18,7 @@ function TopProduct() {
                     <p className="text-sm text-gray-500 font-medium">WEEKEND SPECIAL</p>
                     <h2 className="text-xl font-bold text-gray-900">Phone Cases</h2>
 
-                    <p className="text-4xl font-extrabold text-blue-600 leading-none">
+                    <p className="text-xl font-extrabold text-blue-600 leading-none">
                         -15%
                     </p>
                     <p className="text-sm font-medium text-blue-500 mt-0">
@@ -45,8 +45,8 @@ function TopProduct() {
                     <p className="text-sm text-gray-500 font-medium">LIMITED TIME</p>
                     <h2 className="text-xl font-bold text-gray-900">Smart Speaker</h2>
 
-                    <p className="text-4xl font-extrabold text-red-600 leading-none">
-                        $89<span className="text-3xl font-extrabold">.99</span>
+                    <p className="text-xl font-extrabold text-red-600 leading-none">
+                        $89
                     </p>
                     <p className="text-sm font-medium text-red-500 mt-0">
                         20% OFF MSRP
