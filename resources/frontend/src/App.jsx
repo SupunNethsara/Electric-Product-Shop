@@ -1,4 +1,3 @@
-// App.jsx
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -54,7 +53,7 @@ function App() {
                         path="/super-admin/*"
                         element={
                             <SuperAdminRoute>
-                                <div>Super Admin Dashboard</div> {/* Add actual super admin component */}
+                                <div>Super Admin Dashboard</div>
                             </SuperAdminRoute>
                         }
                     />
