@@ -1,9 +1,9 @@
+// Store/slices/authSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 const BASE_URL = 'http://localhost:8000/api';
 
-// Create axios instance with base config
 const api = axios.create({
     baseURL: BASE_URL,
     headers: {
@@ -18,6 +18,18 @@ api.interceptors.request.use((config) => {
     }
     return config;
 });
+
+// Add response interceptor for token expiry
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        }
+        return Promise.reject(error);
+    }
+);
 
 export const registerUser = createAsyncThunk(
     'auth/register',
@@ -88,11 +100,15 @@ const authSlice = createSlice({
         role: null,
         isLoading: false,
         error: null,
+        appLoaded: false, // Add this to track initial app loading
     },
     reducers: {
         clearError: (state) => {
             state.error = null;
         },
+        setAppLoaded: (state) => {
+            state.appLoaded = true;
+        }
     },
     extraReducers: (builder) => {
         builder
@@ -106,10 +122,12 @@ const authSlice = createSlice({
                 state.isAuthenticated = true;
                 state.user = action.payload.user;
                 state.role = action.payload.user.role || 'user';
+                state.appLoaded = true;
             })
             .addCase(registerUser.rejected, (state, action) => {
                 state.isLoading = false;
                 state.error = action.payload;
+                state.appLoaded = true;
             })
             // Login
             .addCase(loginUser.pending, (state) => {
@@ -121,26 +139,32 @@ const authSlice = createSlice({
                 state.isAuthenticated = true;
                 state.user = action.payload.user;
                 state.role = action.payload.user.role || 'user';
+                state.appLoaded = true;
             })
             .addCase(loginUser.rejected, (state, action) => {
                 state.isLoading = false;
                 state.error = action.payload;
+                state.appLoaded = true;
             })
             // Fetch User
             .addCase(fetchUser.pending, (state) => {
                 state.isLoading = true;
+                state.error = null;
             })
             .addCase(fetchUser.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.isAuthenticated = true;
                 state.user = action.payload;
                 state.role = action.payload.role || 'user';
+                state.appLoaded = true;
             })
-            .addCase(fetchUser.rejected, (state) => {
+            .addCase(fetchUser.rejected, (state, action) => {
                 state.isLoading = false;
                 state.isAuthenticated = false;
                 state.user = null;
                 state.role = null;
+                state.error = action.payload;
+                state.appLoaded = true;
             })
             // Logout
             .addCase(logoutUser.fulfilled, (state) => {
@@ -148,9 +172,10 @@ const authSlice = createSlice({
                 state.user = null;
                 state.role = null;
                 state.error = null;
+                state.appLoaded = true;
             });
     },
 });
 
-export const { clearError } = authSlice.actions;
+export const { clearError, setAppLoaded } = authSlice.actions;
 export default authSlice.reducer;

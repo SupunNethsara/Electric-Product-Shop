@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearError } from "../Store/slices/authSlice.js";
+import { useNavigate } from "react-router-dom";
 
 const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
     const [formData, setFormData] = useState({
@@ -10,14 +11,23 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
     });
 
     const dispatch = useDispatch();
-    const { isLoading, error, isAuthenticated } = useSelector((state) => state.auth);
+    const navigate = useNavigate();
+    const { isLoading, error, isAuthenticated, role } = useSelector((state) => state.auth);
 
     useEffect(() => {
         if (isAuthenticated && isOpen) {
+            console.log('Login successful, role:', role);
             onClose();
-        }
-    }, [isAuthenticated, isOpen, onClose]);
 
+            if (role === 'super_admin') {
+                navigate('/super-admin');
+            } else if (role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate('/profile');
+            }
+        }
+    }, [isAuthenticated, isOpen, onClose, navigate, role]);
     useEffect(() => {
         if (isOpen) {
             dispatch(clearError());
