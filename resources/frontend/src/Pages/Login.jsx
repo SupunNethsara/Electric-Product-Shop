@@ -1,31 +1,51 @@
-// components/Login.jsx
+// components/LoginModal.jsx
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { loginUser, clearError } from "../Store/slices/authSlice.js";
 
-const Login = () => {
+const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
     const [formData, setFormData] = useState({
         email: '',
         password: '',
     });
 
     const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const location = useLocation();
     const { isLoading, error, isAuthenticated } = useSelector((state) => state.auth);
 
-    const from = location.state?.from?.pathname || '/products';
-
     useEffect(() => {
-        dispatch(clearError());
-    }, [dispatch]);
-
-    useEffect(() => {
-        if (isAuthenticated) {
-            navigate(from, { replace: true });
+        if (isAuthenticated && isOpen) {
+            onClose();
         }
-    }, [isAuthenticated, navigate, from]);
+    }, [isAuthenticated, isOpen, onClose]);
+
+    useEffect(() => {
+        if (isOpen) {
+            dispatch(clearError());
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen, dispatch]);
+
+    useEffect(() => {
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('keydown', handleEscape);
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+        };
+    }, [isOpen, onClose]);
 
     const handleChange = (e) => {
         setFormData({
@@ -39,63 +59,101 @@ const Login = () => {
         dispatch(loginUser(formData));
     };
 
+    const handleOverlayClick = (e) => {
+        if (e.target === e.currentTarget) {
+            onClose();
+        }
+    };
+
+    if (!isOpen) return null;
+
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            onClick={handleOverlayClick}
+        >
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100">
+                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-900">
                         Sign in to your account
                     </h2>
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                    >
+                        <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+
+                {/* Form */}
+                <form className="p-6 space-y-6" onSubmit={handleSubmit}>
                     {error && (
-                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                             {error}
                         </div>
                     )}
 
-                    <div className="rounded-md shadow-sm -space-y-px">
+                    <div className="space-y-4">
                         <div>
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                                Email address
+                            </label>
                             <input
+                                id="email"
                                 name="email"
                                 type="email"
                                 required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Email address"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                placeholder="Enter your email"
                                 value={formData.email}
                                 onChange={handleChange}
                             />
                         </div>
                         <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                                Password
+                            </label>
                             <input
+                                id="password"
                                 name="password"
                                 type="password"
                                 required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Password"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                placeholder="Enter your password"
                                 value={formData.password}
                                 onChange={handleChange}
                             />
                         </div>
                     </div>
 
-                    <div>
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                        >
-                            {isLoading ? 'Signing in...' : 'Sign in'}
-                        </button>
-                    </div>
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isLoading ? (
+                            <div className="flex items-center justify-center">
+                                <div className="w-5 h-5 border-t-2 border-white border-solid rounded-full animate-spin mr-2"></div>
+                                Signing in...
+                            </div>
+                        ) : (
+                            'Sign in'
+                        )}
+                    </button>
 
                     <div className="text-center">
-                        <Link
-                            to="/register"
-                            className="font-medium text-blue-600 hover:text-blue-500"
-                        >
-                            Don't have an account? Sign up
-                        </Link>
+                        <p className="text-gray-600">
+                            Don't have an account?{' '}
+                            <button
+                                type="button"
+                                onClick={onSwitchToRegister}
+                                className="text-blue-600 font-medium hover:text-blue-700 transition-colors duration-200"
+                            >
+                                Sign up
+                            </button>
+                        </p>
                     </div>
                 </form>
             </div>
@@ -103,4 +161,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default LoginModal;
