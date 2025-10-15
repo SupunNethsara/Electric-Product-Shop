@@ -1,12 +1,11 @@
-// components/ProtectedRoute.jsx
 import { useSelector } from 'react-redux';
 import { Navigate, useLocation } from 'react-router-dom';
 
 export const ProtectedRoute = ({ children }) => {
-    const { isAuthenticated, isLoading } = useSelector((state) => state.auth);
+    const { isAuthenticated, isLoading, appLoaded } = useSelector((state) => state.auth);
     const location = useLocation();
 
-    if (isLoading) {
+    if (isLoading && !appLoaded) {
         return (
             <div className="flex justify-center items-center min-h-screen">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -15,17 +14,17 @@ export const ProtectedRoute = ({ children }) => {
     }
 
     if (!isAuthenticated) {
-        return <Navigate to="/login" state={{ from: location }} replace />;
+        return <Navigate to="/home" state={{ from: location }} replace />;
     }
 
     return children;
 };
 
 export const AdminRoute = ({ children }) => {
-    const { isAuthenticated, role, isLoading } = useSelector((state) => state.auth);
+    const { isAuthenticated, role, isLoading, appLoaded } = useSelector((state) => state.auth);
     const location = useLocation();
 
-    if (isLoading) {
+    if (isLoading && !appLoaded) {
         return (
             <div className="flex justify-center items-center min-h-screen">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -34,7 +33,7 @@ export const AdminRoute = ({ children }) => {
     }
 
     if (!isAuthenticated) {
-        return <Navigate to="/login" state={{ from: location }} replace />;
+        return <Navigate to="/" state={{ from: location }} replace />;
     }
 
     if (!['admin', 'super_admin'].includes(role)) {
@@ -45,10 +44,10 @@ export const AdminRoute = ({ children }) => {
 };
 
 export const SuperAdminRoute = ({ children }) => {
-    const { isAuthenticated, role, isLoading } = useSelector((state) => state.auth);
+    const { isAuthenticated, role, isLoading, appLoaded } = useSelector((state) => state.auth);
     const location = useLocation();
 
-    if (isLoading) {
+    if (isLoading && !appLoaded) {
         return (
             <div className="flex justify-center items-center min-h-screen">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -57,7 +56,7 @@ export const SuperAdminRoute = ({ children }) => {
     }
 
     if (!isAuthenticated) {
-        return <Navigate to="/login" state={{ from: location }} replace />;
+        return <Navigate to="/home" state={{ from: location }} replace />;
     }
 
     if (role !== 'super_admin') {

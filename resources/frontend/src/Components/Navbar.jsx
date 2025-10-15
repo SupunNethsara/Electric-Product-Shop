@@ -10,7 +10,7 @@ const Navbar = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
-    const { isAuthenticated, user, role } = useSelector((state) => state.auth);
+    const { isAuthenticated, user, role, isLoading } = useSelector((state) => state.auth);
     const cartCount = useSelector(state => state.cart?.total || 0);
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -34,7 +34,7 @@ const Navbar = () => {
 
     const handleLogout = () => {
         dispatch(logoutUser());
-        navigate("/");
+        navigate("/home");
         setIsUserDropdownOpen(false);
     };
 
@@ -93,20 +93,35 @@ const Navbar = () => {
         if (role === "admin") return "Dashboard";
         return "Profile";
     };
+    if (isLoading && !isAuthenticated) {
+        return (
+            <nav className="bg-white shadow-sm">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="flex justify-between items-center h-16">
+                        <Link to="/" className="text-2xl font-semibold text-slate-700">
+                            <span className="text-green-600">go</span>cart
+                            <span className="text-green-600 text-3xl">.</span>
+                        </Link>
+                        <div className="animate-pulse bg-gray-200 h-8 w-24 rounded"></div>
+                    </div>
+                </div>
+            </nav>
+        );
+    }
 
     return (
         <>
-            <nav className="relative  bg-white">
+            <nav className="relative bg-white">
                 <div className="mx-6">
                     <div className="flex items-center justify-between max-w-7xl mx-auto py-4 transition-all">
                         <Link
                             to="/"
-                            className="relative ml-5 text-4xl font-semibold text-slate-700"
+                            className="relative float-left text-4xl font-semibold text-slate-700"
                             onClick={() => setIsMobileMenuOpen(false)}
                         >
                             <span className="text-green-600">go</span>cart
                             <span className="text-green-600 text-5xl leading-0">.</span>
-                            <p className="absolute text-xs font-semibold -top-1 -right-8 px-3 p-0.5 rounded-full flex items-center gap-2 text-white bg-green-600">
+                            <p className="absolute text-xs font-semibold -top-1 -right-8 px-3 p-0.5 rounded-full flex items-center gap-2 text-white bg-green-500">
                                 plus
                             </p>
                         </Link>
@@ -142,7 +157,7 @@ const Navbar = () => {
                                 <ShoppingCart size={18} />
                                 Cart
                                 {cartCount > 0 && (
-                                    <span className="absolute -top-1 left-3 text-[8px] text-white bg-green-600 size-3.5 rounded-full flex items-center justify-center">
+                                    <span className="absolute -top-1 left-3 text-[8px] text-white bg-slate-600 size-3.5 rounded-full flex items-center justify-center">
                                         {cartCount}
                                     </span>
                                 )}
@@ -153,7 +168,7 @@ const Navbar = () => {
                                     <div className="relative">
                                         <button
                                             onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                                            className="flex items-center gap-3 bg-white border border-slate-200 rounded-lg px-4 py-2 hover:border-green-300 transition-all duration-300"
+                                            className="flex items-center gap-3 bg-white border border-slate-200 rounded-lg px-4 py-2 hover:border-slate-300 transition-all duration-300"
                                         >
                                             <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
                                                 <span className="text-white text-sm font-medium">
@@ -179,10 +194,10 @@ const Navbar = () => {
 
                                                 <Link
                                                     to={getDashboardLink()}
-                                                    className="flex items-center px-4 py-3 text-sm text-slate-700 hover:bg-green-50 transition-colors duration-200"
+                                                    className="flex items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
                                                     onClick={() => setIsUserDropdownOpen(false)}
                                                 >
-                                                    <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg className="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                     </svg>
                                                     {getDashboardLabel()}
@@ -191,10 +206,10 @@ const Navbar = () => {
                                                 {role === "user" && (
                                                     <Link
                                                         to="/orders"
-                                                        className="flex items-center px-4 py-3 text-sm text-slate-700 hover:bg-green-50 transition-colors duration-200"
+                                                        className="flex items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
                                                         onClick={() => setIsUserDropdownOpen(false)}
                                                     >
-                                                        <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <svg className="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                                         </svg>
                                                         My Orders
@@ -205,20 +220,20 @@ const Navbar = () => {
                                                     <>
                                                         <Link
                                                             to="/admin/products"
-                                                            className="flex items-center px-4 py-3 text-sm text-slate-700 hover:bg-green-50 transition-colors duration-200"
+                                                            className="flex items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
                                                             onClick={() => setIsUserDropdownOpen(false)}
                                                         >
-                                                            <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <svg className="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                                             </svg>
                                                             Manage Products
                                                         </Link>
                                                         <Link
                                                             to="/admin/users"
-                                                            className="flex items-center px-4 py-3 text-sm text-slate-700 hover:bg-green-50 transition-colors duration-200"
+                                                            className="flex items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
                                                             onClick={() => setIsUserDropdownOpen(false)}
                                                         >
-                                                            <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <svg className="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                                                             </svg>
                                                             Manage Users
@@ -251,7 +266,7 @@ const Navbar = () => {
                                     </button>
                                     <button
                                         onClick={openRegisterModal}
-                                        className="px-8 py-2 bg-green-600 hover:bg-green-700 transition text-white rounded-full font-medium"
+                                        className="px-8 py-2 bg-green-500 hover:bg-green-600 transition text-white rounded-full font-medium"
                                     >
                                         Get Started
                                     </button>
@@ -262,11 +277,11 @@ const Navbar = () => {
                         <div className="sm:hidden flex items-center gap-4">
                             <Link
                                 to="/cart"
-                                className="relative p-2 text-slate-600 hover:text-green-600 transition-colors duration-200"
+                                className="relative p-2 text-slate-600"
                             >
                                 <ShoppingCart size={20} />
                                 {cartCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 text-[8px] text-white bg-green-600 size-3.5 rounded-full flex items-center justify-center">
+                                    <span className="absolute -top-1 -right-1 text-[8px] text-white bg-slate-600 size-3.5 rounded-full flex items-center justify-center">
                                         {cartCount}
                                     </span>
                                 )}
@@ -282,7 +297,7 @@ const Navbar = () => {
                                     </button>
                                     <button
                                         onClick={openRegisterModal}
-                                        className="px-5 py-1.5 bg-green-600 hover:bg-green-700 text-sm transition text-white rounded-full font-medium"
+                                        className="px-5 py-1.5 bg-green-500 hover:bg-green-600 text-sm transition text-white rounded-full font-medium"
                                     >
                                         Get Started
                                     </button>
@@ -335,14 +350,14 @@ const Navbar = () => {
                                         <div className="border-t border-slate-200 pt-3 mt-2">
                                             <Link
                                                 to={getDashboardLink()}
-                                                className="py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-green-50 transition-all duration-200 block rounded-lg"
+                                                className="py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-slate-50 transition-all duration-200 block rounded-lg"
                                                 onClick={() => setIsMobileMenuOpen(false)}
                                             >
                                                 {getDashboardLabel()}
                                             </Link>
                                             <Link
                                                 to="/orders"
-                                                className="py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-green-50 transition-all duration-200 block rounded-lg"
+                                                className="py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-slate-50 transition-all duration-200 block rounded-lg"
                                                 onClick={() => setIsMobileMenuOpen(false)}
                                             >
                                                 My Orders
@@ -367,7 +382,7 @@ const Navbar = () => {
                                                 openLoginModal();
                                                 setIsMobileMenuOpen(false);
                                             }}
-                                            className="w-full text-left py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-green-50 transition-all duration-200 rounded-lg"
+                                            className="w-full text-left py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-slate-50 transition-all duration-200 rounded-lg"
                                         >
                                             Sign In
                                         </button>
