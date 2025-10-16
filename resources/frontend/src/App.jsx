@@ -74,12 +74,7 @@ function App() {
                     <Route path="/admin/*" element={
                         <AdminRoute>
                             <AdminLayout>
-                                <Routes>
-                                    <Route index element={<AdminDashboard />} />
-                                    <Route path="products" element={<div>Manage Products</div>} />
-                                    <Route path="users" element={<div>Manage Users</div>} />
-                                    <Route path="orders" element={<div>Manage Orders</div>} />
-                                </Routes>
+                                <AdminDashboard />
                             </AdminLayout>
                         </AdminRoute>
                     } />

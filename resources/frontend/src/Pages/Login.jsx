@@ -16,7 +16,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
     const { isLoading, error, isAuthenticated, role } = useSelector((state) => state.auth);
 
     useEffect(() => {
-        if (isAuthenticated && isOpen) {
+        if (isAuthenticated ) {
             console.log('Login successful, role:', role);
             onClose();
 
