@@ -9,6 +9,7 @@ import AdminLayout from "./layouts/AdminLayout.jsx";
 import Home from "./Components/HomeComponent/Home.jsx";
 import AdminDashboard from "./Dashboards/AdminDashboard.jsx";
 import SuperAdminDashboard from "./Dashboards/SuperAdminDashboard.jsx";
+import SuperAdminLayout from "./Layouts/SuperAdminLayout.jsx";
 
 
 
@@ -81,13 +82,13 @@ function App() {
 
                     <Route path="/super-admin/*" element={
                         <SuperAdminRoute>
-                            <AdminLayout>
+                            <SuperAdminLayout>
                                 <Routes>
                                     <Route index element={<SuperAdminDashboard/>} />
                                     <Route path="settings" element={<div>System Settings</div>} />
                                     <Route path="admins" element={<div>Manage Admins</div>} />
                                 </Routes>
-                            </AdminLayout>
+                            </SuperAdminLayout>
                         </SuperAdminRoute>
                     } />
 
