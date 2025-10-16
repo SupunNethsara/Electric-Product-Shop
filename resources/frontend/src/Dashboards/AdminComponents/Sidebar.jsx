@@ -49,7 +49,7 @@ const Sidebar = () => {
         },
         {
             name: 'Users',
-            href: '/admin/users',
+            href: '/admin/user-manage',
             icon: Users,
             current: location.pathname.includes('/admin/users')
         },
