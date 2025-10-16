@@ -1,7 +1,7 @@
-// components/RegisterModal.jsx
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearError, registerUser } from "../Store/slices/authSlice.js";
+import { X, User, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
     const [formData, setFormData] = useState({
@@ -10,6 +10,8 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
         password: '',
         password_confirmation: '',
     });
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const dispatch = useDispatch();
     const { isLoading, error, isAuthenticated } = useSelector((state) => state.auth);
@@ -67,124 +69,173 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
         }
     };
 
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
+    };
+
+    const toggleConfirmPasswordVisibility = () => {
+        setShowConfirmPassword(!showConfirmPassword);
+    };
+
     if (!isOpen) return null;
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 "
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
             onClick={handleOverlayClick}
         >
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 overflow-hidden max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white">
-                    <h2 className="text-2xl font-bold text-gray-900">
-                        Create your account
-                    </h2>
+                <div className="relative bg-gradient-to-r from-green-500 to-green-600 p-8 sticky top-0">
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                        className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-all duration-200 text-white"
                     >
-                        <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <X size={20} />
                     </button>
+                    <div className="text-center">
+                        <h2 className="text-2xl font-bold text-white mb-2">
+                            Join Us Today
+                        </h2>
+                        <p className="text-green-100">
+                            Create your account to get started
+                        </p>
+                    </div>
                 </div>
-
-                {/* Form */}
-                <form className="p-6 space-y-6" onSubmit={handleSubmit}>
+                <form className="p-8 space-y-6" onSubmit={handleSubmit}>
                     {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+                            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                             {error}
                         </div>
                     )}
 
                     <div className="space-y-4">
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                                Full name
+                        <div className="relative">
+                            <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-2">
+                                Full Name
                             </label>
-                            <input
-                                id="name"
-                                name="name"
-                                type="text"
-                                required
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                placeholder="Enter your full name"
-                                value={formData.name}
-                                onChange={handleChange}
-                            />
+                            <div className="relative">
+                                <User
+                                    size={20}
+                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"
+                                />
+                                <input
+                                    id="name"
+                                    name="name"
+                                    type="text"
+                                    required
+                                    className="w-full pl-12 pr-4 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-slate-50/50"
+                                    placeholder="Enter your full name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                                Email address
+                        <div className="relative">
+                            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+                                Email Address
                             </label>
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                required
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                placeholder="Enter your email"
-                                value={formData.email}
-                                onChange={handleChange}
-                            />
+                            <div className="relative">
+                                <Mail
+                                    size={20}
+                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"
+                                />
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    required
+                                    className="w-full pl-12 pr-4 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-slate-50/50"
+                                    placeholder="Enter your email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                        <div className="relative">
+                            <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
                                 Password
                             </label>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                required
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                placeholder="Create a password"
-                                value={formData.password}
-                                onChange={handleChange}
-                            />
+                            <div className="relative">
+                                <Lock
+                                    size={20}
+                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"
+                                />
+                                <input
+                                    id="password"
+                                    name="password"
+                                    type={showPassword ? "text" : "password"}
+                                    required
+                                    className="w-full pl-12 pr-12 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-slate-50/50"
+                                    placeholder="Create a password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={togglePasswordVisibility}
+                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors duration-200"
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                         </div>
-                        <div>
-                            <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700 mb-2">
-                                Confirm password
+
+                        <div className="relative">
+                            <label htmlFor="password_confirmation" className="block text-sm font-medium text-slate-700 mb-2">
+                                Confirm Password
                             </label>
-                            <input
-                                id="password_confirmation"
-                                name="password_confirmation"
-                                type="password"
-                                required
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                placeholder="Confirm your password"
-                                value={formData.password_confirmation}
-                                onChange={handleChange}
-                            />
+                            <div className="relative">
+                                <Lock
+                                    size={20}
+                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"
+                                />
+                                <input
+                                    id="password_confirmation"
+                                    name="password_confirmation"
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    required
+                                    className="w-full pl-12 pr-12 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-slate-50/50"
+                                    placeholder="Confirm your password"
+                                    value={formData.password_confirmation}
+                                    onChange={handleChange}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={toggleConfirmPasswordVisibility}
+                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors duration-200"
+                                >
+                                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-4 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-500/25"
                     >
                         {isLoading ? (
-                            <div className="flex items-center justify-center">
-                                <div className="w-5 h-5 border-t-2 border-white border-solid rounded-full animate-spin mr-2"></div>
+                            <div className="flex items-center justify-center gap-2">
+                                <Loader2 size={20} className="animate-spin" />
                                 Creating account...
                             </div>
                         ) : (
-                            'Sign up'
+                            'Create Account'
                         )}
                     </button>
 
-                    <div className="text-center">
-                        <p className="text-gray-600">
+                    <div className="text-center pt-4 border-t border-slate-100">
+                        <p className="text-slate-600">
                             Already have an account?{' '}
                             <button
                                 type="button"
                                 onClick={onSwitchToLogin}
-                                className="text-blue-600 font-medium hover:text-blue-700 transition-colors duration-200"
+                                className="text-green-600 font-semibold hover:text-green-700 transition-colors duration-200"
                             >
-                                Sign in
+                                Sign in here
                             </button>
                         </p>
                     </div>

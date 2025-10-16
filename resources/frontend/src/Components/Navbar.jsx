@@ -93,9 +93,10 @@ const Navbar = () => {
         if (role === "admin") return "Dashboard";
         return "Profile";
     };
+
     if (isLoading && !isAuthenticated) {
         return (
-            <nav className="bg-white shadow-sm">
+            <nav className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="flex justify-between items-center h-16">
                         <Link to="/" className="text-2xl font-semibold text-slate-700">
@@ -111,7 +112,7 @@ const Navbar = () => {
 
     return (
         <>
-            <nav className="relative bg-white">
+            <nav className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
                 <div className="mx-6">
                     <div className="flex items-center justify-between max-w-7xl mx-auto py-4 transition-all">
                         <Link
