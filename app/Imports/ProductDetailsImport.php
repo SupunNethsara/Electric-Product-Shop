@@ -4,14 +4,29 @@ namespace App\Imports;
 
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Illuminate\Support\Facades\Validator;
 
-class ProductDetailsImport implements ToCollection
+class ProductDetailsImport implements ToCollection, WithHeadingRow
 {
-    /**
-    * @param Collection $collection
-    */
-    public function collection(Collection $collection)
+    public $errors = [];
+
+    public function collection(Collection $rows)
     {
-        //
+        foreach ($rows as $index => $row) {
+            $validator = Validator::make($row->toArray(), [
+                'item_code' => 'required|string',
+                'name' => 'required|string',
+                'model' => 'nullable|string',
+                'description' => 'nullable|string',
+            ]);
+
+            if ($validator->fails()) {
+                $this->errors[] = [
+                    'row' => $index + 2,
+                    'errors' => $validator->errors()->all(),
+                ];
+            }
+        }
     }
 }
