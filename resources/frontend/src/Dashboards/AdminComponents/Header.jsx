@@ -52,8 +52,6 @@ function Header() {
                             <Bell size={20} />
                             <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
                         </button>
-
-                        {/* User Menu */}
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={toggleUserDropdown}
@@ -76,16 +74,12 @@ function Header() {
                                 />
                             </button>
 
-                            {/* User Dropdown Menu */}
                             {isUserDropdownOpen && (
                                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                                    {/* User Info */}
                                     <div className="px-4 py-3 border-b border-gray-100">
                                         <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                                         <p className="text-sm text-gray-500 capitalize">{user?.role}</p>
                                     </div>
-
-                                    {/* Profile Link */}
                                     <button
                                         onClick={() => {
                                             navigate('/profile');
@@ -96,8 +90,6 @@ function Header() {
                                         <User size={16} className="mr-3 text-gray-400" />
                                         Your Profile
                                     </button>
-
-                                    {/* Settings Link */}
                                     <button
                                         onClick={() => {
                                             navigate('/admin/settings');
@@ -109,7 +101,6 @@ function Header() {
                                         Settings
                                     </button>
 
-                                    {/* Logout Button */}
                                     <div className="border-t border-gray-100 mt-2 pt-2">
                                         <button
                                             onClick={handleLogout}
