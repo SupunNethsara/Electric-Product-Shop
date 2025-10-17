@@ -1,6 +1,7 @@
 <?php
 
-
+use App\Http\Controllers\CategoryController\CategoryController;
+use App\Http\Controllers\ProductController\ProductController;
 use App\Http\Controllers\UserController\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -14,3 +15,14 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 });
+
+// 🔹 Category Routes
+Route::get('/categories', [CategoryController::class, 'index']);
+Route::post('/categories', [CategoryController::class, 'store']);
+Route::put('/categories/{id}', [CategoryController::class, 'update']);
+Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+
+// 🔹 Product Routes
+Route::post('/products/validate', [ProductController::class, 'validateFiles']);
+Route::post('/products/upload', [ProductController::class, 'uploadProducts']);
+Route::post('/products/upload-images', [ProductController::class, 'uploadImages']);

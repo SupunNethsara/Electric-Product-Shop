@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\ProductController;
 
-use Illuminate\Http\Request;
-use App\Models\Product;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\Controller;
 use App\Imports\ProductDetailsImport;
 use App\Imports\ProductPricingImport;
+use App\Models\Product;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
@@ -43,13 +44,34 @@ class ProductController extends Controller
             'pricing_file' => 'required|file|mimes:xlsx,csv',
         ]);
 
-        $details = Excel::toCollection(null, $request->file('details_file'))[0];
-        $pricing = Excel::toCollection(null, $request->file('pricing_file'))[0];
+        $detailsImport = new ProductDetailsImport();
+        $pricingImport = new ProductPricingImport();
+
+        Excel::import($detailsImport, $request->file('details_file'));
+        Excel::import($pricingImport, $request->file('pricing_file'));
+
+        if ($detailsImport->errors || $pricingImport->errors) {
+            return response()->json([
+                'status' => 'failed',
+                'details_errors' => $detailsImport->errors,
+                'pricing_errors' => $pricingImport->errors,
+            ], 422);
+        }
+
+        $details = Excel::toArray([], $request->file('details_file'))[0];
+        $pricing = Excel::toArray([], $request->file('pricing_file'))[0];
+
+        array_shift($details);
+        array_shift($pricing);
 
         DB::transaction(function () use ($details, $pricing, $request) {
             foreach ($details as $detailRow) {
-                $itemCode = $detailRow['item_code'];
-                $priceRow = $pricing->firstWhere('item_code', $itemCode);
+                if (empty($detailRow[0])) continue;
+                $itemCode = $detailRow[0];
+
+                $priceRow = collect($pricing)->first(function($row) use ($itemCode) {
+                    return !empty($row[0]) && $row[0] === $itemCode;
+                });
 
                 if (!$priceRow) continue;
 
@@ -57,15 +79,16 @@ class ProductController extends Controller
                     ['item_code' => $itemCode],
                     [
                         'category_id' => $request->category_id,
-                        'name' => $detailRow['name'],
-                        'model' => $detailRow['model'] ?? '',
-                        'description' => $detailRow['description'] ?? '',
-                        'price' => $priceRow['price'],
-                        'availability' => $priceRow['availability'],
+                        'name' => $detailRow[1] ?? 'No Name',
+                        'model' => $detailRow[2] ?? '',
+                        'description' => $detailRow[3] ?? '',
+                        'price' => $priceRow[1] ?? 0,
+                        'availability' => $priceRow[2] ?? 0,
                     ]
                 );
             }
         });
+
 
         return response()->json(['message' => 'Products uploaded successfully!']);
     }
@@ -81,11 +104,21 @@ class ProductController extends Controller
             $product = Product::where('item_code', $filename)->first();
 
             if ($product) {
-                $path = $image->store('public/products');
-                $product->update(['image' => basename($path)]);
+                $uploadedFile = cloudinary()->upload(
+                    $image->getRealPath(),
+                    [
+                        'folder' => 'products',
+                        'public_id' => $filename,
+                        'overwrite' => true,
+                    ]
+                );
+                $imageUrl = $uploadedFile->getSecurePath();
+
+                $product->update(['image' => $imageUrl]);
             }
         }
 
-        return response()->json(['message' => 'Images uploaded successfully!']);
+        return response()->json(['message' => 'Images uploaded to Cloudinary successfully!']);
     }
+
 }
