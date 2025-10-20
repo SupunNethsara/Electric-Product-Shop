@@ -29,7 +29,7 @@ const UploadProducts = ({ onUploadComplete }) => {
     const fetchCategories = async () => {
         setCategoriesLoading(true);
         try {
-            const response = await axios.get('http://127.0.0.1:8000/api/categories');
+            const response = await axios.get('http://127.0.0.1:8000/api/categories/active');
             setCategories(response.data);
         } catch (error) {
             console.error('Failed to fetch categories');

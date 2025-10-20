@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
@@ -10,6 +11,11 @@ class CategoryController extends Controller
 
     public function index() {
         return response()->json(Category::all());
+    }
+    public function getActiveCategories()
+    {
+        $categories = Category::where('status', 'active')->get();
+        return response()->json( $categories);
     }
 
     public function store(Request $request)
