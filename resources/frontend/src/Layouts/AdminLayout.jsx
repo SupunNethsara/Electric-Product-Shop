@@ -1,13 +1,16 @@
 import Sidebar from "../Dashboards/AdminComponents/Sidebar.jsx";
 
-
 const AdminLayout = ({ children }) => {
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
-            <main className="flex-1 pl-2 overflow-y-auto">
-                {children}
-            </main>
+            <div className="flex-1 ml-64">
+                <div className="pt-16 mt-8 ">
+                    <div className="pl-5">
+                        {children}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

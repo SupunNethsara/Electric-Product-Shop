@@ -14,8 +14,6 @@ const Products = () => {
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
-
-
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
                     <div className="flex border-b border-gray-200">
                         <button

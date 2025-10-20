@@ -150,16 +150,7 @@ const UploadProducts = ({ onUploadComplete }) => {
         <div className="space-y-6">
             {uploadStage === 'validate' && (
                 <>
-                    <div className="text-center mb-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                            Upload Product Files
-                        </h2>
-                        <p className="text-gray-600">
-                            Upload both product details and pricing Excel files for validation
-                        </p>
-                    </div>
 
-                    {/* Category Selection */}
                     <CategorySelect
                         categories={categories}
                         loading={categoriesLoading}
