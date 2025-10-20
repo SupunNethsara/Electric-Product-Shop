@@ -21,7 +21,6 @@ const UploadProducts = ({ onUploadComplete }) => {
     const [uploadProgress, setUploadProgress] = useState(0);
     const [categoriesLoading, setCategoriesLoading] = useState(false);
 
-    // Fetch categories on component mount
     useEffect(() => {
         fetchCategories();
     }, []);
