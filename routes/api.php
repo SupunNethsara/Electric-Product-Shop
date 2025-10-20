@@ -18,11 +18,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // 🔹 Category Routes
 Route::get('/categories', [CategoryController::class, 'index']);
+Route::get('/categories/active', [CategoryController::class, 'getActiveCategories']);
 Route::post('/categories', [CategoryController::class, 'store']);
+Route::put('/categories/{id}/toggle', [CategoryController::class, 'toggleStatus']);
 Route::put('/categories/{id}', [CategoryController::class, 'update']);
 Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
 
 // 🔹 Product Routes
+Route::get('/products', [ProductController::class, 'index']);
 Route::post('/products/validate', [ProductController::class, 'validateFiles']);
 Route::post('/products/upload', [ProductController::class, 'uploadProducts']);
 Route::post('/products/upload-images', [ProductController::class, 'uploadImages']);

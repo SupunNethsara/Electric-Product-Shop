@@ -12,6 +12,11 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
+    public function index(Request $request)
+    {
+        $products = Product::all();
+        return response()->json($products);
+    }
     public function validateFiles(Request $request)
     {
         $request->validate([
@@ -96,29 +101,16 @@ class ProductController extends Controller
     public function uploadImages(Request $request)
     {
         $request->validate([
-            'images.*' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'product_id' => 'required|exists:products,id',
+            'image_url' => 'required|url',
         ]);
 
-        foreach ($request->file('images') as $image) {
-            $filename = pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME);
-            $product = Product::where('item_code', $filename)->first();
+        $product = Product::find($request->product_id);
+        $product->image = $request->image_url;
+        $product->save();
 
-            if ($product) {
-                $uploadedFile = cloudinary()->upload(
-                    $image->getRealPath(),
-                    [
-                        'folder' => 'products',
-                        'public_id' => $filename,
-                        'overwrite' => true,
-                    ]
-                );
-                $imageUrl = $uploadedFile->getSecurePath();
-
-                $product->update(['image' => $imageUrl]);
-            }
-        }
-
-        return response()->json(['message' => 'Images uploaded to Cloudinary successfully!']);
+        return response()->json(['message' => 'Image URL saved successfully!']);
     }
+
 
 }

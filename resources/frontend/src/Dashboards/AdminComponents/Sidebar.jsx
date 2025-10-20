@@ -1,3 +1,4 @@
+// Sidebar.jsx
 import {
     LayoutDashboard,
     Package,
@@ -12,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
+
 const Sidebar = () => {
     const location = useLocation();
     const { user } = useSelector((state) => state.auth);
@@ -72,9 +74,11 @@ const Sidebar = () => {
             current: location.pathname.includes('/admin/settings')
         }
     ];
+
     return (
-        <div className="w-64 h-screen bg-white shadow-xl flex flex-col">
-            <div className="px-6 py-4 border-b border-gray-200">
+        <div className="w-64 h-screen bg-white shadow-xl flex flex-col fixed left-0 top-0">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200 flex-shrink-0">
                 <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
                         <span className="text-white font-medium text-sm">
@@ -92,31 +96,33 @@ const Sidebar = () => {
                 </div>
             </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-                {navigationItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                        <Link
-                            key={item.name}
-                            to={item.href}
-                            className={`
-                                flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200
-                                ${item.current
-                                ? 'bg-green-50 text-green-700 border border-green-200'
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                            }
-                            `}
-                        >
-                            <Icon size={20} className="mr-3" />
-                            {item.name}
-                        </Link>
-                    );
-                })}
-            </nav>
+            {/* Navigation - Scrollable */}
+            <div className="flex-1 overflow-y-auto">
+                <nav className="px-4 py-6 space-y-1">
+                    {navigationItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                            <Link
+                                key={item.name}
+                                to={item.href}
+                                className={`
+                                    flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200
+                                    ${item.current
+                                    ? 'bg-green-50 text-green-700 border border-green-200'
+                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                }
+                                `}
+                            >
+                                <Icon size={20} className="mr-3" />
+                                {item.name}
+                            </Link>
+                        );
+                    })}
+                </nav>
+            </div>
 
             {/* Quick Upload Section */}
-            <div className="px-4 mt-4 mb-4">
+            <div className="px-4 py-4 border-t border-gray-200 flex-shrink-0">
                 <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-4 text-white">
                     <h3 className="text-sm font-semibold mb-2">Quick Upload</h3>
                     <p className="text-xs text-green-100 mb-3">
