@@ -1,4 +1,3 @@
-// ProductRow.js
 import React from 'react';
 
 const ProductRow = ({ product, onImageUpload }) => {

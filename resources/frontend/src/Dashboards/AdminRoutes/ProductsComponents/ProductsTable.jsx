@@ -25,21 +25,30 @@ const ProductsTable = ({ refreshTrigger }) => {
 
     const handleImageUpload = async (productId, itemCode, file) => {
         const formData = new FormData();
-        formData.append('images[]', file);
+        formData.append("file", file);
+        formData.append("upload_preset", "eSupport_Product");
 
         try {
-            await axios.post('http://127.0.0.1:8000/api/products/upload-images', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
+            const cloudinaryResponse = await axios.post(
+                "https://api.cloudinary.com/v1_1/dbn9uenrg/image/upload",
+                formData
+            );
+
+            const imageUrl = cloudinaryResponse.data.secure_url;
+            await axios.post("http://127.0.0.1:8000/api/products/upload-images", {
+                product_id: productId,
+                item_code: itemCode,
+                image_url: imageUrl,
             });
 
-            alert('Image uploaded successfully!');
+            alert("Image uploaded successfully!");
             fetchProducts();
         } catch (error) {
-            alert('Image upload failed');
+            console.error(error);
+            alert("Image upload failed!");
         }
     };
+
 
     if (loading) {
         return (
