@@ -17,6 +17,11 @@ class ProductController extends Controller
         $products = Product::all();
         return response()->json($products);
     }
+    public function getActiveProducts()
+    {
+        $products = Product::where('status', 'active')->get();
+        return response()->json($products);
+    }
     public function validateFiles(Request $request)
     {
         $request->validate([
@@ -107,6 +112,7 @@ class ProductController extends Controller
 
         $product = Product::find($request->product_id);
         $product->image = $request->image_url;
+        $product->status = 'active';
         $product->save();
 
         return response()->json(['message' => 'Image URL saved successfully!']);
