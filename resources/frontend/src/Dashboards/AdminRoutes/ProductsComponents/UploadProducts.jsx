@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import FileUpload from "./FileUpload.jsx";
-import ValidationResults from "./ValidationResults.jsx";
-import UploadProgress from "./UploadProgress.jsx";
+import FileUpload from './FileUpload';
+import ValidationResults from './ValidationResults';
+import UploadProgress from './UploadProgress';
+import CategorySelect from './CategorySelect';
 import UploadComplete from "./UploadComplete.jsx";
 
 
@@ -12,9 +14,30 @@ const UploadProducts = ({ onUploadComplete }) => {
         details: null,
         pricing: null
     });
+    const [categories, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState('');
     const [validationResult, setValidationResult] = useState(null);
     const [loading, setLoading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [categoriesLoading, setCategoriesLoading] = useState(false);
+
+    // Fetch categories on component mount
+    useEffect(() => {
+        fetchCategories();
+    }, []);
+
+    const fetchCategories = async () => {
+        setCategoriesLoading(true);
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/api/categories');
+            setCategories(response.data);
+        } catch (error) {
+            console.error('Failed to fetch categories');
+            alert('Failed to load categories');
+        } finally {
+            setCategoriesLoading(false);
+        }
+    };
 
     const handleFileSelect = (type, file) => {
         setFiles(prev => ({
@@ -34,6 +57,11 @@ const UploadProducts = ({ onUploadComplete }) => {
     const validateFiles = async () => {
         if (!files.details || !files.pricing) {
             alert('Please select both files');
+            return;
+        }
+
+        if (!selectedCategory) {
+            alert('Please select a category');
             return;
         }
 
@@ -70,11 +98,16 @@ const UploadProducts = ({ onUploadComplete }) => {
             return;
         }
 
+        if (!selectedCategory) {
+            alert('Please select a category');
+            return;
+        }
+
         setLoading(true);
         const formData = new FormData();
         formData.append('details_file', files.details);
         formData.append('pricing_file', files.pricing);
-        formData.append('category_id', 1);
+        formData.append('category_id', selectedCategory);
 
         try {
             await axios.post('http://127.0.0.1:8000/api/products/upload', formData, {
@@ -104,6 +137,7 @@ const UploadProducts = ({ onUploadComplete }) => {
 
     const resetUpload = () => {
         setFiles({ details: null, pricing: null });
+        setSelectedCategory('');
         setValidationResult(null);
         setUploadStage('validate');
         setUploadProgress(0);
@@ -126,6 +160,14 @@ const UploadProducts = ({ onUploadComplete }) => {
                         </p>
                     </div>
 
+                    {/* Category Selection */}
+                    <CategorySelect
+                        categories={categories}
+                        loading={categoriesLoading}
+                        selectedCategory={selectedCategory}
+                        onCategoryChange={setSelectedCategory}
+                    />
+
                     <FileUpload
                         files={files}
                         onFileSelect={handleFileSelect}
@@ -143,7 +185,7 @@ const UploadProducts = ({ onUploadComplete }) => {
                         </button>
                         <button
                             onClick={validateFiles}
-                            disabled={loading || !files.details || !files.pricing}
+                            disabled={loading || !files.details || !files.pricing || !selectedCategory || categoriesLoading}
                             className="bg-blue-600 text-white px-6 py-2 rounded-md font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                         >
                             {loading ? 'Validating...' : 'Validate Files'}
@@ -156,6 +198,8 @@ const UploadProducts = ({ onUploadComplete }) => {
                 <UploadProgress
                     uploadProgress={uploadProgress}
                     loading={loading}
+                    selectedCategory={selectedCategory}
+                    categories={categories}
                     onBack={handleBackToValidation}
                     onUpload={uploadProducts}
                 />

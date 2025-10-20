@@ -24,6 +24,7 @@ Route::put('/categories/{id}', [CategoryController::class, 'update']);
 Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
 
 // 🔹 Product Routes
+Route::get('/products', [ProductController::class, 'index']);
 Route::post('/products/validate', [ProductController::class, 'validateFiles']);
 Route::post('/products/upload', [ProductController::class, 'uploadProducts']);
 Route::post('/products/upload-images', [ProductController::class, 'uploadImages']);

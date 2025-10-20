@@ -1,7 +1,9 @@
 // UploadProgress.js
 import React from 'react';
 
-const UploadProgress = ({ uploadProgress, loading, onBack, onUpload }) => {
+const UploadProgress = ({ uploadProgress, loading, selectedCategory, categories, onBack, onUpload }) => {
+    const selectedCategoryName = categories.find(cat => cat.id === selectedCategory)?.name;
+
     return (
         <div className="space-y-6">
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -13,12 +15,25 @@ const UploadProgress = ({ uploadProgress, loading, onBack, onUpload }) => {
                 </div>
             </div>
 
+            {/* Category Confirmation */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                    Category Confirmation
+                </h3>
+                <p className="text-blue-700 mb-2">
+                    <strong>Selected Category:</strong> {selectedCategoryName}
+                </p>
+                <p className="text-blue-600 text-sm">
+                    All products will be assigned to the <strong>{selectedCategoryName}</strong> category.
+                </p>
+            </div>
+
             <div className="text-center">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                     Ready to Upload Products
                 </h3>
                 <p className="text-gray-600 mb-4">
-                    Click the button below to upload all products from both files to the database.
+                    Click the button below to upload all products from both files to the database under the <strong>{selectedCategoryName}</strong> category.
                 </p>
             </div>
 
@@ -49,7 +64,7 @@ const UploadProgress = ({ uploadProgress, loading, onBack, onUpload }) => {
                     disabled={loading}
                     className="bg-green-600 text-white px-6 py-2 rounded-md font-medium hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                    {loading ? 'Uploading...' : 'Upload All Products'}
+                    {loading ? 'Uploading...' : `Upload to ${selectedCategoryName}`}
                 </button>
             </div>
         </div>

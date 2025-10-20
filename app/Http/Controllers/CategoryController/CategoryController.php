@@ -12,19 +12,39 @@ class CategoryController extends Controller
         return response()->json(Category::all());
     }
 
-    public function store(Request $request) {
-        $request->validate([
+    public function store(Request $request)
+    {
+        if (isset($request[0]) && is_array($request[0])) {
+            $validated = $request->validate([
+                '*.name' => 'required|unique:categories,name',
+                '*.description' => 'nullable|string',
+            ]);
+
+            $created = [];
+
+            foreach ($validated as $categoryData) {
+                $created[] = \App\Models\Category::create($categoryData);
+            }
+
+            return response()->json([
+                'message' => 'Categories created successfully!',
+                'data' => $created
+            ], 201);
+        }
+
+        $validated = $request->validate([
             'name' => 'required|unique:categories,name',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
         ]);
 
-        $category = Category::create($request->only(['name', 'description']));
+        $category = \App\Models\Category::create($validated);
 
         return response()->json([
             'message' => 'Category created successfully!',
             'data' => $category
-        ]);
+        ], 201);
     }
+
 
     public function update(Request $request, $id) {
         $category = Category::findOrFail($id);

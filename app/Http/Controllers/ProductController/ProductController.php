@@ -12,6 +12,11 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
+    public function index(Request $request)
+    {
+        $products = Product::all();
+        return response()->json($products);
+    }
     public function validateFiles(Request $request)
     {
         $request->validate([
