@@ -1,7 +1,7 @@
 import SliderSection from "./SliderSection";
 import TopProduct from "./TopProduct.jsx";
 import CategoriesMarquee from "./CategoriesMarquee.jsx";
-import Products from "../Products.jsx";
+import Products from "../Products/Products.jsx";
 
 function Home() {
     return (

@@ -1,10 +1,22 @@
 import ProductCard from "./ProductCard.jsx";
-import { useState } from "react";
+import {useEffect, useState} from "react";
+import axios from "axios";
 
 
 const Products = () => {
 
 const[products , setProducts]=useState([]);
+
+useEffect(()=>{
+    const getProductHome =async ()=>{
+        await axios.get("http://127.0.0.1:8000/api/products/home")
+        .then((response)=>{
+            setProducts(response.data);
+        })
+    }
+    console.log(products);
+    getProductHome();
+} ,[])
 
     return (
         <div className="max-w-10/12 mx-auto py-8 px-4">

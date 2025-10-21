@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { ProtectedRoute, AdminRoute, SuperAdminRoute } from './components/ProtectedRoute';
+import { ProtectedRoute, AdminRoute, SuperAdminRoute } from './Components/Common/ProtectedRoute.jsx';
 import { fetchUser } from "./Store/slices/authSlice.js";
 import NormalLayout from "./layouts/NormalLayout.jsx";
 import AdminLayout from "./layouts/AdminLayout.jsx";

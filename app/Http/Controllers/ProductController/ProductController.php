@@ -29,7 +29,7 @@ class ProductController extends Controller
     }
 
     public function homeProducts(){
-        $products = Product::where('status', 'disabled')//in the production mode change it to active
+        $products = Product::where('status', 'active')//in the production mode change it to active
             ->orderBy('created_at', 'desc')
             ->take(15)
             ->get();
