@@ -21,7 +21,7 @@ class ProductController extends Controller
     {
         $perPage = $request->get('per_page', 20);
 
-        $products = Product::where('status', 'active')
+        $products = Product::where('status', 'disabled')//in the production mode change it to active
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
 
@@ -29,7 +29,7 @@ class ProductController extends Controller
     }
 
     public function homeProducts(){
-        $products = Product::where('status', 'disabled')
+        $products = Product::where('status', 'disabled')//in the production mode change it to active
             ->orderBy('created_at', 'desc')
             ->take(15)
             ->get();
