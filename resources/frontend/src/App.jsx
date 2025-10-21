@@ -15,6 +15,7 @@ import AdminDashboard from "./Dashboards/AdminDashboard.jsx";
 import SuperAdminDashboard from "./Dashboards/SuperAdminDashboard.jsx";
 import SuperAdminLayout from "./Layouts/SuperAdminLayout.jsx";
 import CheckOutUser from "./Components/Products/CheckOut/CheckOutUser.jsx";
+import ProductDetails from "./Components/Products/ProductDetails.jsx";
 
 function App() {
     const dispatch = useDispatch();
@@ -69,7 +70,9 @@ function App() {
                         path="/checkout"
                         element={
                             <NormalLayout>
-                                <CheckOutUser />
+                                <ProtectedRoute>
+                                    <CheckOutUser />
+                                </ProtectedRoute>
                             </NormalLayout>
                         }
                     />
@@ -81,6 +84,15 @@ function App() {
                                 <ProtectedRoute>
                                     <div>User Profile</div>
                                 </ProtectedRoute>
+                            </NormalLayout>
+                        }
+                    />
+
+                    <Route
+                        path="/productDetails/:id"
+                        element={
+                            <NormalLayout>
+                                <ProductDetails />
                             </NormalLayout>
                         }
                     />
