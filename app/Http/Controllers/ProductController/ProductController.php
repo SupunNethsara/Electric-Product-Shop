@@ -17,9 +17,23 @@ class ProductController extends Controller
         $products = Product::all();
         return response()->json($products);
     }
-    public function getActiveProducts()
+    public function getActiveProducts(Request $request)
     {
-        $products = Product::where('status', 'active')->get();
+        $perPage = $request->get('per_page', 20);
+
+        $products = Product::where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+
+        return response()->json($products);
+    }
+
+    public function homeProducts(){
+        $products = Product::where('status', 'disabled')
+            ->orderBy('created_at', 'desc')
+            ->take(15)
+            ->get();
+
         return response()->json($products);
     }
     public function validateFiles(Request $request)
