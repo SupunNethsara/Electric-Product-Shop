@@ -1,9 +1,9 @@
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { logoutUser } from "../Store/slices/authSlice.js";
+import { logoutUser } from "../../Store/slices/authSlice.js";
 import { useState, useEffect, useRef } from "react";
-import LoginModal from "../Pages/Login.jsx";
-import RegisterModal from "../Pages/Register.jsx";
+import LoginModal from "../../Pages/Login.jsx";
+import RegisterModal from "../../Pages/Register.jsx";
 import { Search, ShoppingCart, Menu, X } from "lucide-react";
 
 const Navbar = () => {
