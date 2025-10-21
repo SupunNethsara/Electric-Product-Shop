@@ -1,8 +1,12 @@
-import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 
-import { ProtectedRoute, AdminRoute, SuperAdminRoute } from './Components/Common/ProtectedRoute.jsx';
+import {
+    ProtectedRoute,
+    AdminRoute,
+    SuperAdminRoute,
+} from "./Components/Common/ProtectedRoute.jsx";
 import { fetchUser } from "./Store/slices/authSlice.js";
 import NormalLayout from "./layouts/NormalLayout.jsx";
 import AdminLayout from "./layouts/AdminLayout.jsx";
@@ -10,8 +14,7 @@ import Home from "./Components/HomeComponent/Home.jsx";
 import AdminDashboard from "./Dashboards/AdminDashboard.jsx";
 import SuperAdminDashboard from "./Dashboards/SuperAdminDashboard.jsx";
 import SuperAdminLayout from "./Layouts/SuperAdminLayout.jsx";
-
-
+import CheckOutUser from "./Components/Products/CheckOut/CheckOutUser.jsx";
 
 function App() {
     const dispatch = useDispatch();
@@ -19,7 +22,7 @@ function App() {
     const [initialLoad, setInitialLoad] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         if (token) {
             dispatch(fetchUser()).finally(() => {
                 setInitialLoad(false);
@@ -45,58 +48,78 @@ function App() {
             <div className="App">
                 <Routes>
                     {/* Public Routes with Navbar */}
-                    <Route path="/" element={
-                        <NormalLayout>
-                            <Home />
-                        </NormalLayout>
-                    } />
-                    <Route path="/home" element={
-                        <NormalLayout>
-                            <Home />
-                        </NormalLayout>
-                    } />
+                    <Route
+                        path="/"
+                        element={
+                            <NormalLayout>
+                                <Home />
+                            </NormalLayout>
+                        }
+                    />
+                    <Route
+                        path="/home"
+                        element={
+                            <NormalLayout>
+                                <Home />
+                            </NormalLayout>
+                        }
+                    />
 
-                    <Route path="/checkout" element={
-                        <NormalLayout>
-                            <ProtectedRoute>
-                                <div>Checkout Page</div>
-                            </ProtectedRoute>
-                        </NormalLayout>
-                    } />
+                    <Route
+                        path="/checkout"
+                        element={
+                            <NormalLayout>
+                                <CheckOutUser />
+                            </NormalLayout>
+                        }
+                    />
 
-                    <Route path="/profile" element={
-                        <NormalLayout>
-                            <ProtectedRoute>
-                                <div>User Profile</div>
-                            </ProtectedRoute>
-                        </NormalLayout>
-                    } />
+                    <Route
+                        path="/profile"
+                        element={
+                            <NormalLayout>
+                                <ProtectedRoute>
+                                    <div>User Profile</div>
+                                </ProtectedRoute>
+                            </NormalLayout>
+                        }
+                    />
 
-                    <Route path="/admin/*" element={
-                        <AdminRoute>
-                            <AdminLayout>
-                                <AdminDashboard />
-                            </AdminLayout>
-                        </AdminRoute>
-                    } />
+                    <Route
+                        path="/admin/*"
+                        element={
+                            <AdminRoute>
+                                <AdminLayout>
+                                    <AdminDashboard />
+                                </AdminLayout>
+                            </AdminRoute>
+                        }
+                    />
 
-                    <Route path="/super-admin/*" element={
-                        <SuperAdminRoute>
-                            <SuperAdminLayout>
-                                <Routes>
-                                    <Route index element={<SuperAdminDashboard/>} />
-                                    <Route path="settings" element={<div>System Settings</div>} />
-                                    <Route path="admins" element={<div>Manage Admins</div>} />
-                                </Routes>
-                            </SuperAdminLayout>
-                        </SuperAdminRoute>
-                    } />
+                    <Route
+                        path="/super-admin/*"
+                        element={
+                            <SuperAdminRoute>
+                                <SuperAdminLayout>
+                                    <Routes>
+                                        <Route
+                                            index
+                                            element={<SuperAdminDashboard />}
+                                        />
+                                    </Routes>
+                                </SuperAdminLayout>
+                            </SuperAdminRoute>
+                        }
+                    />
 
-                    <Route path="/unauthorized" element={
-                        <NormalLayout>
-                            <div>Unauthorized Access</div>
-                        </NormalLayout>
-                    } />
+                    <Route
+                        path="/unauthorized"
+                        element={
+                            <NormalLayout>
+                                <div>Unauthorized Access</div>
+                            </NormalLayout>
+                        }
+                    />
                 </Routes>
             </div>
         </Router>
