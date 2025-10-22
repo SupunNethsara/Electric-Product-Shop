@@ -2,9 +2,8 @@ import { useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
     const navigate = useNavigate();
-
     const handleBuyClick = () => {
-        navigate(`/productDetails/${product.id}`);
+        navigate(`/productDetails/${product.id}`, { state: { product } });
     };
 
     const originalPrice = parseFloat(product.price) * 1.3;
@@ -12,7 +11,6 @@ const ProductCard = ({ product }) => {
 
     return (
         <div className="bg-white border border-gray-200 rounded-sm hover:shadow-lg transition-all duration-200 hover:border-green-500 group">
-            {/* Product Image with Discount Badge */}
             <div className="relative p-4 pb-0">
                 <div className="relative overflow-hidden">
                     <img
@@ -21,13 +19,11 @@ const ProductCard = ({ product }) => {
                         className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                     />
 
-                    {/* Discount Badge - Daraz Style */}
                     <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 text-xs font-bold rounded">
                         {discountPercent}% OFF
                     </div>
                 </div>
 
-                {/* Status Badge */}
                 {product.status === 'disabled' && (
                     <div className="absolute top-2 right-2 bg-gray-600 text-white px-2 py-1 text-xs font-bold rounded">
                         Out of Stock
@@ -35,14 +31,11 @@ const ProductCard = ({ product }) => {
                 )}
             </div>
 
-            {/* Product Info */}
             <div className="p-4 pt-3">
-                {/* Product Name */}
                 <h3 className="text-sm text-gray-800 mb-2 line-clamp-2 h-10 leading-tight">
                     {product.name} - {product.model}
                 </h3>
 
-                {/* Rating Section - Daraz Style */}
                 <div className="flex items-center gap-1 mb-2">
                     <div className="flex items-center bg-green-600 text-white px-1 py-0.5 rounded text-xs font-bold">
                         <span>{4.2}</span>
@@ -53,7 +46,6 @@ const ProductCard = ({ product }) => {
                     <span className="text-xs text-gray-500">({Math.floor(Math.random() * 1000) + 100})</span>
                 </div>
 
-                {/* Price Section - Daraz Style */}
                 <div className="mb-3">
                     <div className="flex items-baseline gap-2 mb-1">
                         <span className="text-lg font-bold text-green-600">Rs. {product.price}</span>
