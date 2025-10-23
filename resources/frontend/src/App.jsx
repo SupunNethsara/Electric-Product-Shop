@@ -6,16 +6,17 @@ import {
     ProtectedRoute,
     AdminRoute,
     SuperAdminRoute,
-} from "./Components/Common/ProtectedRoute.jsx";
+} from "./UserInterFaceComponents/Common/ProtectedRoute.jsx";
 import { fetchUser } from "./Store/slices/authSlice.js";
 import NormalLayout from "./layouts/NormalLayout.jsx";
 import AdminLayout from "./layouts/AdminLayout.jsx";
-import Home from "./Components/HomeComponent/Home.jsx";
 import AdminDashboard from "./Dashboards/AdminDashboard.jsx";
 import SuperAdminDashboard from "./Dashboards/SuperAdminDashboard.jsx";
 import SuperAdminLayout from "./Layouts/SuperAdminLayout.jsx";
-import CheckOutUser from "./Components/Products/CheckOut/CheckOutUser.jsx";
-import ProductDetails from "./Components/Products/ProductDetails.jsx";
+import CheckOutUser from "./UserInterFaceComponents/Products/CheckOut/CheckOutUser.jsx";
+import ProductDetails from "./UserInterFaceComponents/Products/ProductDetails.jsx";
+import UserInterFace from "./UserInterFaceComponents/Common/UserInterFace.jsx";
+
 
 function App() {
     const dispatch = useDispatch();
@@ -48,24 +49,14 @@ function App() {
         <Router>
             <div className="App">
                 <Routes>
-                    {/* Public Routes with Navbar */}
                     <Route
-                        path="/"
+                        path="/*"
                         element={
                             <NormalLayout>
-                                <Home />
+                                <UserInterFace/>
                             </NormalLayout>
                         }
                     />
-                    <Route
-                        path="/home"
-                        element={
-                            <NormalLayout>
-                                <Home />
-                            </NormalLayout>
-                        }
-                    />
-
                     <Route
                         path="/checkout"
                         element={
@@ -89,14 +80,13 @@ function App() {
                     />
 
                     <Route
-                        path="/productDetails/:id"
+                        path="/productDetails/:id?"
                         element={
                             <NormalLayout>
                                 <ProductDetails />
                             </NormalLayout>
                         }
                     />
-
                     <Route
                         path="/admin/*"
                         element={

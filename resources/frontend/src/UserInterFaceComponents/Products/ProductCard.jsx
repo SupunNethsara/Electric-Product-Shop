@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 const ProductCard = ({ product }) => {
     const navigate = useNavigate();
     const handleBuyClick = () => {
-        navigate(`/productDetails/${product.id}`, { state: { product } });
+        navigate('/productDetails', { state: { product } });
     };
 
     const originalPrice = parseFloat(product.price) * 1.3;

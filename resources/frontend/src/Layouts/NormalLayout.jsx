@@ -1,4 +1,4 @@
-import Navbar from "../Components/Common/Navbar.jsx";
+import Navbar from "../UserInterFaceComponents/Common/Navbar.jsx";
 
 const NormalLayout = ({ children }) => {
     return (
