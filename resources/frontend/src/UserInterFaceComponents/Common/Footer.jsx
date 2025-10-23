@@ -8,8 +8,6 @@ import {
     Mail,
     Phone,
     MapPin,
-    CreditCard,
-    Shield,
     Heart
 } from 'lucide-react';
 
@@ -49,13 +47,7 @@ const Footer = () => {
         }
     ];
 
-    const paymentMethods = [
-        { name: "Visa", icon: "💳" },
-        { name: "Mastercard", icon: "💳" },
-        { name: "PayPal", icon: "📱" },
-        { name: "Apple Pay", icon: "📱" },
-        { name: "Google Pay", icon: "📱" }
-    ];
+
 
     const socialLinks = [
         {
@@ -97,7 +89,6 @@ const Footer = () => {
                             and exceptional customer service.
                         </p>
 
-                        {/* Contact Info */}
                         <div className="space-y-3">
                             <div className="flex items-center gap-3 text-gray-300">
                                 <Phone className="w-4 h-4 text-green-600" />
@@ -109,12 +100,11 @@ const Footer = () => {
                             </div>
                             <div className="flex items-start gap-3 text-gray-300">
                                 <MapPin className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
-                                <span>123 Tech Street, Silicon Valley, CA 94025</span>
+                                <span>Address</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Links Sections */}
                     {footerSections.map((section) => (
                         <div key={section.title}>
                             <h3 className="font-semibold text-lg mb-4 text-white">
@@ -136,33 +126,9 @@ const Footer = () => {
                     ))}
                 </div>
 
-                {/* Divider */}
                 <div className="border-t border-gray-700 my-8"></div>
 
-                {/* Bottom Section */}
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-                    {/* Payment Methods */}
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2 text-gray-300 text-sm">
-                            <CreditCard className="w-4 h-4" />
-                            <span>We accept:</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {paymentMethods.map((method) => (
-                                <div
-                                    key={method.name}
-                                    className="text-gray-400 text-sm bg-gray-800 px-3 py-1 rounded-full border border-gray-700"
-                                    title={method.name}
-                                >
-                                    {method.icon} {method.name}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-green-600 bg-green-600/10 px-4 py-2 rounded-full border border-green-600/20">
-                        <Shield className="w-4 h-4" />
-                        <span className="text-sm font-medium">Secure Payment</span>
-                    </div>
                     <div className="flex items-center gap-4">
                         <span className="text-gray-300 text-sm">Follow us:</span>
                         <div className="flex items-center gap-3">
