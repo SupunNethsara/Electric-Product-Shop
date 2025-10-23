@@ -21,7 +21,7 @@ class ProductController extends Controller
     {
         $perPage = $request->get('per_page', 20);
 
-        $products = Product::where('status', 'disabled')//in the production mode change it to active
+        $products = Product::where('status', 'active')//in the production mode change it to active
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
 
@@ -119,17 +119,68 @@ class ProductController extends Controller
 
     public function uploadImages(Request $request)
     {
-        $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'image_url' => 'required|url',
-        ]);
+        try {
+            $validated = $request->validate([
+                'product_id' => 'required|string|exists:products,id',
+                'item_code' => 'required|string',
+                'image_urls' => 'required|array|min:1|max:3',
+                'image_urls.*' => 'url',
+                'main_image_index' => 'sometimes|integer|min:0|max:2'
+            ]);
 
-        $product = Product::find($request->product_id);
-        $product->image = $request->image_url;
-        $product->status = 'active';
-        $product->save();
+            \Log::info('Uploading images for product', [
+                'product_id' => $request->product_id,
+                'item_code' => $request->item_code,
+                'image_count' => count($request->image_urls)
+            ]);
 
-        return response()->json(['message' => 'Image URL saved successfully!']);
+            $product = Product::find($request->product_id);
+
+            if (!$product) {
+                \Log::error('Product not found', ['product_id' => $request->product_id]);
+                return response()->json([
+                    'message' => 'Product not found',
+                    'errors' => [
+                        'product_id' => ['The selected product was not found. It may have been deleted.']
+                    ]
+                ], 404);
+            }
+
+            // Store all image URLs in the images column
+            $product->images = json_encode($request->image_urls);
+
+            // Set the first image as main image (or specified index)
+            $mainImageIndex = $request->main_image_index ?? 0;
+            $product->image = $request->image_urls[$mainImageIndex];
+
+            $product->status = 'active';
+            $product->save();
+
+            return response()->json([
+                'message' => 'Images uploaded successfully!',
+                'main_image' => $product->image,
+                'all_images' => $request->image_urls
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed during image upload', [
+                'errors' => $e->errors(),
+                'input' => $request->all()
+            ]);
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Error uploading images', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'message' => 'Failed to upload images',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
 

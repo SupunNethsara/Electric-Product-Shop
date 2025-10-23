@@ -23,32 +23,63 @@ const ProductsTable = ({ refreshTrigger }) => {
         fetchProducts();
     }, [refreshTrigger]);
 
-    const handleImageUpload = async (productId, itemCode, file) => {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", "eSupport_Product");
+    const handleImagesUpload = async (productId, itemCode, files, mainImageIndex = 0) => {
+        if (files.length > 3) {
+            alert('Maximum 3 images allowed!');
+            return;
+        }
 
         try {
-            const cloudinaryResponse = await axios.post(
-                "https://api.cloudinary.com/v1_1/dbn9uenrg/image/upload",
-                formData
-            );
+            const uploadPromises = Array.from(files).map(file => {
+                const formData = new FormData();
+                formData.append("file", file);
+                formData.append("upload_preset", "eSupport_Product");
 
-            const imageUrl = cloudinaryResponse.data.secure_url;
-            await axios.post("http://127.0.0.1:8000/api/products/upload-images", {
-                product_id: productId,
-                item_code: itemCode,
-                image_url: imageUrl,
+                return axios.post(
+                    "https://api.cloudinary.com/v1_1/dbn9uenrg/image/upload",
+                    formData
+                );
             });
 
-            alert("Image uploaded successfully!");
+            const cloudinaryResponses = await Promise.all(uploadPromises);
+            const imageUrls = cloudinaryResponses.map(response => response.data.secure_url);
+
+            const response = await axios.post("http://127.0.0.1:8000/api/products/upload-images", {
+                product_id: productId,
+                item_code: itemCode,
+                image_urls: imageUrls,
+                main_image_index: mainImageIndex
+            });
+
+            alert(`Successfully uploaded ${imageUrls.length} image(s)!`);
             fetchProducts();
+            return response.data;
         } catch (error) {
-            console.error(error);
-            alert("Image upload failed!");
+            console.error('Upload failed:', error);
+
+            let errorMessage = 'Failed to upload images. ';
+
+            if (error.response) {
+                if (error.response.status === 404) {
+                    errorMessage += 'Product not found. It may have been deleted. Please refresh the page and try again.';
+                } else if (error.response.data?.errors) {
+                    const errorMessages = Object.values(error.response.data.errors).flat();
+                    errorMessage += errorMessages.join(' ');
+                } else if (error.response.data?.message) {
+                    errorMessage += error.response.data.message;
+                } else {
+                    errorMessage += 'Please try again later.';
+                }
+            } else if (error.request) {
+                errorMessage += 'No response from server. Please check your connection.';
+            } else {
+                errorMessage += error.message;
+            }
+
+            alert(errorMessage);
+            throw error;
         }
     };
-
 
     if (loading) {
         return (
@@ -73,7 +104,10 @@ const ProductsTable = ({ refreshTrigger }) => {
                         <thead className="bg-gray-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Image
+                                Main Image
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                All Images
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Item Code
@@ -103,7 +137,7 @@ const ProductsTable = ({ refreshTrigger }) => {
                             <ProductRow
                                 key={product.id}
                                 product={product}
-                                onImageUpload={handleImageUpload}
+                                onImagesUpload={handleImagesUpload}
                             />
                         ))}
                         </tbody>
