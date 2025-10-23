@@ -10,13 +10,13 @@ import {
 import { fetchUser } from "./Store/slices/authSlice.js";
 import NormalLayout from "./layouts/NormalLayout.jsx";
 import AdminLayout from "./layouts/AdminLayout.jsx";
-import Home from "./Components/HomeComponent/Home.jsx";
 import AdminDashboard from "./Dashboards/AdminDashboard.jsx";
 import SuperAdminDashboard from "./Dashboards/SuperAdminDashboard.jsx";
 import SuperAdminLayout from "./Layouts/SuperAdminLayout.jsx";
 import CheckOutUser from "./Components/Products/CheckOut/CheckOutUser.jsx";
 import ProductDetails from "./Components/Products/ProductDetails.jsx";
-import UserInterFace from "./Components/UserInterface/UserInterFace.jsx";
+import UserInterFace from "./Components/HomeComponent/UserInterFace.jsx";
+
 
 function App() {
     const dispatch = useDispatch();
@@ -49,12 +49,11 @@ function App() {
         <Router>
             <div className="App">
                 <Routes>
-                    {/* Public Routes with Navbar */}
                     <Route
-                        path="/"
+                        path="/*"
                         element={
                             <NormalLayout>
-                                <UserInterFace />
+                                <UserInterFace/>
                             </NormalLayout>
                         }
                     />
@@ -88,7 +87,6 @@ function App() {
                             </NormalLayout>
                         }
                     />
-
                     <Route
                         path="/admin/*"
                         element={

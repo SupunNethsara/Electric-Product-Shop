@@ -1,11 +1,12 @@
-import SliderSection from "./SliderSection";
-import TopProduct from "./TopProduct.jsx";
-import CategoriesMarquee from "./CategoriesMarquee.jsx";
+import React from "react";
+import SliderSection from "../HomeComponent/SliderSection.jsx";
+import TopProduct from "../HomeComponent/TopProduct.jsx";
+import CategoriesMarquee from "../HomeComponent/CategoriesMarquee.jsx";
 import Products from "../Products/Products.jsx";
 
-function Home() {
+function HomeSection() {
     return (
-        <div className="h-auto bg-gray-50 pt-32 pb-20">
+        <div>
             <div className="max-w-10/12 mx-auto flex flex-col lg:flex-row gap-6 px-0">
                 <div className="w-full lg:w-4/6 lg:h-[500px]">
                     <SliderSection />
@@ -18,4 +19,4 @@ function Home() {
     );
 }
 
-export default Home;
+export default HomeSection;
