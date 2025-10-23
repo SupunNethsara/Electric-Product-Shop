@@ -24,7 +24,7 @@ function Header() {
 
     const handleLogout = () => {
         dispatch(logoutUser());
-        navigate("/home");
+        navigate("/");
         setIsUserDropdownOpen(false);
     };
 

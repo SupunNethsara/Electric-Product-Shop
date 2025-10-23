@@ -34,7 +34,7 @@ const Navbar = () => {
 
     const handleLogout = () => {
         dispatch(logoutUser());
-        navigate("/home");
+        navigate("/");
         setIsUserDropdownOpen(false);
     };
 
