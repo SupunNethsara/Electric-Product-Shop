@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { Camera, X, Upload, AlertCircle, CheckCircle } from 'lucide-react';
 
 const ProductRow = ({ product, onImagesUpload }) => {
     const [showImageModal, setShowImageModal] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [mainImageIndex, setMainImageIndex] = useState(0);
     const [uploading, setUploading] = useState(false);
+    const [showInstructions, setShowInstructions] = useState(false);
 
     const handleFileSelect = (event) => {
         const files = Array.from(event.target.files);
@@ -13,9 +15,14 @@ const ProductRow = ({ product, onImagesUpload }) => {
             event.target.value = '';
             return;
         }
-        setSelectedFiles(files);
-        setMainImageIndex(0);
-        setShowImageModal(true);
+
+        if (selectedFiles.length === 0 && files.length > 0) {
+            setSelectedFiles(files);
+            setShowInstructions(true);
+        } else {
+            setSelectedFiles(files);
+            setShowImageModal(true);
+        }
         event.target.value = '';
     };
 
@@ -29,12 +36,18 @@ const ProductRow = ({ product, onImagesUpload }) => {
         try {
             await onImagesUpload(product.id, product.item_code, selectedFiles, mainImageIndex);
             setShowImageModal(false);
+            setShowInstructions(false);
             setSelectedFiles([]);
         } catch (error) {
             console.error('Upload error:', error);
         } finally {
             setUploading(false);
         }
+    };
+
+    const startUploadProcess = () => {
+        setShowInstructions(false);
+        setShowImageModal(true);
     };
 
     const productImages = product.images
@@ -55,9 +68,7 @@ const ProductRow = ({ product, onImagesUpload }) => {
                         />
                     ) : (
                         <div className="h-12 w-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <svg className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
+                            <Camera className="h-6 w-6 text-gray-400" />
                         </div>
                     )}
                 </td>
@@ -72,7 +83,7 @@ const ProductRow = ({ product, onImagesUpload }) => {
                             />
                         ))}
                         {productImages.length === 0 && (
-                            <span className="text-gray-400 text-xs">No images</span>
+                            <span className="text-gray-400 text-xs flex items-center">No images</span>
                         )}
                     </div>
                 </td>
@@ -101,11 +112,9 @@ const ProductRow = ({ product, onImagesUpload }) => {
                     </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <label className="cursor-pointer bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 transition-colors inline-flex items-center">
-                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        Add Photos
+                    <label className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-all duration-200 inline-flex items-center gap-2 shadow-md hover:shadow-lg">
+                        <Camera size={16} />
+                        Add Images
                         <input
                             type="file"
                             multiple
@@ -117,46 +126,204 @@ const ProductRow = ({ product, onImagesUpload }) => {
                 </td>
             </tr>
 
-            {showImageModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                        <h3 className="text-lg font-semibold mb-4">Upload Product Images</h3>
+            {showInstructions && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-md transform transition-all">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-100 rounded-lg">
+                                    <AlertCircle className="w-6 h-6 text-blue-600" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900">
+                                    Image Upload Guide
+                                </h3>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setShowInstructions(false);
+                                    setSelectedFiles([]);
+                                }}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
 
-                        <div className="mb-4">
-                            <p className="text-sm text-gray-600 mb-2">
-                                Selected {selectedFiles.length} of 3 images maximum.
-                                <span className="font-medium"> First image will be set as main by default.</span>
-                            </p>
-                            <div className="grid grid-cols-3 gap-2 mb-4">
-                                {selectedFiles.map((file, index) => (
-                                    <div key={index} className="relative">
-                                        <img
-                                            src={URL.createObjectURL(file)}
-                                            alt={`Preview ${index + 1}`}
-                                            className="h-20 w-full object-cover rounded border-2 border-gray-300"
-                                        />
-                                        <button
-                                            onClick={() => setMainImageIndex(index)}
-                                            className={`absolute top-1 left-1 text-xs px-1 rounded ${
-                                                mainImageIndex === index
-                                                    ? 'bg-blue-600 text-white'
-                                                    : 'bg-gray-800 text-white bg-opacity-70'
-                                            }`}
-                                        >
-                                            {mainImageIndex === index ? 'Main' : 'Set Main'}
-                                        </button>
+                        {/* Content */}
+                        <div className="p-6 space-y-4">
+                            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                                    <CheckCircle className="w-4 h-4" />
+                                    Recommended Image Types
+                                </h4>
+                                <div className="grid grid-cols-2 gap-2 text-sm text-blue-800">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                        Front View
                                     </div>
-                                ))}
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                        Back View
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                        Side View
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                        Close-up Details
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600">Selected Images</span>
+                                    <span className="font-semibold text-blue-600">
+                                        {selectedFiles.length}/4
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    {selectedFiles.map((file, index) => (
+                                        <div key={index} className="relative group">
+                                            <img
+                                                src={URL.createObjectURL(file)}
+                                                alt={`Preview ${index + 1}`}
+                                                className="w-full h-20 object-cover rounded-lg border border-gray-200"
+                                            />
+                                            <div className="absolute inset-0 bg-black/50 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
+                                                <span className="text-white text-xs font-medium bg-black/40 px-2 py-1 rounded">
+                                                    Image {index + 1}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                <div className="flex items-start gap-2">
+                                    <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                                    <p className="text-sm text-yellow-800">
+                                        <strong>Maximum 4 images</strong> allowed per product.
+                                        You can set one as the main display image.
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="flex justify-end space-x-3">
+                        {/* Footer */}
+                        <div className="flex gap-3 p-6 border-t border-gray-200">
+                            <button
+                                onClick={() => {
+                                    setShowInstructions(false);
+                                    setSelectedFiles([]);
+                                }}
+                                className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={startUploadProcess}
+                                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
+                            >
+                                <Upload className="w-4 h-4" />
+                                Continue to Upload
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showImageModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-md transform transition-all">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-green-100 rounded-lg">
+                                    <Upload className="w-6 h-6 text-green-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900">
+                                        Upload Product Images
+                                    </h3>
+                                    <p className="text-sm text-gray-500">
+                                        {selectedFiles.length} of 4 images selected
+                                    </p>
+                                </div>
+                            </div>
                             <button
                                 onClick={() => {
                                     setShowImageModal(false);
                                     setSelectedFiles([]);
                                 }}
-                                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="mb-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-sm font-medium text-gray-700">
+                                        Select Main Image
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                        Click "Set Main" on preferred image
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {selectedFiles.map((file, index) => (
+                                        <div key={index} className="relative group">
+                                            <img
+                                                src={URL.createObjectURL(file)}
+                                                alt={`Preview ${index + 1}`}
+                                                className="w-full h-24 object-cover rounded-lg border-2 transition-all"
+                                            />
+                                            <div className="absolute bottom-2 left-2 right-2">
+                                                <button
+                                                    onClick={() => setMainImageIndex(index)}
+                                                    className={`w-full py-1.5 text-xs font-medium rounded transition-colors ${
+                                                        mainImageIndex === index
+                                                            ? 'bg-green-600 text-white shadow-lg'
+                                                            : 'bg-white text-gray-700 bg-opacity-90 hover:bg-opacity-100 shadow-md'
+                                                    }`}
+                                                >
+                                                    {mainImageIndex === index ? '✓ Main Image' : 'Set as Main'}
+                                                </button>
+                                            </div>
+                                            {mainImageIndex === index && (
+                                                <div className="absolute top-2 right-2">
+                                                    <div className="bg-green-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                                                        Main
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="bg-gray-50 rounded-lg p-4">
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <AlertCircle className="w-4 h-4" />
+                                    <span>
+                                        The <strong>main image</strong> will be displayed as the primary product photo.
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 p-6 border-t border-gray-200">
+                            <button
+                                onClick={() => {
+                                    setShowImageModal(false);
+                                    setSelectedFiles([]);
+                                }}
+                                className="flex-1 px-4 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                                 disabled={uploading}
                             >
                                 Cancel
@@ -164,9 +331,19 @@ const ProductRow = ({ product, onImagesUpload }) => {
                             <button
                                 onClick={handleUpload}
                                 disabled={uploading || selectedFiles.length === 0}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {uploading ? 'Uploading...' : `Upload ${selectedFiles.length} Image(s)`}
+                                {uploading ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        Uploading...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Upload className="w-4 h-4" />
+                                        Upload {selectedFiles.length} Image{selectedFiles.length !== 1 ? 's' : ''}
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
