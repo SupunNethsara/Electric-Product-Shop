@@ -1,5 +1,5 @@
 import { Route, Routes } from "react-router-dom";
-import HomeSection from "../Common/HomeSection.jsx";
+import HomeSection from "../HomeComponent/HomeSection.jsx";
 import ProductShop from "../Shop/ProductShop.jsx";
 
 function UserInterFace() {

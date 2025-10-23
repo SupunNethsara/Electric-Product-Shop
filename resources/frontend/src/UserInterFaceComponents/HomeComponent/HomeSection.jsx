@@ -1,7 +1,7 @@
 import React from "react";
-import SliderSection from "../HomeComponent/SliderSection.jsx";
-import TopProduct from "../HomeComponent/TopProduct.jsx";
-import CategoriesMarquee from "../HomeComponent/CategoriesMarquee.jsx";
+import SliderSection from "./SliderSection.jsx";
+import TopProduct from "./TopProduct.jsx";
+import CategoriesMarquee from "./CategoriesMarquee.jsx";
 import Products from "../Products/Products.jsx";
 
 function HomeSection() {
