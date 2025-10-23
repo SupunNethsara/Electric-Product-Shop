@@ -1,21 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingCart, Heart, Share2, Star, Truck, Shield, RotateCcw } from 'lucide-react';
+
 
 function ProductDetails() {
     const location = useLocation();
     const navigate = useNavigate();
-    const { product } = location.state || {};
+    const [product, setProduct] = useState(location.state?.product || null);
+    const [loading, setLoading] = useState(!location.state?.product);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        if (!location.state?.product) {
+            navigate('/');
+            return;
+        }
+        setProduct(location.state.product);
+        setLoading(false);
+    }, [location.state, navigate]);
 
     const [selectedImage, setSelectedImage] = useState(0);
     const [quantity, setQuantity] = useState(1);
     const [isWishlisted, setIsWishlisted] = useState(false);
 
-    if (!product) {
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+            </div>
+        );
+    }
+
+    if (error || !product) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h2>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                        {error || 'Product Not Found'}
+                    </h2>
                     <button
                         onClick={() => navigate('/')}
                         className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
@@ -49,7 +71,7 @@ function ProductDetails() {
     };
 
     const handleBuyNow = () => {
-        console.log(`Buying ${quantity} of ${product.name}`);
+
     };
 
     return (
@@ -153,7 +175,6 @@ function ProductDetails() {
                                 </div>
                             </div>
 
-                            {/* Pricing Section */}
                             <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-4">
                                 <div className="flex items-baseline gap-3 mb-1">
                                     <span className="text-3xl font-bold text-green-600">
@@ -178,7 +199,6 @@ function ProductDetails() {
                                 </p>
                             </div>
 
-                            {/* Features */}
                             <div className="grid grid-cols-3 gap-2">
                                 <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
                                     <Truck size={16} className="text-blue-600" />
@@ -200,7 +220,6 @@ function ProductDetails() {
                                 </div>
                             </div>
 
-                            {/* Quantity and Actions */}
                             <div className="space-y-3">
                                 <div className="flex items-center gap-3">
                                     <span className="font-semibold text-gray-900 text-sm">Quantity:</span>
