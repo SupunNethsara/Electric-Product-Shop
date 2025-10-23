@@ -24,8 +24,8 @@ const ProductsTable = ({ refreshTrigger }) => {
     }, [refreshTrigger]);
 
     const handleImagesUpload = async (productId, itemCode, files, mainImageIndex = 0) => {
-        if (files.length > 3) {
-            alert('Maximum 3 images allowed!');
+        if (files.length > 4) {
+            alert('Maximum 4 images allowed!');
             return;
         }
 

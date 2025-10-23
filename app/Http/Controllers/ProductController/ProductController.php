@@ -123,17 +123,10 @@ class ProductController extends Controller
             $validated = $request->validate([
                 'product_id' => 'required|string|exists:products,id',
                 'item_code' => 'required|string',
-                'image_urls' => 'required|array|min:1|max:3',
+                'image_urls' => 'required|array|min:1|max:4',
                 'image_urls.*' => 'url',
                 'main_image_index' => 'sometimes|integer|min:0|max:2'
             ]);
-
-            \Log::info('Uploading images for product', [
-                'product_id' => $request->product_id,
-                'item_code' => $request->item_code,
-                'image_count' => count($request->image_urls)
-            ]);
-
             $product = Product::find($request->product_id);
 
             if (!$product) {
@@ -146,10 +139,7 @@ class ProductController extends Controller
                 ], 404);
             }
 
-            // Store all image URLs in the images column
             $product->images = json_encode($request->image_urls);
-
-            // Set the first image as main image (or specified index)
             $mainImageIndex = $request->main_image_index ?? 0;
             $product->image = $request->image_urls[$mainImageIndex];
 

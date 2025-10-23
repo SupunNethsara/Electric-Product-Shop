@@ -8,8 +8,8 @@ const ProductRow = ({ product, onImagesUpload }) => {
 
     const handleFileSelect = (event) => {
         const files = Array.from(event.target.files);
-        if (files.length > 3) {
-            alert('You can only upload up to 3 images!');
+        if (files.length > 4) {
+            alert('You can only upload up to 4 images!');
             event.target.value = '';
             return;
         }
