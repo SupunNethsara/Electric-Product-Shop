@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import LoginModal from "../../Pages/Login.jsx";
-import RegisterModal from "../../Pages/Register.jsx";
+import LoginModal from "../../Modals/Login.jsx";
+import RegisterModal from "../../Modals/Register.jsx";
 import { closeModals ,switchToRegister ,switchToLogin } from "../../Store/slices/modalSlice.js";
 
 
