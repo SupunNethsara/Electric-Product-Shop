@@ -1,13 +1,22 @@
 import React from 'react';
-import {useSelector} from "react-redux";
+import { useSelector, useDispatch } from 'react-redux';
+import { Navigate } from 'react-router-dom';
+import {openLoginModal} from "../../../Store/slices/modalSlice.js";
+
 
 function CheckOutUser() {
-    const { isAuthenticated, role } = useSelector((state) => state.auth);
+    const dispatch = useDispatch();
+    const { isAuthenticated } = useSelector((state) => state.auth);
+
     if (!isAuthenticated) {
+        dispatch(openLoginModal('/checkout'));
         return <Navigate to="/" replace />;
     }
+
     return (
-        <div className='flex p-20 flex-col min-h-screen'>CheckOut Users</div>
+        <div className='flex p-20 flex-col min-h-screen'>
+            Checkout Page - User is authenticated
+        </div>
     );
 }
 

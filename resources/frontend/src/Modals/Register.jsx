@@ -81,11 +81,10 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
             onClick={handleOverlayClick}
         >
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 overflow-hidden max-h-[90vh] overflow-y-auto">
-                {/* Header */}
                 <div className="relative bg-gradient-to-r from-green-500 to-green-600 p-8 sticky top-0">
                     <button
                         onClick={onClose}

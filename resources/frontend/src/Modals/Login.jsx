@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearError } from "../Store/slices/authSlice.js";
+import { closeModals, clearRedirect } from "../Store/slices/modalSlice.js";
 import { useNavigate } from "react-router-dom";
 import { X, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 
@@ -13,22 +14,28 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { redirectAfterLogin } = useSelector((state) => state.modal);
     const { isLoading, error, isAuthenticated, role } = useSelector((state) => state.auth);
 
     useEffect(() => {
-        if (isAuthenticated ) {
-            console.log('Login successful, role:', role);
-            onClose();
+        if
+        // (isAuthenticated && isOpen)
+            (isAuthenticated )
+        {
+            dispatch(closeModals());
 
-            if (role === 'super_admin') {
-                navigate('/super-admin');
-            } else if (role === 'admin') {
-                navigate('/admin');
+            if (redirectAfterLogin) {
+                navigate(redirectAfterLogin);
+                dispatch(clearRedirect());
             } else {
-                navigate('/profile');
+                if (role === 'super_admin') {
+                    navigate('/super-admin');
+                } else if (role === 'admin') {
+                    navigate('/admin');
+                }
             }
         }
-    }, [isAuthenticated, isOpen, onClose, navigate, role]);
+    }, [isAuthenticated, isOpen, navigate, role, redirectAfterLogin, dispatch]);
 
     useEffect(() => {
         if (isOpen) {
@@ -85,7 +92,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
             onClick={handleOverlayClick}
         >
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 overflow-hidden">

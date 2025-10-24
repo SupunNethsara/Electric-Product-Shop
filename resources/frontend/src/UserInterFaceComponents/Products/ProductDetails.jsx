@@ -1,27 +1,73 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { ArrowLeft, ShoppingCart, Heart, Share2, Star, Truck, Shield, RotateCcw } from 'lucide-react';
-
+import { openLoginModal } from "../../Store/slices/modalSlice.js";
 
 function ProductDetails() {
     const location = useLocation();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { id } = useParams();
+
+    const { isAuthenticated } = useSelector((state) => state.auth);
+
     const [product, setProduct] = useState(location.state?.product || null);
     const [loading, setLoading] = useState(!location.state?.product);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        if (!location.state?.product) {
+        if (location.state?.product) {
+            setProduct(location.state.product);
+            setLoading(false);
+        } else if (id) {
+            fetchProductById(id);
+        } else {
             navigate('/');
             return;
         }
-        setProduct(location.state.product);
-        setLoading(false);
-    }, [location.state, navigate]);
+    }, [location.state, navigate, id]);
+
+    const fetchProductById = async (productId) => {
+        try {
+            setLoading(true);
+
+            setError('Product not found');
+        } catch (err) {
+            setError('Failed to load product');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const [selectedImage, setSelectedImage] = useState(0);
     const [quantity, setQuantity] = useState(1);
     const [isWishlisted, setIsWishlisted] = useState(false);
+
+    const handleAddToCart = () => {
+        if (!isAuthenticated) {
+            dispatch(openLoginModal(`/productDetails/${id}`));
+            return;
+        }
+        console.log(`Added ${quantity} of ${product.name} to cart`);
+    };
+
+    const handleBuyNow = () => {
+        if (!isAuthenticated) {
+            dispatch(openLoginModal('/checkout'));
+            return;
+        }
+        handleAddToCart();
+        navigate('/checkout');
+    };
+
+    const handleWishlist = () => {
+        if (!isAuthenticated) {
+            dispatch(openLoginModal(`/productDetails/${id}`));
+            return;
+        }
+        setIsWishlisted(!isWishlisted);
+    };
 
     if (loading) {
         return (
@@ -66,16 +112,8 @@ function ProductDetails() {
     const rating = 4.2;
     const reviewCount = Math.floor(Math.random() * 1000) + 100;
 
-    const handleAddToCart = () => {
-        console.log(`Added ${quantity} of ${product.name} to cart`);
-    };
-
-    const handleBuyNow = () => {
-
-    };
-
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 pt-16">
             <div className="bg-white border-b border-gray-200">
                 <div className="container mx-auto px-4 py-4">
                     <button
@@ -160,7 +198,7 @@ function ProductDetails() {
 
                                 <div className="flex gap-1 ml-4">
                                     <button
-                                        onClick={() => setIsWishlisted(!isWishlisted)}
+                                        onClick={handleWishlist}
                                         className={`p-2 rounded-lg border transition-all duration-200 ${
                                             isWishlisted
                                                 ? 'bg-red-50 border-red-200 text-red-600'
@@ -227,6 +265,7 @@ function ProductDetails() {
                                         <button
                                             onClick={() => setQuantity(Math.max(1, quantity - 1))}
                                             className="px-3 py-1 text-gray-600 hover:bg-gray-100 transition-colors"
+                                            disabled={product.availability === 0}
                                         >
                                             -
                                         </button>
@@ -236,10 +275,16 @@ function ProductDetails() {
                                         <button
                                             onClick={() => setQuantity(quantity + 1)}
                                             className="px-3 py-1 text-gray-600 hover:bg-gray-100 transition-colors"
+                                            disabled={product.availability === 0 || quantity >= product.availability}
                                         >
                                             +
                                         </button>
                                     </div>
+                                    {product.availability > 0 && (
+                                        <span className="text-sm text-gray-500">
+                                            {product.availability} available
+                                        </span>
+                                    )}
                                 </div>
 
                                 <div className="flex gap-2">

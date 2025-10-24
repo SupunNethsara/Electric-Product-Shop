@@ -1,9 +1,9 @@
+// Navbar.jsx
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { logoutUser } from "../../Store/slices/authSlice.js";
+import { openLoginModal, openRegisterModal } from "../../Store/slices/modalSlice.js";
 import { useState, useEffect, useRef } from "react";
-import LoginModal from "../../Pages/Login.jsx";
-import RegisterModal from "../../Pages/Register.jsx";
 import { Search, ShoppingCart, Menu, X } from "lucide-react";
 
 const Navbar = () => {
@@ -16,9 +16,6 @@ const Navbar = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-
-    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
     const dropdownRef = useRef(null);
 
@@ -50,29 +47,22 @@ const Navbar = () => {
         return location.pathname === path;
     };
 
-    const openLoginModal = () => {
-        setIsLoginModalOpen(true);
-        setIsRegisterModalOpen(false);
+    const handleOpenLoginModal = () => {
+        dispatch(openLoginModal());
     };
 
-    const openRegisterModal = () => {
-        setIsRegisterModalOpen(true);
-        setIsLoginModalOpen(false);
+    const handleOpenRegisterModal = () => {
+        dispatch(openRegisterModal());
     };
 
-    const closeModals = () => {
-        setIsLoginModalOpen(false);
-        setIsRegisterModalOpen(false);
-    };
-
-    const switchToRegister = () => {
-        setIsLoginModalOpen(false);
-        setIsRegisterModalOpen(true);
-    };
-
-    const switchToLogin = () => {
-        setIsRegisterModalOpen(false);
-        setIsLoginModalOpen(true);
+    const handleAuthCheckout = () => {
+        if (!isAuthenticated) {
+            dispatch(openLoginModal('/checkout'));
+            setIsMobileMenuOpen(false);
+        } else {
+            navigate('/checkout');
+            setIsMobileMenuOpen(false);
+        }
     };
 
     const navLinks = [
@@ -151,6 +141,7 @@ const Navbar = () => {
                                     required
                                 />
                             </form>
+
                             <Link
                                 to="/cart"
                                 className="relative flex items-center gap-2 text-slate-600 hover:text-green-600 transition-colors duration-200"
@@ -260,13 +251,13 @@ const Navbar = () => {
                             ) : (
                                 <div className="flex items-center gap-4">
                                     <button
-                                        onClick={openLoginModal}
+                                        onClick={handleOpenLoginModal}
                                         className="px-6 py-2 text-slate-700 hover:text-green-600 font-medium transition-colors duration-200"
                                     >
                                         Sign In
                                     </button>
                                     <button
-                                        onClick={openRegisterModal}
+                                        onClick={handleOpenRegisterModal}
                                         className="px-8 py-2 bg-green-500 hover:bg-green-600 transition text-white rounded-full font-medium"
                                     >
                                         Get Started
@@ -291,13 +282,13 @@ const Navbar = () => {
                             {!isAuthenticated && (
                                 <div className="flex items-center gap-2">
                                     <button
-                                        onClick={openLoginModal}
+                                        onClick={handleOpenLoginModal}
                                         className="px-4 py-1.5 text-slate-700 hover:text-green-600 text-sm transition-colors duration-200 font-medium"
                                     >
                                         Sign In
                                     </button>
                                     <button
-                                        onClick={openRegisterModal}
+                                        onClick={handleOpenRegisterModal}
                                         className="px-5 py-1.5 bg-green-500 hover:bg-green-600 text-sm transition text-white rounded-full font-medium"
                                     >
                                         Get Started
@@ -346,6 +337,14 @@ const Navbar = () => {
                                     </Link>
                                 ))}
 
+                                {/* Checkout button in mobile menu */}
+                                <button
+                                    onClick={handleAuthCheckout}
+                                    className="w-full text-left py-3 px-4 font-medium text-green-600 hover:bg-green-50 transition-all duration-200 rounded-lg"
+                                >
+                                    Checkout
+                                </button>
+
                                 {isAuthenticated && (
                                     <>
                                         <div className="border-t border-slate-200 pt-3 mt-2">
@@ -356,13 +355,15 @@ const Navbar = () => {
                                             >
                                                 {getDashboardLabel()}
                                             </Link>
-                                            <Link
-                                                to="/orders"
-                                                className="py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-slate-50 transition-all duration-200 block rounded-lg"
-                                                onClick={() => setIsMobileMenuOpen(false)}
-                                            >
-                                                My Orders
-                                            </Link>
+                                            {role === "user" && (
+                                                <Link
+                                                    to="/orders"
+                                                    className="py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-slate-50 transition-all duration-200 block rounded-lg"
+                                                    onClick={() => setIsMobileMenuOpen(false)}
+                                                >
+                                                    My Orders
+                                                </Link>
+                                            )}
                                             <button
                                                 onClick={() => {
                                                     handleLogout();
@@ -380,7 +381,7 @@ const Navbar = () => {
                                     <div className="border-t border-slate-200 pt-3 mt-2">
                                         <button
                                             onClick={() => {
-                                                openLoginModal();
+                                                handleOpenLoginModal();
                                                 setIsMobileMenuOpen(false);
                                             }}
                                             className="w-full text-left py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-slate-50 transition-all duration-200 rounded-lg"
@@ -389,7 +390,7 @@ const Navbar = () => {
                                         </button>
                                         <button
                                             onClick={() => {
-                                                openRegisterModal();
+                                                handleOpenRegisterModal();
                                                 setIsMobileMenuOpen(false);
                                             }}
                                             className="w-full text-left py-3 px-4 font-medium text-green-600 hover:bg-green-50 transition-all duration-200 rounded-lg"
@@ -403,18 +404,6 @@ const Navbar = () => {
                     </div>
                 )}
             </nav>
-
-            <LoginModal
-                isOpen={isLoginModalOpen}
-                onClose={closeModals}
-                onSwitchToRegister={switchToRegister}
-            />
-
-            <RegisterModal
-                isOpen={isRegisterModalOpen}
-                onClose={closeModals}
-                onSwitchToLogin={switchToLogin}
-            />
         </>
     );
 };
