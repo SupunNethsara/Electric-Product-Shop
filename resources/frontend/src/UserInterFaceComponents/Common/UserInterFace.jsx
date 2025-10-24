@@ -4,7 +4,7 @@ import ProductShop from "../Shop/ProductShop.jsx";
 
 function UserInterFace() {
     return (
-        <div className="h-auto bg-gray-50 pt-32 pb-20">
+        <div className="h-auto bg-gray-50 pt-30 pb-12">
             <Routes>
                 <Route path="/" element={<HomeSection />} />
                 <Route path="/home" element={<HomeSection/>}/>
