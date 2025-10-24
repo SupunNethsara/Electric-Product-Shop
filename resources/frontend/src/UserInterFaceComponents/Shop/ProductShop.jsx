@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Filter, X, Grid, List, ChevronDown } from 'lucide-react';
 import ProductCard from "../Products/ProductCard.jsx";
+import ShopHeader from "./ShopComponents/ShopHeader.jsx";
+import FillterSidebar from "./ShopComponents/FillterSidebar.jsx";
+import ProductSection from "./ShopComponents/ProductSection.jsx";
+import MobileFilterDrawer from "./ShopComponents/MobileFilterDrawer.jsx";
 
 
 const mockProducts = [
@@ -246,320 +250,59 @@ function ProductShop() {
     return (
         <div className="min-h-screen bg-gray-50 pt-0">
             <div className="container mx-auto px-2 py-2">
-
-                <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-                    <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-                        <div className="flex-1 w-full lg:max-w-md">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                                <input
-                                    type="text"
-                                    placeholder="Search products, brands, categories..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-                                />
-                                {searchQuery && (
-                                    <button
-                                        onClick={() => setSearchQuery('')}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                    >
-                                        <X size={18} />
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 w-full lg:w-auto">
-                            <div className="relative">
-                                <button
-                                    onClick={() => setIsSortOpen(!isSortOpen)}
-                                    className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors duration-200 min-w-[160px] justify-between"
-                                >
-                                    <span className="text-sm">
-                                        {sortOptions.find(opt => opt.value === sortBy)?.label}
-                                    </span>
-                                    <ChevronDown size={16} className={`transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} />
-                                </button>
-
-                                {isSortOpen && (
-                                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                                        {sortOptions.map(option => (
-                                            <button
-                                                key={option.value}
-                                                onClick={() => {
-                                                    setSortBy(option.value);
-                                                    setIsSortOpen(false);
-                                                }}
-                                                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200 ${
-                                                    sortBy === option.value
-                                                        ? 'bg-green-50 text-green-600'
-                                                        : 'text-gray-700'
-                                                } first:rounded-t-lg last:rounded-b-lg`}
-                                            >
-                                                {option.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            <button
-                                onClick={() => setIsFilterOpen(!isFilterOpen)}
-                                className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors duration-200"
-                            >
-                                <Filter size={18} />
-                                <span className="text-sm">Filters</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <ShopHeader
+                    sortOptions={sortOptions}
+                    sortBy={sortBy}
+                    setSortBy={setSortBy}
+                    isSortOpen={isSortOpen}
+                    setIsSortOpen={setIsSortOpen}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                />
 
                 <div className="flex gap-6">
-                    <div className={`lg:w-64 flex-shrink-0 ${isFilterOpen ? 'block' : 'hidden lg:block'}`}>
-                        <div className="bg-white rounded-lg border border-gray-200 p-4 sticky top-24">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="font-semibold text-gray-900">Filters</h2>
-                                <button
-                                    onClick={clearAllFilters}
-                                    className="text-sm text-green-600 hover:text-green-700 font-medium"
-                                >
-                                    Clear All
-                                </button>
-                            </div>
-
-                            <div className="mb-4 pb-4 border-b border-gray-200">
-                                <h3 className="font-medium text-gray-900 mb-3 text-sm">Price Range</h3>
-                                <div className="space-y-2">
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max="300000"
-                                        step="1000"
-                                        value={priceRange[1]}
-                                        onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                                        className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                                    />
-                                    <div className="flex justify-between text-xs text-gray-600">
-                                        <span>Rs. 0</span>
-                                        <span>Rs. {priceRange[1].toLocaleString()}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="mb-4 pb-4 border-b border-gray-200">
-                                <h3 className="font-medium text-gray-900 mb-3 text-sm">Categories</h3>
-                                <div className="space-y-2">
-                                    {categories.map(category => (
-                                        <label key={category} className="flex items-center gap-2 cursor-pointer group">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedCategories.includes(category)}
-                                                onChange={() => toggleCategory(category)}
-                                                className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
-                                            />
-                                            <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
-                                                {category}
-                                            </span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="mb-4 pb-4 border-b border-gray-200">
-                                <h3 className="font-medium text-gray-900 mb-3 text-sm">Brands</h3>
-                                <div className="space-y-2">
-                                    {brands.map(brand => (
-                                        <label key={brand} className="flex items-center gap-2 cursor-pointer group">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedBrands.includes(brand)}
-                                                onChange={() => toggleBrand(brand)}
-                                                className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
-                                            />
-                                            <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
-                                                {brand}
-                                            </span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="mb-2">
-                                <h3 className="font-medium text-gray-900 mb-3 text-sm">Availability</h3>
-                                <div className="space-y-2">
-                                    {[
-                                        { value: 'all', label: 'All Products' },
-                                        { value: 'in-stock', label: 'In Stock' },
-                                        { value: 'out-of-stock', label: 'Out of Stock' }
-                                    ].map(option => (
-                                        <label key={option.value} className="flex items-center gap-2 cursor-pointer group">
-                                            <input
-                                                type="radio"
-                                                name="availability"
-                                                value={option.value}
-                                                checked={availability === option.value}
-                                                onChange={(e) => setAvailability(e.target.value)}
-                                                className="text-green-600 focus:ring-green-500 w-4 h-4"
-                                            />
-                                            <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
-                                                {option.label}
-                                            </span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex-1">
-                        <div className="flex items-center justify-between mb-4">
-                            <p className="text-sm text-gray-600">
-                                Showing <span className="font-semibold text-gray-900">{filteredProducts.length}</span> products
-                                {searchQuery && ` for "${searchQuery}"`}
-                            </p>
-
-                            <div className="flex flex-wrap gap-1">
-                                {selectedCategories.map(category => (
-                                    <span key={category} className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-                                        {category}
-                                        <button onClick={() => toggleCategory(category)}>
-                                            <X size={12} />
-                                        </button>
-                                    </span>
-                                ))}
-                                {selectedBrands.map(brand => (
-                                    <span key={brand} className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
-                                        {brand}
-                                        <button onClick={() => toggleBrand(brand)}>
-                                            <X size={12} />
-                                        </button>
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-                        {filteredProducts.length === 0 ? (
-                            <div className="text-center py-12">
-                                <div className="text-gray-400 mb-3">
-                                    <Search size={48} className="mx-auto" />
-                                </div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
-                                <p className="text-gray-600 mb-4 text-sm">Try adjusting your search or filters</p>
-                                <button
-                                    onClick={clearAllFilters}
-                                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm"
-                                >
-                                    Clear All Filters
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                {filteredProducts.map(product => (
-                                    <ProductCard key={product.id} product={product} />
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    <FillterSidebar
+                        isFilterOpen={isFilterOpen}
+                        selectedCategories={selectedCategories}
+                        selectedBrands={selectedBrands}
+                        priceRange={priceRange}
+                        availability={availability}
+                        categories={categories}
+                        brands={brands}
+                        toggleCategory={toggleCategory}
+                        toggleBrand={toggleBrand}
+                        setPriceRange={setPriceRange}
+                        setAvailability={setAvailability}
+                        clearAllFilters={clearAllFilters}
+                    />
+                    <ProductSection
+                        filteredProducts={filteredProducts}
+                        searchQuery={searchQuery}
+                        selectedCategories={selectedCategories}
+                        selectedBrands={selectedBrands}
+                        toggleCategory={toggleCategory}
+                        toggleBrand={toggleBrand}
+                        clearAllFilters={clearAllFilters}
+                    />
                 </div>
             </div>
 
             {isFilterOpen && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden"
-                    onClick={() => setIsFilterOpen(false)}
-                >
-                    <div
-                        className="absolute right-0 top-0 h-full w-80 bg-white overflow-y-auto"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="p-4">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-lg font-semibold">Filters</h2>
-                                <button
-                                    onClick={() => setIsFilterOpen(false)}
-                                    className="p-1 hover:bg-gray-100 rounded"
-                                >
-                                    <X size={20} />
-                                </button>
-                            </div>
-                            <div className="space-y-4">
-                                <div>
-                                    <h3 className="font-medium text-gray-900 mb-3 text-sm">Price Range</h3>
-                                    <div className="space-y-2">
-                                        <input
-                                            type="range"
-                                            min="0"
-                                            max="300000"
-                                            step="1000"
-                                            value={priceRange[1]}
-                                            onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                                            className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                                        />
-                                        <div className="flex justify-between text-xs text-gray-600">
-                                            <span>Rs. 0</span>
-                                            <span>Rs. {priceRange[1].toLocaleString()}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Categories */}
-                                <div>
-                                    <h3 className="font-medium text-gray-900 mb-3 text-sm">Categories</h3>
-                                    <div className="space-y-2">
-                                        {categories.map(category => (
-                                            <label key={category} className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedCategories.includes(category)}
-                                                    onChange={() => toggleCategory(category)}
-                                                    className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
-                                                />
-                                                <span className="text-sm text-gray-700">{category}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Brands */}
-                                <div>
-                                    <h3 className="font-medium text-gray-900 mb-3 text-sm">Brands</h3>
-                                    <div className="space-y-2">
-                                        {brands.map(brand => (
-                                            <label key={brand} className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedBrands.includes(brand)}
-                                                    onChange={() => toggleBrand(brand)}
-                                                    className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
-                                                />
-                                                <span className="text-sm text-gray-700">{brand}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <h3 className="font-medium text-gray-900 mb-3 text-sm">Availability</h3>
-                                    <div className="space-y-2">
-                                        {[
-                                            { value: 'all', label: 'All Products' },
-                                            { value: 'in-stock', label: 'In Stock' },
-                                            { value: 'out-of-stock', label: 'Out of Stock' }
-                                        ].map(option => (
-                                            <label key={option.value} className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="radio"
-                                                    name="availability-mobile"
-                                                    value={option.value}
-                                                    checked={availability === option.value}
-                                                    onChange={(e) => setAvailability(e.target.value)}
-                                                    className="text-green-600 focus:ring-green-500 w-4 h-4"
-                                                />
-                                                <span className="text-sm text-gray-700">{option.label}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <MobileFilterDrawer
+                    isFilterOpen={isFilterOpen}
+                    setIsFilterOpen={setIsFilterOpen}
+                    selectedCategories={selectedCategories}
+                    selectedBrands={selectedBrands}
+                    priceRange={priceRange}
+                    availability={availability}
+                    categories={categories}
+                    brands={brands}
+                    toggleCategory={toggleCategory}
+                    toggleBrand={toggleBrand}
+                    setPriceRange={setPriceRange}
+                    setAvailability={setAvailability}
+                    clearAllFilters={clearAllFilters}
+                />
             )}
         </div>
     );
