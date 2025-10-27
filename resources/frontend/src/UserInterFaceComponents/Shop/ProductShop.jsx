@@ -1,126 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, X, Grid, List, ChevronDown } from 'lucide-react';
-import ProductCard from "../Products/ProductCard.jsx";
 import ShopHeader from "./ShopComponents/ShopHeader.jsx";
 import FillterSidebar from "./ShopComponents/FillterSidebar.jsx";
 import ProductSection from "./ShopComponents/ProductSection.jsx";
 import MobileFilterDrawer from "./ShopComponents/MobileFilterDrawer.jsx";
+import axios from "axios";
 
 
-const mockProducts = [
-    {
-        id: 1,
-        name: "MacBook Pro 16-inch",
-        model: "M3 Pro",
-        brand: "Apple",
-        category: "Laptops",
-        price: 249999,
-        availability: 15,
-        image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=300&fit=crop",
-        rating: 4.8,
-        reviews: 1247,
-        description: "Supercharged by M3 Pro and M3 Max, MacBook Pro takes its power and efficiency further than ever.",
-        status: 'active'
-    },
-    {
-        id: 2,
-        name: "iPhone 15 Pro",
-        model: "A3104",
-        brand: "Apple",
-        category: "Smartphones",
-        price: 134900,
-        availability: 8,
-        image: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&h=300&fit=crop",
-        rating: 4.6,
-        reviews: 892,
-        description: "Forged from titanium and featuring the groundbreaking A17 Pro chip.",
-        status: 'active'
-    },
-    {
-        id: 3,
-        name: "Samsung Galaxy S24 Ultra",
-        model: "SM-S928",
-        brand: "Samsung",
-        category: "Smartphones",
-        price: 129999,
-        availability: 12,
-        image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop",
-        rating: 4.5,
-        reviews: 567,
-        description: "The ultimate smartphone with AI capabilities and pro-grade camera.",
-        status: 'active'
-    },
-    {
-        id: 4,
-        name: "Sony WH-1000XM5",
-        model: "WH-1000XM5",
-        brand: "Sony",
-        category: "Audio",
-        price: 29990,
-        availability: 25,
-        image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=300&fit=crop",
-        rating: 4.7,
-        reviews: 2341,
-        description: "Industry-leading noise cancellation with exceptional sound quality.",
-        status: 'active'
-    },
-    {
-        id: 5,
-        name: "iPad Air",
-        model: "5th Gen",
-        brand: "Apple",
-        category: "Tablets",
-        price: 59900,
-        availability: 6,
-        image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&h=300&fit=crop",
-        rating: 4.4,
-        reviews: 456,
-        description: "Powerful. Colorful. Wonderful. With M1 chip and all-screen design.",
-        status: 'active'
-    },
-    {
-        id: 6,
-        name: "Dell XPS 13",
-        model: "XPS 13-9315",
-        brand: "Dell",
-        category: "Laptops",
-        price: 124999,
-        availability: 0,
-        image: "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=400&h=300&fit=crop",
-        rating: 4.3,
-        reviews: 789,
-        description: "The smallest 13-inch laptop with InfinityEdge display.",
-        status: 'disabled'
-    },
-    {
-        id: 7,
-        name: "AirPods Pro",
-        model: "2nd Gen",
-        brand: "Apple",
-        category: "Audio",
-        price: 24900,
-        availability: 30,
-        image: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=400&h=300&fit=crop",
-        rating: 4.6,
-        reviews: 1567,
-        description: "Active Noise Cancellation and Adaptive Transparency.",
-        status: 'active'
-    },
-    {
-        id: 8,
-        name: "Samsung Galaxy Tab S9",
-        model: "SM-X710",
-        brand: "Samsung",
-        category: "Tablets",
-        price: 79999,
-        availability: 10,
-        image: "https://images.unsplash.com/photo-1542751110-97427bbecf20?w=400&h=300&fit=crop",
-        rating: 4.4,
-        reviews: 234,
-        description: "Powerful tablet with S Pen and stunning display.",
-        status: 'active'
-    }
-];
+
 
 const fuzzySearch = (query, text) => {
     if (!query) return true;
@@ -141,8 +27,8 @@ const fuzzySearch = (query, text) => {
 };
 
 function ProductShop() {
-    const [products, setProducts] = useState(mockProducts);
-    const [filteredProducts, setFilteredProducts] = useState(mockProducts);
+    const [products, setProducts] = useState([]);
+    const [filteredProducts, setFilteredProducts] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [selectedBrands, setSelectedBrands] = useState([]);
@@ -151,6 +37,19 @@ function ProductShop() {
     const [sortBy, setSortBy] = useState('featured');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [isSortOpen, setIsSortOpen] = useState(false);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/products/active');
+                setProducts(response.data.data);
+                console.log('products' , products);
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+        };
+        fetchProducts();
+    },[]);
 
     const categories = useMemo(() =>
             [...new Set(products.map(product => product.category))],
