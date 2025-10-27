@@ -20,12 +20,12 @@ const fuzzySearch = (query, text) => {
             queryIndex++;
         }
     }
-
     return queryIndex === queryLower.length;
 };
 
 function ProductShop() {
     const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategories, setSelectedCategories] = useState([]);
@@ -37,27 +37,62 @@ function ProductShop() {
     const [isSortOpen, setIsSortOpen] = useState(false);
 
     useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/categories/active');
+                console.log('Categories API response:', response.data);
+                
+                // Check if response.data is an array directly or if it has a data property
+                const categoriesData = Array.isArray(response.data) ? response.data : response.data.data || [];
+                
+                // Map through categories and create an array of category objects with id and name
+                const categoryItems = categoriesData.map(cat => ({
+                    id: cat.id,
+                    name: cat.name
+                }));
+                
+                console.log('Formatted categories:', categoryItems);
+                setCategories(categoryItems);
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+                setCategories([]);
+            }
+        };
+
         const fetchProducts = async () => {
             try {
                 const response = await axios.get('http://127.0.0.1:8000/api/products/active');
-                setProducts(response.data.data);
-                console.log('products' , products);
+                console.log('Products API response:', response.data);
+                setProducts(response.data.data || []);
+                console.log('products', response.data.data);
             } catch (error) {
                 console.error('Error fetching products:', error);
+                setProducts([]);
             }
         };
         fetchProducts();
-    },[]);
+        fetchCategories();
+    }, []);
 
-    const categories = useMemo(() =>
-            [...new Set(products.map(product => product.category))],
-        [products]
-    );
+    const brands = useMemo(() => {
+        const uniqueBrands = [...new Set(products.map(product => product.brand).filter(Boolean))];
+        console.log('Available brands:', uniqueBrands);
+        return uniqueBrands;
+    }, [products]);
 
-    const brands = useMemo(() =>
-            [...new Set(products.map(product => product.brand))],
-        [products]
-    );
+    const productCategories = useMemo(() => {
+        const uniqueCategories = [...new Set(products.map(product => product.category).filter(Boolean))];
+        console.log('Available product categories:', uniqueCategories);
+        return uniqueCategories;
+    }, [products]);
+
+    // Use categories from the API, fallback to product categories if empty
+    const displayCategories = useMemo(() => {
+        if (categories.length > 0) {
+            return categories.map(cat => cat.name || cat);
+        }
+        return productCategories;
+    }, [categories, productCategories]);
 
     useEffect(() => {
         let results = products;
@@ -81,10 +116,12 @@ function ProductShop() {
                 selectedBrands.includes(product.brand)
             );
         }
+
         results = results.filter(product => {
             const price = Number(product.price);
             return price >= priceRange[0] && price <= priceRange[1];
         });
+
         if (availability === 'in-stock') {
             results = results.filter(product => product.availability > 0);
         } else if (availability === 'out-of-stock') {
@@ -164,7 +201,7 @@ function ProductShop() {
                         selectedBrands={selectedBrands}
                         priceRange={priceRange}
                         availability={availability}
-                        categories={categories}
+                        categories={displayCategories}
                         brands={brands}
                         toggleCategory={toggleCategory}
                         toggleBrand={toggleBrand}
@@ -192,7 +229,7 @@ function ProductShop() {
                     selectedBrands={selectedBrands}
                     priceRange={priceRange}
                     availability={availability}
-                    categories={categories}
+                    categories={displayCategories}
                     brands={brands}
                     toggleCategory={toggleCategory}
                     toggleBrand={toggleBrand}

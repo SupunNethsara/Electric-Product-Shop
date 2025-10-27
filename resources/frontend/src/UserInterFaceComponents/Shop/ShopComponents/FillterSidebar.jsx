@@ -14,6 +14,7 @@ function FillterSidebar({
     setAvailability = () => {},
     clearAllFilters = () => {},
 }) {
+
     return (
         <div
             className={`lg:w-64 flex-shrink-0 ${isFilterOpen ? "block" : "hidden lg:block"}`}
@@ -76,24 +77,27 @@ function FillterSidebar({
                         Categories
                     </h3>
                     <div className="space-y-2">
-                        {categories.map((category) => (
-                            <label
-                                key={category}
-                                className="flex items-center gap-2 cursor-pointer group"
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={selectedCategories.includes(
-                                        category,
-                                    )}
-                                    onChange={() => toggleCategory(category)}
-                                    className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
-                                />
-                                <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
-                                    {category}
-                                </span>
-                            </label>
-                        ))}
+                        {categories.map((category) => {
+                            const categoryValue = typeof category === 'object' ? category.id || category.name : category;
+                            const categoryName = typeof category === 'object' ? category.name : category;
+
+                            return (
+                                <label
+                                    key={categoryValue}
+                                    className="flex items-center gap-2 cursor-pointer group"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedCategories.includes(categoryValue)}
+                                        onChange={() => toggleCategory(categoryValue)}
+                                        className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
+                                    />
+                                    <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
+                                        {categoryName}
+                                    </span>
+                                </label>
+                            );
+                        })}
                     </div>
                 </div>
                 <div className="mb-4 pb-4 border-b border-gray-200">
