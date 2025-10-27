@@ -10,9 +10,10 @@ import axios from "axios";
 
 const fuzzySearch = (query, text) => {
     if (!query) return true;
+    if (!text) return false;
 
-    const queryLower = query.toLowerCase();
-    const textLower = text.toLowerCase();
+    const queryLower = query.toString().toLowerCase();
+    const textLower = text.toString().toLowerCase();
 
     if (textLower.includes(queryLower)) return true;
 
