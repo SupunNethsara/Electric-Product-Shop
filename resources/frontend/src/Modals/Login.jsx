@@ -18,20 +18,25 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
     const { isLoading, error, isAuthenticated, role } = useSelector((state) => state.auth);
 
     useEffect(() => {
-        if
-        // (isAuthenticated && isOpen)
-            (isAuthenticated )
-        {
+        if (isAuthenticated && isOpen) {
             dispatch(closeModals());
 
             if (redirectAfterLogin) {
+                if ((redirectAfterLogin.includes('admin') && role !== 'admin' && role !== 'super_admin') ||
+                    (redirectAfterLogin.includes('super-admin') && role !== 'super_admin')) {
+                    navigate('/');
+                    dispatch(clearRedirect());
+                    return;
+                }
                 navigate(redirectAfterLogin);
                 dispatch(clearRedirect());
             } else {
                 if (role === 'super_admin') {
                     navigate('/super-admin');
                 } else if (role === 'admin') {
-                    navigate('/admin');
+                    navigate('/admin/dashboard');
+                } else {
+                    navigate('/');
                 }
             }
         }

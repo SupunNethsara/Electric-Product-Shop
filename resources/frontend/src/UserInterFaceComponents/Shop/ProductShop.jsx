@@ -1,132 +1,16 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, X, Grid, List, ChevronDown } from 'lucide-react';
-import ProductCard from "../Products/ProductCard.jsx";
+import React, {useEffect, useMemo, useState} from 'react';
 import ShopHeader from "./ShopComponents/ShopHeader.jsx";
 import FillterSidebar from "./ShopComponents/FillterSidebar.jsx";
 import ProductSection from "./ShopComponents/ProductSection.jsx";
 import MobileFilterDrawer from "./ShopComponents/MobileFilterDrawer.jsx";
-
-
-const mockProducts = [
-    {
-        id: 1,
-        name: "MacBook Pro 16-inch",
-        model: "M3 Pro",
-        brand: "Apple",
-        category: "Laptops",
-        price: 249999,
-        availability: 15,
-        image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=300&fit=crop",
-        rating: 4.8,
-        reviews: 1247,
-        description: "Supercharged by M3 Pro and M3 Max, MacBook Pro takes its power and efficiency further than ever.",
-        status: 'active'
-    },
-    {
-        id: 2,
-        name: "iPhone 15 Pro",
-        model: "A3104",
-        brand: "Apple",
-        category: "Smartphones",
-        price: 134900,
-        availability: 8,
-        image: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400&h=300&fit=crop",
-        rating: 4.6,
-        reviews: 892,
-        description: "Forged from titanium and featuring the groundbreaking A17 Pro chip.",
-        status: 'active'
-    },
-    {
-        id: 3,
-        name: "Samsung Galaxy S24 Ultra",
-        model: "SM-S928",
-        brand: "Samsung",
-        category: "Smartphones",
-        price: 129999,
-        availability: 12,
-        image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop",
-        rating: 4.5,
-        reviews: 567,
-        description: "The ultimate smartphone with AI capabilities and pro-grade camera.",
-        status: 'active'
-    },
-    {
-        id: 4,
-        name: "Sony WH-1000XM5",
-        model: "WH-1000XM5",
-        brand: "Sony",
-        category: "Audio",
-        price: 29990,
-        availability: 25,
-        image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=300&fit=crop",
-        rating: 4.7,
-        reviews: 2341,
-        description: "Industry-leading noise cancellation with exceptional sound quality.",
-        status: 'active'
-    },
-    {
-        id: 5,
-        name: "iPad Air",
-        model: "5th Gen",
-        brand: "Apple",
-        category: "Tablets",
-        price: 59900,
-        availability: 6,
-        image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&h=300&fit=crop",
-        rating: 4.4,
-        reviews: 456,
-        description: "Powerful. Colorful. Wonderful. With M1 chip and all-screen design.",
-        status: 'active'
-    },
-    {
-        id: 6,
-        name: "Dell XPS 13",
-        model: "XPS 13-9315",
-        brand: "Dell",
-        category: "Laptops",
-        price: 124999,
-        availability: 0,
-        image: "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=400&h=300&fit=crop",
-        rating: 4.3,
-        reviews: 789,
-        description: "The smallest 13-inch laptop with InfinityEdge display.",
-        status: 'disabled'
-    },
-    {
-        id: 7,
-        name: "AirPods Pro",
-        model: "2nd Gen",
-        brand: "Apple",
-        category: "Audio",
-        price: 24900,
-        availability: 30,
-        image: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=400&h=300&fit=crop",
-        rating: 4.6,
-        reviews: 1567,
-        description: "Active Noise Cancellation and Adaptive Transparency.",
-        status: 'active'
-    },
-    {
-        id: 8,
-        name: "Samsung Galaxy Tab S9",
-        model: "SM-X710",
-        brand: "Samsung",
-        category: "Tablets",
-        price: 79999,
-        availability: 10,
-        image: "https://images.unsplash.com/photo-1542751110-97427bbecf20?w=400&h=300&fit=crop",
-        rating: 4.4,
-        reviews: 234,
-        description: "Powerful tablet with S Pen and stunning display.",
-        status: 'active'
-    }
-];
+import axios from "axios";
 
 const fuzzySearch = (query, text) => {
     if (!query) return true;
+    if (!text) return false;
 
-    const queryLower = query.toLowerCase();
-    const textLower = text.toLowerCase();
+    const queryLower = query.toString().toLowerCase();
+    const textLower = text.toString().toLowerCase();
 
     if (textLower.includes(queryLower)) return true;
 
@@ -136,13 +20,13 @@ const fuzzySearch = (query, text) => {
             queryIndex++;
         }
     }
-
     return queryIndex === queryLower.length;
 };
 
 function ProductShop() {
-    const [products, setProducts] = useState(mockProducts);
-    const [filteredProducts, setFilteredProducts] = useState(mockProducts);
+    const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [filteredProducts, setFilteredProducts] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [selectedBrands, setSelectedBrands] = useState([]);
@@ -152,15 +36,50 @@ function ProductShop() {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [isSortOpen, setIsSortOpen] = useState(false);
 
-    const categories = useMemo(() =>
-            [...new Set(products.map(product => product.category))],
-        [products]
-    );
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/categories/active');
+                const categoriesData = Array.isArray(response.data) ? response.data : response.data.data || [];
+                const categoryItems = categoriesData.map(cat => ({
+                    id: cat.id,
+                    name: cat.name
+                }));
+                setCategories(categoryItems);
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+                setCategories([]);
+            }
+        };
 
-    const brands = useMemo(() =>
-            [...new Set(products.map(product => product.brand))],
-        [products]
-    );
+        const fetchProducts = async () => {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/products/active');
+                const productsData = response.data.data || [];
+                setProducts(productsData);
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                setProducts([]);
+            }
+        };
+        fetchProducts();
+        fetchCategories();
+    }, []);
+
+    const brands = useMemo(() => {
+        const uniqueBrands = [...new Set(products.map(product => product.brand).filter(Boolean))];
+        return uniqueBrands;
+    }, [products]);
+
+    const displayCategories = useMemo(() => {
+        if (categories.length === 0) return [];
+
+        const productCategoryIds = [...new Set(products.map(product => product.category_id).filter(Boolean))];
+
+      return categories.filter(cat =>
+            productCategoryIds.includes(cat.id)
+        );
+    }, [categories, products]);
 
     useEffect(() => {
         let results = products;
@@ -169,24 +88,26 @@ function ProductShop() {
             results = results.filter(product =>
                 fuzzySearch(searchQuery, product.name) ||
                 fuzzySearch(searchQuery, product.brand) ||
-                fuzzySearch(searchQuery, product.category) ||
                 fuzzySearch(searchQuery, product.description)
             );
         }
 
         if (selectedCategories.length > 0) {
             results = results.filter(product =>
-                selectedCategories.includes(product.category)
+                selectedCategories.includes(product.category_id)
             );
         }
+
         if (selectedBrands.length > 0) {
             results = results.filter(product =>
                 selectedBrands.includes(product.brand)
             );
         }
-        results = results.filter(product =>
-            product.price >= priceRange[0] && product.price <= priceRange[1]
-        );
+
+        results = results.filter(product => {
+            const price = Number(product.price);
+            return price >= priceRange[0] && price <= priceRange[1];
+        });
 
         if (availability === 'in-stock') {
             results = results.filter(product => product.availability > 0);
@@ -202,7 +123,7 @@ function ProductShop() {
                 results.sort((a, b) => b.price - a.price);
                 break;
             case 'rating':
-                results.sort((a, b) => b.rating - a.rating);
+                results.sort((a, b) => (b.rating || 0) - (a.rating || 0));
                 break;
             case 'name':
                 results.sort((a, b) => a.name.localeCompare(b.name));
@@ -214,11 +135,11 @@ function ProductShop() {
         setFilteredProducts(results);
     }, [products, searchQuery, selectedCategories, selectedBrands, priceRange, availability, sortBy]);
 
-    const toggleCategory = (category) => {
+    const toggleCategory = (categoryId) => {
         setSelectedCategories(prev =>
-            prev.includes(category)
-                ? prev.filter(c => c !== category)
-                : [...prev, category]
+            prev.includes(categoryId)
+                ? prev.filter(id => id !== categoryId)
+                : [...prev, categoryId]
         );
     };
 
@@ -267,7 +188,7 @@ function ProductShop() {
                         selectedBrands={selectedBrands}
                         priceRange={priceRange}
                         availability={availability}
-                        categories={categories}
+                        categories={displayCategories}
                         brands={brands}
                         toggleCategory={toggleCategory}
                         toggleBrand={toggleBrand}
@@ -280,6 +201,7 @@ function ProductShop() {
                         searchQuery={searchQuery}
                         selectedCategories={selectedCategories}
                         selectedBrands={selectedBrands}
+                        categories={categories}
                         toggleCategory={toggleCategory}
                         toggleBrand={toggleBrand}
                         clearAllFilters={clearAllFilters}
@@ -295,7 +217,7 @@ function ProductShop() {
                     selectedBrands={selectedBrands}
                     priceRange={priceRange}
                     availability={availability}
-                    categories={categories}
+                    categories={displayCategories}
                     brands={brands}
                     toggleCategory={toggleCategory}
                     toggleBrand={toggleBrand}
