@@ -2,32 +2,39 @@ import React from 'react';
 import {Search, X} from "lucide-react";
 import ProductCard from "../../Products/ProductCard.jsx";
 
-function ProductSection(
-    {  filteredProducts = [],
-        searchQuery = '',
-        selectedCategories = [],
-        selectedBrands = [],
-        toggleCategory = () => {},
-        toggleBrand = () => {},
-        clearAllFilters = () => {}}
+export default function ProductSection({
+    filteredProducts = [],
+    searchQuery = '',
+    selectedCategories = [],
+    selectedBrands = [],
+    categories = [],
+    toggleCategory = () => {},
+    toggleBrand = () => {},
+    clearAllFilters = () => {},}
 ) {
     return (
         <div className="flex-1">
             <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-gray-600">
-                    Showing <span className="font-semibold text-gray-900">{filteredProducts.length}</span> products
                     {searchQuery && ` for "${searchQuery}"`}
                 </p>
 
                 <div className="flex flex-wrap gap-1">
-                    {selectedCategories.map(category => (
-                        <span key={category} className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-                                        {category}
-                            <button onClick={() => toggleCategory(category)}>
-                                            <X size={12} />
-                                        </button>
-                                    </span>
-                    ))}
+                    {selectedCategories.map(categoryId => {
+                        // Find the category object by ID (handle both string and number IDs)
+                        const category = categories.find(cat =>
+                            cat.id == categoryId ||
+                            String(cat.id) === String(categoryId)
+                        );
+                        return (
+                            <span key={categoryId} className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                                {category ? category.name : `Category ${categoryId}`}
+                                <button onClick={() => toggleCategory(categoryId)}>
+                                    <X size={12} />
+                                </button>
+                            </span>
+                        );
+                    })}
                     {selectedBrands.map(brand => (
                         <span key={brand} className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
                                         {brand}
@@ -63,4 +70,4 @@ function ProductSection(
     );
 }
 
-export default ProductSection;
+
