@@ -39,6 +39,21 @@ function FillterSidebar({
                             min="0"
                             max="300000"
                             step="1000"
+                            value={priceRange[0]}
+                            onChange={(e) =>
+                                setPriceRange([
+                                    parseInt(e.target.value),
+                                    priceRange[1],
+                                ])
+                            }
+                            className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                        />
+
+                        <input
+                            type="range"
+                            min="0"
+                            max="300000"
+                            step="1000"
                             value={priceRange[1]}
                             onChange={(e) =>
                                 setPriceRange([
@@ -48,11 +63,13 @@ function FillterSidebar({
                             }
                             className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                         />
+
                         <div className="flex justify-between text-xs text-gray-600">
-                            <span>Rs. 0</span>
+                            <span>Rs. {priceRange[0].toLocaleString()}</span>
                             <span>Rs. {priceRange[1].toLocaleString()}</span>
                         </div>
                     </div>
+
                 </div>
                 <div className="mb-4 pb-4 border-b border-gray-200">
                     <h3 className="font-medium text-gray-900 mb-3 text-sm">

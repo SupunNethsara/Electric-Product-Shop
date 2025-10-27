@@ -5,9 +5,6 @@ import ProductSection from "./ShopComponents/ProductSection.jsx";
 import MobileFilterDrawer from "./ShopComponents/MobileFilterDrawer.jsx";
 import axios from "axios";
 
-
-
-
 const fuzzySearch = (query, text) => {
     if (!query) return true;
     if (!text) return false;
@@ -84,10 +81,10 @@ function ProductShop() {
                 selectedBrands.includes(product.brand)
             );
         }
-        results = results.filter(product =>
-            product.price >= priceRange[0] && product.price <= priceRange[1]
-        );
-
+        results = results.filter(product => {
+            const price = Number(product.price);
+            return price >= priceRange[0] && price <= priceRange[1];
+        });
         if (availability === 'in-stock') {
             results = results.filter(product => product.availability > 0);
         } else if (availability === 'out-of-stock') {
