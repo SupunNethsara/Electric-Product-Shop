@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import ShopHeader from "./ShopComponents/ShopHeader.jsx";
 import FillterSidebar from "./ShopComponents/FillterSidebar.jsx";
 import ProductSection from "./ShopComponents/ProductSection.jsx";
@@ -40,18 +40,11 @@ function ProductShop() {
         const fetchCategories = async () => {
             try {
                 const response = await axios.get('http://127.0.0.1:8000/api/categories/active');
-                console.log('Categories API response:', response.data);
-                
-                // Check if response.data is an array directly or if it has a data property
                 const categoriesData = Array.isArray(response.data) ? response.data : response.data.data || [];
-                
-                // Map through categories and create an array of category objects with id and name
                 const categoryItems = categoriesData.map(cat => ({
                     id: cat.id,
                     name: cat.name
                 }));
-                
-                console.log('Formatted categories:', categoryItems);
                 setCategories(categoryItems);
             } catch (error) {
                 console.error('Error fetching categories:', error);
@@ -62,9 +55,8 @@ function ProductShop() {
         const fetchProducts = async () => {
             try {
                 const response = await axios.get('http://127.0.0.1:8000/api/products/active');
-                console.log('Products API response:', response.data);
-                setProducts(response.data.data || []);
-                console.log('products', response.data.data);
+                const productsData = response.data.data || [];
+                setProducts(productsData);
             } catch (error) {
                 console.error('Error fetching products:', error);
                 setProducts([]);
@@ -76,23 +68,18 @@ function ProductShop() {
 
     const brands = useMemo(() => {
         const uniqueBrands = [...new Set(products.map(product => product.brand).filter(Boolean))];
-        console.log('Available brands:', uniqueBrands);
         return uniqueBrands;
     }, [products]);
 
-    const productCategories = useMemo(() => {
-        const uniqueCategories = [...new Set(products.map(product => product.category).filter(Boolean))];
-        console.log('Available product categories:', uniqueCategories);
-        return uniqueCategories;
-    }, [products]);
-
-    // Use categories from the API, fallback to product categories if empty
     const displayCategories = useMemo(() => {
-        if (categories.length > 0) {
-            return categories.map(cat => cat.name || cat);
-        }
-        return productCategories;
-    }, [categories, productCategories]);
+        if (categories.length === 0) return [];
+
+        const productCategoryIds = [...new Set(products.map(product => product.category_id).filter(Boolean))];
+
+      return categories.filter(cat =>
+            productCategoryIds.includes(cat.id)
+        );
+    }, [categories, products]);
 
     useEffect(() => {
         let results = products;
@@ -101,16 +88,16 @@ function ProductShop() {
             results = results.filter(product =>
                 fuzzySearch(searchQuery, product.name) ||
                 fuzzySearch(searchQuery, product.brand) ||
-                fuzzySearch(searchQuery, product.category) ||
                 fuzzySearch(searchQuery, product.description)
             );
         }
 
         if (selectedCategories.length > 0) {
             results = results.filter(product =>
-                selectedCategories.includes(product.category)
+                selectedCategories.includes(product.category_id)
             );
         }
+
         if (selectedBrands.length > 0) {
             results = results.filter(product =>
                 selectedBrands.includes(product.brand)
@@ -136,7 +123,7 @@ function ProductShop() {
                 results.sort((a, b) => b.price - a.price);
                 break;
             case 'rating':
-                results.sort((a, b) => b.rating - a.rating);
+                results.sort((a, b) => (b.rating || 0) - (a.rating || 0));
                 break;
             case 'name':
                 results.sort((a, b) => a.name.localeCompare(b.name));
@@ -148,11 +135,11 @@ function ProductShop() {
         setFilteredProducts(results);
     }, [products, searchQuery, selectedCategories, selectedBrands, priceRange, availability, sortBy]);
 
-    const toggleCategory = (category) => {
+    const toggleCategory = (categoryId) => {
         setSelectedCategories(prev =>
-            prev.includes(category)
-                ? prev.filter(c => c !== category)
-                : [...prev, category]
+            prev.includes(categoryId)
+                ? prev.filter(id => id !== categoryId)
+                : [...prev, categoryId]
         );
     };
 
@@ -214,6 +201,7 @@ function ProductShop() {
                         searchQuery={searchQuery}
                         selectedCategories={selectedCategories}
                         selectedBrands={selectedBrands}
+                        categories={categories}
                         toggleCategory={toggleCategory}
                         toggleBrand={toggleBrand}
                         clearAllFilters={clearAllFilters}

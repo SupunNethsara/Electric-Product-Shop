@@ -1,19 +1,19 @@
 import React from "react";
 
 function FillterSidebar({
-    isFilterOpen = false,
-    selectedCategories = [],
-    selectedBrands = [],
-    priceRange = [0, 1000],
-    availability = "all",
-    categories = [],
-    brands = [],
-    toggleCategory = () => {},
-    toggleBrand = () => {},
-    setPriceRange = () => {},
-    setAvailability = () => {},
-    clearAllFilters = () => {},
-}) {
+                            isFilterOpen = false,
+                            selectedCategories = [],
+                            selectedBrands = [],
+                            priceRange = [0, 1000],
+                            availability = "all",
+                            categories = [],
+                            brands = [],
+                            toggleCategory = () => {},
+                            toggleBrand = () => {},
+                            setPriceRange = () => {},
+                            setAvailability = () => {},
+                            clearAllFilters = () => {},
+                        }) {
 
     return (
         <div
@@ -70,36 +70,38 @@ function FillterSidebar({
                             <span>Rs. {priceRange[1].toLocaleString()}</span>
                         </div>
                     </div>
-
                 </div>
+
+                {/* Categories Section */}
                 <div className="mb-4 pb-4 border-b border-gray-200">
                     <h3 className="font-medium text-gray-900 mb-3 text-sm">
                         Categories
                     </h3>
-                    <div className="space-y-2">
-                        {categories.map((category) => {
-                            const categoryValue = typeof category === 'object' ? category.id || category.name : category;
-                            const categoryName = typeof category === 'object' ? category.name : category;
-
-                            return (
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {categories.length > 0 ? (
+                            categories.map((category) => (
                                 <label
-                                    key={categoryValue}
+                                    key={category.id}
                                     className="flex items-center gap-2 cursor-pointer group"
                                 >
                                     <input
                                         type="checkbox"
-                                        checked={selectedCategories.includes(categoryValue)}
-                                        onChange={() => toggleCategory(categoryValue)}
+                                        checked={selectedCategories.includes(category.id)}
+                                        onChange={() => toggleCategory(category.id)}
                                         className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
                                     />
                                     <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
-                                        {categoryName}
+                                        {category.name}
                                     </span>
                                 </label>
-                            );
-                        })}
+                            ))
+                        ) : (
+                            <p className="text-sm text-gray-500">No categories available</p>
+                        )}
                     </div>
                 </div>
+
+                {/* Brands Section */}
                 <div className="mb-4 pb-4 border-b border-gray-200">
                     <h3 className="font-medium text-gray-900 mb-3 text-sm">
                         Brands
@@ -123,6 +125,8 @@ function FillterSidebar({
                         ))}
                     </div>
                 </div>
+
+                {/* Availability Section */}
                 <div className="mb-2">
                     <h3 className="font-medium text-gray-900 mb-3 text-sm">
                         Availability
