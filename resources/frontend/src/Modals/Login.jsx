@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginUser, clearError } from "../Store/slices/authSlice.js";
+import { loginUser } from "../Store/slices/authSlice.js";
+import { setCredentials, clearError } from "../Store/slices/authSlice";
 import { closeModals, clearRedirect } from "../Store/slices/modalSlice.js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { X, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { FcGoogle } from 'react-icons/fc';
 
 const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
     const [formData, setFormData] = useState({
@@ -14,8 +16,67 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const { redirectAfterLogin } = useSelector((state) => state.modal);
     const { isLoading, error, isAuthenticated, role } = useSelector((state) => state.auth);
+
+    useEffect(() => {
+        const handleOAuthCallback = async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const userParam = urlParams.get('user');
+            const error = urlParams.get('error');
+
+            if (error) {
+                console.error('OAuth Error:', error);
+                dispatch(clearError());
+                return;
+            }
+
+            if (token && userParam) {
+                try {
+                    let userData;
+                    try {
+                        userData = JSON.parse(decodeURIComponent(userParam));
+                    } catch (e) {
+                        userData = JSON.parse(userParam);
+                    }
+
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('user', JSON.stringify(userData));
+
+                    // Dispatch to Redux store
+                    await dispatch(setCredentials({
+                        user: userData,
+                        token: token,
+                        role: userData.role || 'user'
+                    }));
+
+                    const cleanUrl = window.location.pathname;
+                    window.history.replaceState({}, document.title, cleanUrl);
+
+                    const redirectTo = localStorage.getItem('preAuthRoute') || '/';
+                    localStorage.removeItem('preAuthRoute');
+
+                    if (isOpen) {
+                        dispatch(closeModals());
+                    }
+
+                    // Navigate to the intended page
+                    navigate(redirectTo, { replace: true });
+
+                } catch (error) {
+                    console.error('Error handling OAuth callback:', error);
+                    dispatch(clearError());
+                }
+            }
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('token') && urlParams.has('user')) {
+            handleOAuthCallback();
+        }
+    }, [dispatch, navigate, isOpen]);
 
     useEffect(() => {
         if (isAuthenticated && isOpen) {
@@ -42,19 +103,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
         }
     }, [isAuthenticated, isOpen, navigate, role, redirectAfterLogin, dispatch]);
 
-    useEffect(() => {
-        if (isOpen) {
-            dispatch(clearError());
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'unset';
-        }
-
-        return () => {
-            document.body.style.overflow = 'unset';
-        };
-    }, [isOpen, dispatch]);
-
+    // Escape key handler
     useEffect(() => {
         const handleEscape = (e) => {
             if (e.key === 'Escape') {
@@ -64,10 +113,14 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
 
         if (isOpen) {
             document.addEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
         }
 
         return () => {
             document.removeEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'unset';
         };
     }, [isOpen, onClose]);
 
@@ -81,6 +134,11 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         dispatch(loginUser(formData));
+    };
+
+    const handleGoogleLogin = () => {
+        localStorage.setItem('preAuthRoute', window.location.pathname);
+        window.location.href = 'http://localhost:8000/api/auth/google';
     };
 
     const handleOverlayClick = (e) => {
@@ -193,6 +251,25 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
                         )}
                     </button>
 
+                    <div className="relative my-6">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-300"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={handleGoogleLogin}
+                        disabled={isLoading}
+                        className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 disabled:opacity-50"
+                    >
+                        <FcGoogle size={20} />
+                        <span>Sign in with Google</span>
+                    </button>
+
                     <div className="text-center pt-4 border-t border-slate-100">
                         <p className="text-slate-600">
                             Don't have an account?{' '}
@@ -206,7 +283,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
                         </p>
                     </div>
                 </form>
-            </div>
+            </div>K
         </div>
     );
 };

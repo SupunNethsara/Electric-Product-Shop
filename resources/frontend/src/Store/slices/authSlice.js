@@ -1,4 +1,3 @@
-// Store/slices/authSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
@@ -19,7 +18,6 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Add response interceptor for token expiry
 api.interceptors.response.use(
     (response) => response,
     (error) => {
@@ -100,9 +98,18 @@ const authSlice = createSlice({
         role: null,
         isLoading: false,
         error: null,
-        appLoaded: false, // Add this to track initial app loading
+        appLoaded: false,
     },
     reducers: {
+        setCredentials: (state, action) => {
+            const { user, token, role } = action.payload;
+            state.user = user;
+            state.token = token;
+            state.role = role || 'user';
+            state.isAuthenticated = true;
+            state.error = null;
+            state.appLoaded = true;
+        },
         clearError: (state) => {
             state.error = null;
         },
@@ -177,5 +184,5 @@ const authSlice = createSlice({
     },
 });
 
-export const { clearError, setAppLoaded } = authSlice.actions;
+export const { setCredentials, clearError, setAppLoaded } = authSlice.actions;
 export default authSlice.reducer;
