@@ -58,4 +58,8 @@ class User extends Authenticatable
     public function isAdmin() {
         return in_array($this->role, ['Admin','SuperAdmin']);
     }
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
+    }
 }
