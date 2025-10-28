@@ -17,7 +17,7 @@ import CheckOutUser from "./UserInterFaceComponents/Products/CheckOut/CheckOutUs
 import ProductDetails from "./UserInterFaceComponents/Products/ProductDetails.jsx";
 import UserInterFace from "./UserInterFaceComponents/Common/UserInterFace.jsx";
 import GlobalModals from "./UserInterFaceComponents/Common/GlobalModals.jsx";
-
+import AuthCallback from "./pages/AuthCallback";
 
 function App() {
     const dispatch = useDispatch();
@@ -51,6 +51,13 @@ function App() {
             <div className="App">
                 <GlobalModals/>
                 <Routes>
+                    {/* OAuth Callback Route - Should be at the top level */}
+                    <Route
+                        path="/auth/google/callback"
+                        element={<AuthCallback />}
+                    />
+
+                    {/* All other routes */}
                     <Route
                         path="/*"
                         element={
@@ -69,7 +76,6 @@ function App() {
                             </NormalLayout>
                         }
                     />
-
                     <Route
                         path="/profile"
                         element={
@@ -80,7 +86,6 @@ function App() {
                             </NormalLayout>
                         }
                     />
-
                     <Route
                         path="/productDetails/:id?"
                         element={
@@ -99,7 +104,6 @@ function App() {
                             </AdminRoute>
                         }
                     />
-
                     <Route
                         path="/super-admin/*"
                         element={
@@ -115,7 +119,6 @@ function App() {
                             </SuperAdminRoute>
                         }
                     />
-
                     <Route
                         path="/unauthorized"
                         element={
