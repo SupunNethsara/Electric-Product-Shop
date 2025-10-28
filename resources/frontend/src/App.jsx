@@ -18,6 +18,7 @@ import ProductDetails from "./UserInterFaceComponents/Products/ProductDetails.js
 import UserInterFace from "./UserInterFaceComponents/Common/UserInterFace.jsx";
 import GlobalModals from "./UserInterFaceComponents/Common/GlobalModals.jsx";
 import AuthCallback from "./pages/AuthCallback";
+import UserProfile from "./UserInterFaceComponents/Common/UserProfile.jsx";
 
 function App() {
     const dispatch = useDispatch();
@@ -81,7 +82,7 @@ function App() {
                         element={
                             <NormalLayout>
                                 <ProtectedRoute>
-                                    <div>User Profile</div>
+                                   <UserProfile/>
                                 </ProtectedRoute>
                             </NormalLayout>
                         }
