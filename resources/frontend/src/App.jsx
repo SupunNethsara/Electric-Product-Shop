@@ -52,13 +52,10 @@ function App() {
             <div className="App">
                 <GlobalModals/>
                 <Routes>
-                    {/* OAuth Callback Route - Should be at the top level */}
                     <Route
                         path="/auth/google/callback"
                         element={<AuthCallback />}
                     />
-
-                    {/* All other routes */}
                     <Route
                         path="/*"
                         element={
