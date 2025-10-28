@@ -37,7 +37,7 @@ function ProductDetails() {
             dispatch(openLoginModal(`/productDetails/${id}`));
             return;
         }
-        console.log(`Added ${quantity} of ${product.name} to cart`);
+        navigate('/cart');
     };
 
     const handleBuyNow = () => {
