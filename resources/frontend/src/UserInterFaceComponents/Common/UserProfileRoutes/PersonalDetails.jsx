@@ -48,7 +48,7 @@ function PersonalDetails() {
         } catch (error) {
             console.error('Error fetching profile:', error);
             if (error.response?.status === 401) {
-                navigate('/login');
+                navigate('/');
             } else {
                 toast.error('Failed to load profile data');
             }
