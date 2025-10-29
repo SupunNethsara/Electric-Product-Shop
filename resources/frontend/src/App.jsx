@@ -19,6 +19,7 @@ import UserInterFace from "./UserInterFaceComponents/Common/UserInterFace.jsx";
 import GlobalModals from "./UserInterFaceComponents/Common/GlobalModals.jsx";
 import AuthCallback from "./pages/AuthCallback";
 import UserProfile from "./UserInterFaceComponents/Common/UserProfile.jsx";
+import Toast from "./UserInterFaceComponents/Common/Toast.jsx";
 
 function App() {
     const dispatch = useDispatch();
@@ -126,6 +127,7 @@ function App() {
                         }
                     />
                 </Routes>
+                <Toast/>
             </div>
         </Router>
     );

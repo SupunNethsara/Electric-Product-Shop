@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { openLoginModal } from "../../Store/slices/modalSlice.js";
 import { addToCart } from "../../Store/slices/cartSlice.js";
+import useToast from "../Common/useToast.jsx";
 
 const ProductDetails = () => {
     const location = useLocation();
@@ -36,6 +37,7 @@ const ProductDetails = () => {
     const [isWishlisted, setIsWishlisted] = useState(false);
     const [showZoomModal, setShowZoomModal] = useState(false);
     const [activeTab, setActiveTab] = useState('description');
+    const { success, error: showError } = useToast();
 
     // Fetch product details if not passed via state
     useEffect(() => {
@@ -65,7 +67,7 @@ const ProductDetails = () => {
         }
 
         if (product.availability === 0) {
-            alert('This product is out of stock');
+            showError('This product is out of stock', 'Out of Stock');
             return;
         }
 
@@ -75,9 +77,9 @@ const ProductDetails = () => {
                 product_id: product.id,
                 quantity: quantity
             })).unwrap();
-            alert('Product added to cart successfully!');
+            success('Product added to cart successfully!');
         } catch (error) {
-            alert(error || 'Failed to add product to cart');
+            showError(error || 'Failed to add product to cart');
         } finally {
             setAddingToCart(false);
         }
@@ -90,7 +92,7 @@ const ProductDetails = () => {
         }
 
         if (product.availability === 0) {
-            alert('This product is out of stock');
+            showError('This product is out of stock', 'Out of Stock');
             return;
         }
 
