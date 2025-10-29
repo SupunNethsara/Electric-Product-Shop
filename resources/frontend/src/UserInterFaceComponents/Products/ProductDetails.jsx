@@ -14,31 +14,19 @@ function ProductDetails() {
 
     const [product, setProduct] = useState(location.state?.product || null);
     const [loading, setLoading] = useState(!location.state?.product);
-    const [error, setError] = useState(null);
+    const [error] = useState(null);
 
     useEffect(() => {
         if (location.state?.product) {
             setProduct(location.state.product);
             setLoading(false);
-        } else if (id) {
-            fetchProductById(id);
-        } else {
+        }  else {
             navigate('/');
             return;
         }
     }, [location.state, navigate, id]);
 
-    const fetchProductById = async (productId) => {
-        try {
-            setLoading(true);
 
-            setError('Product not found');
-        } catch (err) {
-            setError('Failed to load product');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const [selectedImage, setSelectedImage] = useState(0);
     const [quantity, setQuantity] = useState(1);
@@ -49,7 +37,7 @@ function ProductDetails() {
             dispatch(openLoginModal(`/productDetails/${id}`));
             return;
         }
-        console.log(`Added ${quantity} of ${product.name} to cart`);
+        navigate('/cart');
     };
 
     const handleBuyNow = () => {
@@ -110,7 +98,7 @@ function ProductDetails() {
     const originalPrice = parseFloat(product.price) * 1.3;
     const discountPercent = Math.round(((originalPrice - parseFloat(product.price)) / originalPrice) * 100);
     const rating = 4.2;
-    const reviewCount = Math.floor(Math.random() * 1000) + 100;
+    // const reviewCount = Math.floor(Math.random() * 1000) + 100;
 
     return (
         <div className="min-h-screen bg-gray-50 pt-16">
@@ -187,7 +175,7 @@ function ProductDetails() {
                                             <span>{rating}</span>
                                             <Star size={14} className="ml-1 fill-current" />
                                         </div>
-                                        <span className="text-gray-600 text-sm">({reviewCount} reviews)</span>
+                                        <span className="text-gray-600 text-sm">({/*reviewCount */} reviews)</span>
                                         <span className={`font-semibold text-sm ${
                                             product.availability > 0 ? 'text-green-600' : 'text-red-600'
                                         }`}>

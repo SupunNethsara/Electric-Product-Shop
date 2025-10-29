@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import HomeSection from "../HomeComponent/HomeSection.jsx";
 import ProductShop from "../Shop/ProductShop.jsx";
+import CartSection from "../Products/Cart/CartSection.jsx";
 
 function UserInterFace() {
     return (
@@ -9,7 +10,7 @@ function UserInterFace() {
                 <Route path="/" element={<HomeSection />} />
                 <Route path="/home" element={<HomeSection/>}/>
                 <Route path="/shop" element={<ProductShop/>}/>
-
+                <Route path="/cart" element={<CartSection/>}/>
             </Routes>
         </div>
     );
