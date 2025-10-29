@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, X, Upload, AlertCircle, CheckCircle } from 'lucide-react';
+import { Camera, X, Upload, AlertCircle, CheckCircle, Info } from 'lucide-react';
 
 const ProductRow = ({ product, onImagesUpload }) => {
     const [showImageModal, setShowImageModal] = useState(false);
@@ -7,6 +7,7 @@ const ProductRow = ({ product, onImagesUpload }) => {
     const [mainImageIndex, setMainImageIndex] = useState(0);
     const [uploading, setUploading] = useState(false);
     const [showInstructions, setShowInstructions] = useState(false);
+    const [showProductDetails, setShowProductDetails] = useState(false);
 
     const handleFileSelect = (event) => {
         const files = Array.from(event.target.files);
@@ -59,27 +60,27 @@ const ProductRow = ({ product, onImagesUpload }) => {
     return (
         <>
             <tr className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 py-4 whitespace-nowrap">
                     {mainImage ? (
                         <img
                             src={mainImage}
                             alt={product.name}
-                            className="h-12 w-12 rounded-lg object-cover border border-gray-200"
+                            className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover border border-gray-200"
                         />
                     ) : (
-                        <div className="h-12 w-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <Camera className="h-6 w-6 text-gray-400" />
+                        <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <Camera className="h-4 w-4 sm:h-6 sm:w-6 text-gray-400" />
                         </div>
                     )}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 py-4 whitespace-nowrap hidden sm:table-cell">
                     <div className="flex space-x-1">
                         {productImages.map((img, index) => (
                             <img
                                 key={index}
                                 src={img}
                                 alt={`${product.name} view ${index + 1}`}
-                                className="h-8 w-8 object-cover rounded border border-gray-200"
+                                className="h-6 w-6 sm:h-8 sm:w-8 object-cover rounded border border-gray-200"
                             />
                         ))}
                         {productImages.length === 0 && (
@@ -87,22 +88,31 @@ const ProductRow = ({ product, onImagesUpload }) => {
                         )}
                     </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {product.item_code}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {product.name}
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div className="flex items-center gap-2">
+                        <span className="truncate max-w-[120px]">{product.name}</span>
+                        <button
+                            onClick={() => setShowProductDetails(true)}
+                            className="sm:hidden p-1 hover:bg-gray-100 rounded transition-colors"
+                            title="View details"
+                        >
+                            <Info className="h-4 w-4 text-gray-500" />
+                        </button>
+                    </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
                     {product.model}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                <td className="px-4 py-4 text-sm text-gray-500 max-w-xs truncate hidden lg:table-cell">
                     {product.description}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-green-600">
                     ${product.price}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         product.availability > 0
                             ? 'bg-green-100 text-green-800'
@@ -111,10 +121,11 @@ const ProductRow = ({ product, onImagesUpload }) => {
                         {product.availability} in stock
                     </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <label className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-all duration-200 inline-flex items-center gap-2 shadow-md hover:shadow-lg">
-                        <Camera size={16} />
-                        Add Images
+                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                    <label className="cursor-pointer bg-blue-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm hover:bg-blue-700 transition-all duration-200 inline-flex items-center gap-1 sm:gap-2 shadow-md hover:shadow-lg">
+                        <Camera size={14} className="sm:w-4 sm:h-4" />
+                        <span className="hidden xs:inline">Add Images</span>
+                        <span className="xs:hidden">Images</span>
                         <input
                             type="file"
                             multiple
@@ -126,10 +137,61 @@ const ProductRow = ({ product, onImagesUpload }) => {
                 </td>
             </tr>
 
+            {showProductDetails && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 sm:hidden">
+                    <div className="bg-white rounded-2xl w-full max-w-sm transform transition-all">
+                        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                            <h3 className="text-lg font-semibold text-gray-900">Product Details</h3>
+                            <button
+                                onClick={() => setShowProductDetails(false)}
+                                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+                        <div className="p-4 space-y-3">
+                            <div>
+                                <label className="text-xs font-medium text-gray-500">Item Code</label>
+                                <p className="text-sm text-gray-900">{product.item_code}</p>
+                            </div>
+                            <div>
+                                <label className="text-xs font-medium text-gray-500">Name</label>
+                                <p className="text-sm text-gray-900">{product.name}</p>
+                            </div>
+                            <div>
+                                <label className="text-xs font-medium text-gray-500">Model</label>
+                                <p className="text-sm text-gray-900">{product.model || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <label className="text-xs font-medium text-gray-500">Description</label>
+                                <p className="text-sm text-gray-900">{product.description || 'No description'}</p>
+                            </div>
+                            <div>
+                                <label className="text-xs font-medium text-gray-500">Stock</label>
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    product.availability > 0
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-red-100 text-red-800'
+                                }`}>
+                                    {product.availability} in stock
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex gap-3 p-4 border-t border-gray-200">
+                            <button
+                                onClick={() => setShowProductDetails(false)}
+                                className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {showInstructions && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-md transform transition-all">
-                        {/* Header */}
+                    <div className="bg-white rounded-2xl w-full max-w-md transform transition-all max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between p-6 border-b border-gray-200">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-blue-100 rounded-lg">
@@ -150,7 +212,6 @@ const ProductRow = ({ product, onImagesUpload }) => {
                             </button>
                         </div>
 
-                        {/* Content */}
                         <div className="p-6 space-y-4">
                             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                                 <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
@@ -214,7 +275,6 @@ const ProductRow = ({ product, onImagesUpload }) => {
                             </div>
                         </div>
 
-                        {/* Footer */}
                         <div className="flex gap-3 p-6 border-t border-gray-200">
                             <button
                                 onClick={() => {
