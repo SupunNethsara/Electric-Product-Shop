@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\CartController;
+use App\Http\Controllers\CartController\CartController;
 use Illuminate\Support\Facades\Route;
 
 
