@@ -150,12 +150,18 @@ const cartSlice = createSlice({
                 state.loading = false;
                 const index = state.items.findIndex(item => item.id === action.payload.item.id);
                 if (index !== -1) {
-                    state.items[index] = action.payload.item;
+                    const existingProduct = state.items[index].product;
+                    state.items[index] = {
+                        ...action.payload.item,
+                        product: action.payload.item.product || existingProduct
+                    };
                 }
 
                 state.totalItems = state.items.reduce((total, item) => total + item.quantity, 0);
                 state.totalPrice = state.items.reduce((total, item) => {
-                    return total + (parseFloat(item.product.price) * item.quantity);
+                    return item.product ?
+                        total + (parseFloat(item.product.price) * item.quantity) :
+                        total;
                 }, 0);
             })
             .addCase(updateCartItem.rejected, (state, action) => {

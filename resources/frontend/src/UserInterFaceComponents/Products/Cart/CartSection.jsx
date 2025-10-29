@@ -34,7 +34,10 @@ function CartSection() {
         if (newQuantity < 1) return;
 
         try {
-            await dispatch(updateCartItem({ id: itemId, quantity: newQuantity })).unwrap();
+            await dispatch(updateCartItem({
+                id: itemId,
+                quantity: newQuantity
+            })).unwrap();
         } catch (error) {
             alert(error || 'Failed to update quantity');
         }
@@ -158,29 +161,28 @@ function CartSection() {
 
                                                     <div className="flex items-center justify-between mt-4">
                                                         <div className="flex items-center border border-gray-300 rounded">
-                                                            <button
-                                                                onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                                                                disabled={item.quantity <= 1 || loading}
-                                                                className="p-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                            >
-                                                                <Minus size={16} />
-                                                            </button>
-                                                            <span className="px-3 py-1 border-x border-gray-300 min-w-12 text-center text-sm font-medium">
-                                                                {item.quantity}
-                                                            </span>
-                                                            <button
-                                                                onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                                                                disabled={item.quantity >= item.product.availability || loading}
-                                                                className="p-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                            >
-                                                                <Plus size={16} />
-                                                            </button>
+                                                            <div className="flex items-center gap-2 mt-3">
+                                                                <button
+                                                                    onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                                                                    className="p-1 text-gray-600 hover:bg-gray-100 rounded"
+                                                                    disabled={item.quantity <= 1}
+                                                                >
+                                                                    <Minus size={16} />
+                                                                </button>
+                                                                <span className="w-8 text-center">{item.quantity}</span>
+                                                                <button
+                                                                    onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                                                                    className="p-1 text-gray-600 hover:bg-gray-100 rounded"
+                                                                >
+                                                                    <Plus size={16} />
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                         <div className="text-right">
                                                             <p className="font-semibold text-gray-900">
-                                                                Rs. {(parseFloat(item.product.price) * item.quantity).toLocaleString()}
+                                                                Rs. {item.product ? (parseFloat(item.product.price) * item.quantity).toLocaleString() : 'N/A'}
                                                             </p>
-                                                            {item.quantity > 1 && (
+                                                            {item.quantity > 1 && item.product && (
                                                                 <p className="text-gray-500 text-xs">
                                                                     Rs. {parseFloat(item.product.price).toLocaleString()} each
                                                                 </p>
