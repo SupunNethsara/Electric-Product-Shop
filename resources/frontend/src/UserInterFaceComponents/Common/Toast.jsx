@@ -58,6 +58,13 @@ const Toast = () => {
 
     if (toasts.length === 0) return null;
 
+    const handleConfirm = (toast, confirm) => {
+        if (confirm && typeof confirm.onClick === 'function') {
+            confirm.onClick();
+        }
+        dispatch(removeToast(toast.id));
+    };
+
     return (
         <div className="fixed top-4 right-4 z-50 space-y-3 w-full max-w-sm">
             {toasts.map((toast) => (
@@ -84,16 +91,34 @@ const Toast = () => {
                                         {toast.message}
                                     </p>
                                 )}
+                                {toast.isConfirm && (
+                                    <div className="mt-3 flex justify-end space-x-2">
+                                        <button
+                                            onClick={() => handleConfirm(toast, toast.confirm)}
+                                            className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md"
+                                        >
+                                            {toast.confirm?.text || 'Confirm'}
+                                        </button>
+                                        <button
+                                            onClick={() => dispatch(removeToast(toast.id))}
+                                            className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+                                        >
+                                            {toast.cancelText || 'Cancel'}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                            <div className="ml-2 flex-shrink-0 flex">
-                                <button
-                                    onClick={() => dispatch(removeToast(toast.id))}
-                                    className="inline-flex rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-200"
-                                >
-                                    <span className="sr-only">Close</span>
-                                    <X className="h-4 w-4" />
-                                </button>
-                            </div>
+                            {!toast.isConfirm && (
+                                <div className="ml-2 flex-shrink-0 flex">
+                                    <button
+                                        onClick={() => dispatch(removeToast(toast.id))}
+                                        className="inline-flex rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-200"
+                                    >
+                                        <span className="sr-only">Close</span>
+                                        <X className="h-4 w-4" />
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
