@@ -48,20 +48,13 @@ const ProductCard = ({ product }) => {
 
                 <div className="mb-3">
                     <div className="flex items-baseline gap-2 mb-1">
-                        <span className="text-lg font-bold text-green-600">Rs. {product.price}</span>
-                        <span className="text-sm text-gray-500 line-through">Rs. {originalPrice.toFixed(2)}</span>
+                        <span className="text-md font-bold text-green-600">Rs. {product.price}</span>
+
                     </div>
                     <div className="text-xs text-gray-600">
                         <span className="text-green-600 font-semibold">{product.availability}</span> pieces available
                     </div>
                 </div>
-
-                {/* Free Shipping Badge */}
-                {/*<div className="mb-3">*/}
-                {/*    <span className="inline-block bg-green-50 text-green-600 text-xs px-2 py-1 rounded border border-green-200">*/}
-                {/*        🚚 Free Shipping*/}
-                {/*    </span>*/}
-                {/*</div>*/}
 
                 <button
                     onClick={handleBuyClick}
