@@ -114,25 +114,25 @@ function CheckOutUser() {
         console.log("Applying store code:", storeCode);
     };
 
+    // In CheckOutUser.jsx - update handleProceedToPay function
     const handleProceedToPay = () => {
-        if (directBuyData) {
-            console.log("Processing direct buy order:", {
-                product: directBuyData.product,
-                quantity: directBuyData.quantity,
-                total: orderSummary.total
-            });
+        const orderData = {
+            orderId: `ORD-${Date.now()}`,
+            orderDate: new Date().toISOString(),
+            items: displayItems,
+            total: orderSummary.total,
+            customer: user,
+            status: 'pending'
+        };
 
-            createDirectOrder();
-        } else {
-            console.log("Processing cart checkout:", {
-                cartItems,
-                total: orderSummary.total
-            });
-
-            processCartCheckout();
-        }
+        // Navigate to order confirmation
+        navigate('/order-confirmation', {
+            state: {
+                order: orderData,
+                directBuy: directBuyData ? true : false
+            }
+        });
     };
-
     const createDirectOrder = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -320,7 +320,6 @@ function CheckOutUser() {
                         <div className="flex flex-col gap-4">
                             {displayItems.length > 0 ? (
                                 displayItems.map((item) => {
-                                    // Parse the images if it's a string, otherwise use as is
                                     const images = typeof item.product?.images === 'string'
                                         ? JSON.parse(item.product.images.replace(/\\([^\\])/g, '$1'))
                                         : item.product?.images || [];

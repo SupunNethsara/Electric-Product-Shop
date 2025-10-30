@@ -19,6 +19,7 @@ import UserInterFace from "./UserInterFaceComponents/Common/UserInterFace.jsx";
 import AuthCallback from "./pages/AuthCallback";
 import UserProfile from "./UserInterFaceComponents/Common/UserProfile.jsx";
 import Toast from "./UserInterFaceComponents/Common/Toast.jsx";
+import OrderConfirmation from "./UserInterFaceComponents/Common/OrderConfirmation.jsx";
 
 function App() {
     const dispatch = useDispatch();
@@ -69,6 +70,16 @@ function App() {
                             <NormalLayout>
                                 <ProtectedRoute>
                                     <CheckOutUser />
+                                </ProtectedRoute>
+                            </NormalLayout>
+                        }
+                    />
+                    <Route
+                        path="/order-confirmation"
+                        element={
+                            <NormalLayout>
+                                <ProtectedRoute>
+                                    <OrderConfirmation />
                                 </ProtectedRoute>
                             </NormalLayout>
                         }
