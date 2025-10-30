@@ -11,8 +11,7 @@ const Navbar = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { isAuthenticated, user, role, isLoading } = useSelector((state) => state.auth);
-    const cartCount = useSelector(state => state.cart?.total || 0);
-
+    const cartCount = useSelector(state => state.cart?.totalItems || 0);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");

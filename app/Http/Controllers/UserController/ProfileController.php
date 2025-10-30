@@ -12,7 +12,7 @@ class ProfileController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $profile = $user->profile;
+        $profile = $user->profile->with('user')->first();
 
         return response()->json([
             'profile' => $profile ? $profile->makeHidden('user_id') : null

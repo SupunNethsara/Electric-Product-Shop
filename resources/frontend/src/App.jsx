@@ -16,9 +16,10 @@ import SuperAdminLayout from "./Layouts/SuperAdminLayout.jsx";
 import CheckOutUser from "./UserInterFaceComponents/Products/CheckOut/CheckOutUser.jsx";
 import ProductDetails from "./UserInterFaceComponents/Products/ProductDetails.jsx";
 import UserInterFace from "./UserInterFaceComponents/Common/UserInterFace.jsx";
-import GlobalModals from "./UserInterFaceComponents/Common/GlobalModals.jsx";
 import AuthCallback from "./pages/AuthCallback";
 import UserProfile from "./UserInterFaceComponents/Common/UserProfile.jsx";
+import Toast from "./UserInterFaceComponents/Common/Toast.jsx";
+import OrderConfirmation from "./UserInterFaceComponents/Common/OrderConfirmation.jsx";
 
 function App() {
     const dispatch = useDispatch();
@@ -50,7 +51,6 @@ function App() {
     return (
         <Router>
             <div className="App">
-                <GlobalModals/>
                 <Routes>
                     <Route
                         path="/auth/google/callback"
@@ -70,6 +70,16 @@ function App() {
                             <NormalLayout>
                                 <ProtectedRoute>
                                     <CheckOutUser />
+                                </ProtectedRoute>
+                            </NormalLayout>
+                        }
+                    />
+                    <Route
+                        path="/order-confirmation"
+                        element={
+                            <NormalLayout>
+                                <ProtectedRoute>
+                                    <OrderConfirmation />
                                 </ProtectedRoute>
                             </NormalLayout>
                         }
@@ -126,6 +136,7 @@ function App() {
                         }
                     />
                 </Routes>
+                <Toast/>
             </div>
         </Router>
     );
