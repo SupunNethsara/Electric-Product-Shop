@@ -254,7 +254,6 @@ function CheckOutUser() {
         <div className="min-h-screen bg-gray-50 py-8 mt-20 px-4 sm:px-6 lg:px-8 ">
             <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
                 <div className="flex-1 flex flex-col gap-6">
-                    {/* Shipping & Billing Section */}
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-semibold text-gray-900">Shipping & Billing</h2>
@@ -277,13 +276,15 @@ function CheckOutUser() {
                         </div>
                     </div>
 
-                    {/* Package Information */}
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-md font-semibold text-gray-900">
                                 Package 1 of 1 {directBuyData && <span className="text-blue-600 text-sm">(Direct Purchase)</span>}
                             </h3>
-                            <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            <button
+                                onClick={() => navigate('/cart')}
+                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                            >
                                 EDIT
                             </button>
                         </div>
@@ -378,8 +379,6 @@ function CheckOutUser() {
                             )}
                         </div>
                     </div>
-
-                    {/* Invoice and Contact Info */}
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <div className="flex items-center justify-between">
                             <h4 className="text-sm font-medium text-gray-900">Invoice and Contact Info</h4>
