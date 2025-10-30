@@ -1,15 +1,16 @@
 <?php
-namespace App\Http\Controllers;
 
+namespace App\Http\Controllers\OrderController;
+
+use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class OrderController extends Controller
+class OderController extends Controller
 {
-    // 🟢 Direct Order (Buy Now)
     public function directOrder(Request $request)
     {
         $request->validate([
@@ -48,8 +49,6 @@ class OrderController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-
-    // 🟢 Checkout from Cart
     public function cartCheckout(Request $request)
     {
         $request->validate([
@@ -88,4 +87,5 @@ class OrderController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
 }
