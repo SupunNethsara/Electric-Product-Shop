@@ -1,10 +1,41 @@
-import React, { useState } from "react";
+import React, { useState , useEffect } from "react";
+import axios from "axios";
 
 function CheckOutUser() {
     const [storeCode, setStoreCode] = useState("");
     const [deliveryOption, setDeliveryOption] = useState("standard");
+    const[user , setUser] = useState("");
 
-    // Sample data
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('No authentication token found');
+                }
+
+                const response = await axios.get('http://127.0.0.1:8000/api/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                setUser({
+                    ...response.data.profile.user,
+                    profile: {
+                        ...response.data.profile
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching profile:', error);
+                if (error.response?.status === 401) {
+                    window.location.href = '/login';
+                }
+            }
+        };
+
+        fetchProfile();
+    }, []);
     const orderData = {
         customer: {
             name: "K.Supun Nethsara Dharmaithaka",
@@ -54,13 +85,13 @@ function CheckOutUser() {
                         </div>
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-2">
-                                <span className="text-gray-800 font-medium">{orderData.customer.name}</span>
+                                <span className="text-gray-800 font-medium">{user.name}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-gray-600">{orderData.customer.phone}</span>
+                                <span className="text-gray-600">{user.profile.phone}</span>
                             </div>
                             <div className="flex">
-                                <span className="text-gray-600 text-sm">{orderData.customer.address}</span>
+                                <span className="text-gray-600 text-sm">{user.profile.address}</span>
                             </div>
                         </div>
                     </div>
