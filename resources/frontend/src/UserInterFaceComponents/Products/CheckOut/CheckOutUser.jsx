@@ -1,10 +1,11 @@
-import React, { useState , useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 function CheckOutUser() {
     const [storeCode, setStoreCode] = useState("");
     const [deliveryOption, setDeliveryOption] = useState("standard");
-    const[user , setUser] = useState("");
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -20,6 +21,7 @@ function CheckOutUser() {
                         'Accept': 'application/json'
                     }
                 });
+
                 setUser({
                     ...response.data.profile.user,
                     profile: {
@@ -29,13 +31,16 @@ function CheckOutUser() {
             } catch (error) {
                 console.error('Error fetching profile:', error);
                 if (error.response?.status === 401) {
-                    window.location.href = '/login';
+                    window.location.href = '/';
                 }
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchProfile();
     }, []);
+
     const orderData = {
         customer: {
             name: "K.Supun Nethsara Dharmaithaka",
@@ -75,6 +80,33 @@ function CheckOutUser() {
         console.log("Proceeding to payment");
     };
 
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 py-8 mt-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading your information...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-gray-50 py-8 mt-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-600">Failed to load user information.</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 py-8 mt-20 px-4 sm:px-6 lg:px-8 ">
             <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
@@ -85,13 +117,18 @@ function CheckOutUser() {
                         </div>
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-2">
-                                <span className="text-gray-800 font-medium">{user.name}</span>
+                                <span className="text-gray-800 font-medium">{user?.name || 'Not provided'}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-gray-600">{user.profile.phone}</span>
+                                <span className="text-gray-600">{user?.profile?.phone || 'Not provided'}</span>
                             </div>
                             <div className="flex">
-                                <span className="text-gray-600 text-sm">{user.profile.address}</span>
+                                <span className="text-gray-600 text-sm">
+                                    {user?.profile?.address || 'Not provided'}
+                                    {user?.profile?.city && `, ${user.profile.city}`}
+                                    {user?.profile?.postal_code && `, ${user.profile.postal_code}`}
+                                    {user?.profile?.country && `, ${user.profile.country}`}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -189,7 +226,7 @@ function CheckOutUser() {
 
                     </div>
                     <div className="bg-white rounded-lg shadow-sm p-6">
-                        <h4 className="text-sm font-medium text-gray-900 mb-3">Enter Store/Duraz Code</h4>
+                        <h4 className="text-sm font-medium text-gray-900 mb-3">Enter Store Code</h4>
                         <div className="flex gap-3">
                             <div className="flex-1">
                                 <input
