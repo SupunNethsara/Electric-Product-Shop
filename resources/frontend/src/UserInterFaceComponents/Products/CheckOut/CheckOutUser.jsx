@@ -6,7 +6,9 @@ import axios from "axios";
 
 function CheckOutUser() {
     const [storeCode, setStoreCode] = useState("");
-    const [deliveryOption, setDeliveryOption] = useState("standard");
+    const [deliveryOption,
+        // setDeliveryOption
+    ] = useState("standard");
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -114,25 +116,6 @@ function CheckOutUser() {
         console.log("Applying store code:", storeCode);
     };
 
-    // In CheckOutUser.jsx - update handleProceedToPay function
-    const handleProceedToPay = () => {
-        const orderData = {
-            orderId: `ORD-${Date.now()}`,
-            orderDate: new Date().toISOString(),
-            items: displayItems,
-            total: orderSummary.total,
-            customer: user,
-            status: 'pending'
-        };
-
-        // Navigate to order confirmation
-        navigate('/order-confirmation', {
-            state: {
-                order: orderData,
-                directBuy: directBuyData ? true : false
-            }
-        });
-    };
     const createDirectOrder = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -148,17 +131,14 @@ function CheckOutUser() {
             };
 
             const response = await axios.post('http://127.0.0.1:8000/api/orders/direct', orderData, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json'
-                }
+                headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
             });
 
             console.log("Direct order created:", response.data);
             navigate('/order-confirmation', { state: { order: response.data.order } });
 
         } catch (error) {
-            console.error('Error creating direct order:', error);
+            console.error(' Error creating direct order:', error);
             alert('Failed to create order. Please try again.');
         }
     };
@@ -178,13 +158,10 @@ function CheckOutUser() {
             };
 
             const response = await axios.post('http://127.0.0.1:8000/api/orders/checkout', orderData, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json'
-                }
+                headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
             });
 
-            console.log("Cart checkout successful:", response.data);
+            console.log("✅ Cart checkout successful:", response.data);
             navigate('/order-confirmation', { state: { order: response.data.order } });
 
         } catch (error) {
@@ -192,7 +169,18 @@ function CheckOutUser() {
             alert('Failed to process checkout. Please try again.');
         }
     };
+    const handleProceedToPay = () => {
+        if (displayItems.length === 0) {
+            alert("No items to order!");
+            return;
+        }
 
+        if (directBuyData) {
+            createDirectOrder();
+        } else {
+            processCartCheckout();
+        }
+    };
     const getDisplayItems = () => {
         if (directBuyData) {
             return [{
