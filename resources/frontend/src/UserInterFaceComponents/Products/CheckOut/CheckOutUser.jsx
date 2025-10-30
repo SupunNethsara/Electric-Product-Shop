@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
+import { fetchCartItems } from "../../../Store/slices/cartSlice";
 import axios from "axios";
 
 function CheckOutUser() {
@@ -6,16 +9,40 @@ function CheckOutUser() {
     const [deliveryOption, setDeliveryOption] = useState("standard");
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const dispatch = useDispatch();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const { items: cartItems, loading: cartLoading } = useSelector((state) => state.cart);
+    console.log('cartItems', cartItems);
+    const deliveryOptions = [
+        {
+            id: "standard",
+            name: "Standard Delivery",
+            price: 300,
+            deliveryTime: "3-5 business days"
+        },
+        {
+            id: "express",
+            name: "Express Delivery",
+            price: 600,
+            deliveryTime: "1-2 business days"
+        }
+    ];
+
+    const selectedDelivery = deliveryOptions.find(option => option.id === deliveryOption) || deliveryOptions[0];
+    const directBuyData = location.state?.directBuy ? location.state : null;
 
     useEffect(() => {
-        const fetchProfile = async () => {
+        const fetchData = async () => {
             try {
+                setLoading(true);
                 const token = localStorage.getItem('token');
                 if (!token) {
                     throw new Error('No authentication token found');
                 }
 
-                const response = await axios.get('http://127.0.0.1:8000/api/profile', {
+                const profileResponse = await axios.get('http://127.0.0.1:8000/api/profile', {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json'
@@ -23,13 +50,19 @@ function CheckOutUser() {
                 });
 
                 setUser({
-                    ...response.data.profile.user,
+                    ...profileResponse.data.profile.user,
                     profile: {
-                        ...response.data.profile
+                        ...profileResponse.data.profile
                     }
                 });
+
+                if (!directBuyData) {
+                    await dispatch(fetchCartItems()).unwrap();
+                }
+
             } catch (error) {
-                console.error('Error fetching profile:', error);
+                console.error('Error fetching data:', error);
+                setError(error.response?.data?.message || 'Failed to load data');
                 if (error.response?.status === 401) {
                     window.location.href = '/';
                 }
@@ -38,49 +71,143 @@ function CheckOutUser() {
             }
         };
 
-        fetchProfile();
-    }, []);
+        fetchData();
+    }, [dispatch, directBuyData]);
 
-    const orderData = {
-        customer: {
-            name: "K.Supun Nethsara Dharmaithaka",
-            phone: "0762185219",
-            address: "C/57/A Udaderiya.zhurunheila.mbulana, Ruwamvelia, Keşaila, Sabaragamuna"
-        },
-        items: [
-            {
-                id: 1,
-                name: "Wigaya Chili Powder 100g, Wigya",
-                originalPrice: 180,
-                salePrice: 129,
-                discount: 14,
-                quantity: 1
-            }
-        ],
-        deliveryOptions: [
-            {
-                id: "standard",
-                name: "Standard",
-                price: 308,
-                deliveryTime: "Get by 31 Oct - 2 Nov"
-            }
-        ],
-        summary: {
-            itemsTotal: 129,
-            deliveryFee: 308,
-            total: 437
+    const calculateOrderSummary = () => {
+        if (directBuyData) {
+            const itemTotal = parseFloat(directBuyData.product.price) * directBuyData.quantity;
+            return {
+                itemsTotal: parseFloat(itemTotal.toFixed(2)),
+                deliveryFee: selectedDelivery.price,
+                total: parseFloat((itemTotal + selectedDelivery.price).toFixed(2)),
+                itemCount: 1
+            };
         }
+
+        if (!cartItems || cartItems.length === 0) {
+            return {
+                itemsTotal: 0,
+                deliveryFee: selectedDelivery.price,
+                total: selectedDelivery.price,
+                itemCount: 0
+            };
+        }
+
+        const itemsTotal = cartItems.reduce((total, item) => {
+            return total + (parseFloat(item.product.price) * item.quantity);
+        }, 0);
+
+        const itemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+
+        return {
+            itemsTotal: parseFloat(itemsTotal.toFixed(2)),
+            deliveryFee: selectedDelivery.price,
+            total: parseFloat((itemsTotal + selectedDelivery.price).toFixed(2)),
+            itemCount: itemCount
+        };
     };
+
+    const orderSummary = calculateOrderSummary();
 
     const handleApplyStoreCode = () => {
         console.log("Applying store code:", storeCode);
     };
 
     const handleProceedToPay = () => {
-        console.log("Proceeding to payment");
+        if (directBuyData) {
+            console.log("Processing direct buy order:", {
+                product: directBuyData.product,
+                quantity: directBuyData.quantity,
+                total: orderSummary.total
+            });
+
+            createDirectOrder();
+        } else {
+            console.log("Processing cart checkout:", {
+                cartItems,
+                total: orderSummary.total
+            });
+
+            processCartCheckout();
+        }
     };
 
-    if (loading) {
+    const createDirectOrder = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const orderData = {
+                items: [{
+                    product_id: directBuyData.product.id,
+                    quantity: directBuyData.quantity,
+                    price: directBuyData.product.price
+                }],
+                total_amount: orderSummary.total,
+                delivery_fee: selectedDelivery.price,
+                delivery_option: deliveryOption
+            };
+
+            const response = await axios.post('http://127.0.0.1:8000/api/orders/direct', orderData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            console.log("Direct order created:", response.data);
+            navigate('/order-confirmation', { state: { order: response.data.order } });
+
+        } catch (error) {
+            console.error('Error creating direct order:', error);
+            alert('Failed to create order. Please try again.');
+        }
+    };
+
+    const processCartCheckout = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const orderData = {
+                items: cartItems.map(item => ({
+                    product_id: item.product_id,
+                    quantity: item.quantity,
+                    price: item.product.price
+                })),
+                total_amount: orderSummary.total,
+                delivery_fee: selectedDelivery.price,
+                delivery_option: deliveryOption
+            };
+
+            const response = await axios.post('http://127.0.0.1:8000/api/orders/checkout', orderData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            console.log("Cart checkout successful:", response.data);
+            navigate('/order-confirmation', { state: { order: response.data.order } });
+
+        } catch (error) {
+            console.error('Error processing cart checkout:', error);
+            alert('Failed to process checkout. Please try again.');
+        }
+    };
+
+    const getDisplayItems = () => {
+        if (directBuyData) {
+            return [{
+                id: `direct-${directBuyData.product.id}`,
+                product: directBuyData.product,
+                quantity: directBuyData.quantity,
+                isDirectBuy: true
+            }];
+        }
+        return cartItems || [];
+    };
+
+    const displayItems = getDisplayItems();
+
+    if (loading || (!directBuyData && cartLoading)) {
         return (
             <div className="min-h-screen bg-gray-50 py-8 mt-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
                 <div className="text-center">
@@ -91,11 +218,11 @@ function CheckOutUser() {
         );
     }
 
-    if (!user) {
+    if (error) {
         return (
             <div className="min-h-screen bg-gray-50 py-8 mt-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
                 <div className="text-center">
-                    <p className="text-red-600">Failed to load user information.</p>
+                    <p className="text-red-600">{error}</p>
                     <button
                         onClick={() => window.location.reload()}
                         className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
@@ -107,10 +234,27 @@ function CheckOutUser() {
         );
     }
 
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-gray-50 py-8 mt-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-600">User not found. Please log in again.</p>
+                    <button
+                        onClick={() => window.location.href = '/'}
+                        className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                    >
+                        Go to Login
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 py-8 mt-20 px-4 sm:px-6 lg:px-8 ">
             <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
                 <div className="flex-1 flex flex-col gap-6">
+                    {/* Shipping & Billing Section */}
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-semibold text-gray-900">Shipping & Billing</h2>
@@ -133,55 +277,109 @@ function CheckOutUser() {
                         </div>
                     </div>
 
+                    {/* Package Information */}
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-md font-semibold text-gray-900">Package 1 of 1</h3>
+                            <h3 className="text-md font-semibold text-gray-900">
+                                Package 1 of 1 {directBuyData && <span className="text-blue-600 text-sm">(Direct Purchase)</span>}
+                            </h3>
                             <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
                                 EDIT
                             </button>
                         </div>
-                        <div className="mb-6">
-                            <h4 className="text-sm font-medium text-gray-900 mb-3">Delivery Option</h4>
-                            <div className="flex flex-col gap-3">
-                                {orderData.deliveryOptions.map(option => (
-                                    <div key={option.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <input
-                                                type="radio"
-                                                id={option.id}
-                                                name="deliveryOption"
-                                                checked={deliveryOption === option.id}
-                                                onChange={() => setDeliveryOption(option.id)}
-                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                                            />
-                                            <div className="flex flex-col">
-                                                <label htmlFor={option.id} className="text-sm font-medium text-gray-700">
-                                                    <span className="font-semibold">Rs. {option.price}</span>
-                                                    <span className="ml-2">{option.name}</span>
-                                                </label>
-                                                <span className="text-xs text-gray-500 mt-1">{option.deliveryTime}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+
+                        {/*/!* Delivery Options *!/*/}
+                        {/*<div className="mb-6">*/}
+                        {/*    <h4 className="text-sm font-medium text-gray-900 mb-3">Delivery Option</h4>*/}
+                        {/*    <div className="flex flex-col gap-3">*/}
+                        {/*        {deliveryOptions.map(option => (*/}
+                        {/*            <div key={option.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">*/}
+                        {/*                <div className="flex items-center gap-3">*/}
+                        {/*                    <input*/}
+                        {/*                        type="radio"*/}
+                        {/*                        id={option.id}*/}
+                        {/*                        name="deliveryOption"*/}
+                        {/*                        checked={deliveryOption === option.id}*/}
+                        {/*                        onChange={() => setDeliveryOption(option.id)}*/}
+                        {/*                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"*/}
+                        {/*                    />*/}
+                        {/*                    <div className="flex flex-col">*/}
+                        {/*                        <label htmlFor={option.id} className="text-sm font-medium text-gray-700">*/}
+                        {/*                            <span className="font-semibold">Rs. {option.price}</span>*/}
+                        {/*                            <span className="ml-2">{option.name}</span>*/}
+                        {/*                        </label>*/}
+                        {/*                        <span className="text-xs text-gray-500 mt-1">{option.deliveryTime}</span>*/}
+                        {/*                    </div>*/}
+                        {/*                </div>*/}
+                        {/*            </div>*/}
+                        {/*        ))}*/}
+                        {/*    </div>*/}
+                        {/*</div>*/}
 
                         <div className="flex flex-col gap-4">
-                            {orderData.items.map(item => (
-                                <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                    <div className="flex-1">
-                                        <h5 className="text-sm font-medium text-gray-900">{item.name}</h5>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-sm font-semibold text-gray-900">Rs. {item.salePrice}</span>
-                                            <span className="text-sm text-gray-500 line-through">Rs. {item.originalPrice}</span>
-                                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">-{item.discount}%</span>
+                            {displayItems.length > 0 ? (
+                                displayItems.map((item) => {
+                                    // Parse the images if it's a string, otherwise use as is
+                                    const images = typeof item.product?.images === 'string'
+                                        ? JSON.parse(item.product.images.replace(/\\([^\\])/g, '$1'))
+                                        : item.product?.images || [];
+                                    const mainImage = images[0] || item.product?.image;
+
+                                    return (
+                                        <div key={item.id} className="flex items-start gap-4 p-3 bg-gray-50 rounded-lg">
+                                            {mainImage ? (
+                                                <img
+                                                    src={mainImage}
+                                                    alt={item.product?.name || 'Product'}
+                                                    className="w-16 h-16 object-cover rounded-md flex-shrink-0"
+                                                    onError={(e) => {
+                                                        e.target.onerror = null;
+                                                        e.target.src = 'https://via.placeholder.com/80?text=No+Image';
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-gray-400 text-xs text-center p-2">
+                                                    No Image
+                                                </div>
+                                            )}
+
+                                        <div className="flex-1 min-w-0">
+                                            <h5 className="text-sm font-medium text-gray-900 truncate">
+                                                {item.product?.name || 'Product'}
+                                                {item.isDirectBuy && (
+                                                    <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded">
+                                                        Direct Buy
+                                                    </span>
+                                                )}
+                                                </h5>
+                                                <div className="flex flex-wrap items-center gap-2 mt-1">
+                                                    <span className="text-sm font-semibold text-gray-900">
+                                                        Rs. {item.product?.price ? parseFloat(item.product.price).toFixed(2) : '0.00'}
+                                                    </span>
+                                                    <span className="text-sm text-gray-500">× {item.quantity}</span>
+                                                    <span className="text-sm font-semibold text-green-600">
+                                                        Rs. {(parseFloat(item.product?.price || 0) * item.quantity).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    );
+                                })
+                            ) : (
+                                <div className="text-center py-4 text-gray-500">
+                                    No items to display.
+                                    <button
+                                        onClick={() => navigate('/products')}
+                                        className="ml-2 text-blue-600 hover:text-blue-800"
+                                    >
+                                        Continue Shopping
+                                    </button>
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </div>
+
+                    {/* Invoice and Contact Info */}
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <div className="flex items-center justify-between">
                             <h4 className="text-sm font-medium text-gray-900">Invoice and Contact Info</h4>
@@ -198,33 +396,42 @@ function CheckOutUser() {
 
                         <div className="flex flex-col gap-3">
                             <div className="flex justify-between items-center">
-                                <span className="text-gray-600">Items Total ({orderData.items.length} Items)</span>
-                                <span className="text-gray-900 font-medium">Rs. {orderData.summary.itemsTotal}</span>
+                                <span className="text-gray-600">Items Total ({orderSummary.itemCount} Items)</span>
+                                <span className="text-gray-900 font-medium">Rs. {orderSummary.itemsTotal.toFixed(2)}</span>
                             </div>
 
                             <div className="flex justify-between items-center">
                                 <span className="text-gray-600">Delivery Fee</span>
-                                <span className="text-gray-900 font-medium">Rs. {orderData.summary.deliveryFee}</span>
+                                <span className="text-gray-900 font-medium">Rs. {orderSummary.deliveryFee.toFixed(2)}</span>
                             </div>
 
                             <div className="border-t border-gray-200 pt-3 mt-2">
                                 <div className="flex justify-between items-center">
                                     <span className="text-lg font-semibold text-gray-900">Total:</span>
-                                    <span className="text-lg font-semibold text-gray-900">Rs. {orderData.summary.total}</span>
+                                    <span className="text-lg font-semibold text-gray-900">Rs. {orderSummary.total.toFixed(2)}</span>
                                 </div>
                             </div>
-
-                            <p className="text-xs text-gray-500 text-center mt-2">VAT Included, where applicable</p>
                         </div>
 
                         <button
                             onClick={handleProceedToPay}
-                            className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                            disabled={displayItems.length === 0}
+                            className={`w-full mt-6 ${
+                                displayItems.length === 0
+                                    ? 'bg-gray-400 cursor-not-allowed'
+                                    : 'bg-green-600 hover:bg-green-700'
+                            } text-white font-semibold py-3 px-4 rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
                         >
-                            Proceed to Pay
+                            {displayItems.length === 0 ? 'No Items to Order' : 'Confirm Order'}
                         </button>
 
+                        {directBuyData && (
+                            <p className="text-xs text-gray-500 text-center mt-3">
+                                This is a direct purchase. Item will not be added to your cart.
+                            </p>
+                        )}
                     </div>
+
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <h4 className="text-sm font-medium text-gray-900 mb-3">Enter Store Code</h4>
                         <div className="flex gap-3">

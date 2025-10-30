@@ -39,7 +39,6 @@ const ProductDetails = () => {
     const [activeTab, setActiveTab] = useState('description');
     const { success, error: showError } = useToast();
 
-    // Fetch product details if not passed via state
     useEffect(() => {
         const fetchProductDetails = async () => {
             if (!location.state?.product && id) {
@@ -85,7 +84,7 @@ const ProductDetails = () => {
         }
     };
 
-    const handleBuyNow = async () => {
+    const handleBuyNow = () => {
         if (!isAuthenticated) {
             dispatch(openLoginModal());
             return;
@@ -95,19 +94,13 @@ const ProductDetails = () => {
             showError('This product is out of stock', 'Out of Stock');
             return;
         }
-
-        setAddingToCart(true);
-        try {
-            await dispatch(addToCart({
-                product_id: product.id,
+        navigate('/checkout', {
+            state: {
+                directBuy: true,
+                product: product,
                 quantity: quantity
-            })).unwrap();
-            navigate('/checkout');
-        } catch (error) {
-            alert(error || 'Failed to process your request');
-        } finally {
-            setAddingToCart(false);
-        }
+            }
+        });
     };
 
     const handleWishlist = () => {
@@ -197,7 +190,6 @@ const ProductDetails = () => {
     return (
         <div className="min-h-screen bg-gray-50 pt-24 pb-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Breadcrumb */}
                 <nav className="flex mb-6" aria-label="Breadcrumb">
                     <ol className="inline-flex items-center space-x-1 md:space-x-3">
                         <li className="inline-flex items-center">
