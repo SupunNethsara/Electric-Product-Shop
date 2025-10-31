@@ -20,6 +20,7 @@ import AuthCallback from "./pages/AuthCallback";
 import UserProfile from "./UserInterFaceComponents/Common/UserProfile.jsx";
 import Toast from "./UserInterFaceComponents/Common/Toast.jsx";
 import OrderConfirmation from "./UserInterFaceComponents/Common/OrderConfirmation.jsx";
+import GlobalModals from "./UserInterFaceComponents/Common/GlobalModals.jsx";
 
 function App() {
     const dispatch = useDispatch();
@@ -50,6 +51,7 @@ function App() {
 
     return (
         <Router>
+            <GlobalModals />
             <div className="App">
                 <Routes>
                     <Route
@@ -60,7 +62,7 @@ function App() {
                         path="/*"
                         element={
                             <NormalLayout>
-                                <UserInterFace/>
+                                <UserInterFace />
                             </NormalLayout>
                         }
                     />
@@ -89,7 +91,7 @@ function App() {
                         element={
                             <NormalLayout>
                                 <ProtectedRoute>
-                                   <UserProfile/>
+                                    <UserProfile />
                                 </ProtectedRoute>
                             </NormalLayout>
                         }
@@ -136,7 +138,7 @@ function App() {
                         }
                     />
                 </Routes>
-                <Toast/>
+                <Toast />
             </div>
         </Router>
     );
