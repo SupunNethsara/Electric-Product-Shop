@@ -19,7 +19,7 @@ const CategoriesMarquee = () => {
 
             <div className="absolute right-0 top-0 h-full w-20 z-10 bg-gradient-to-l from-white to-transparent" />
 
-            <style jsx>{`
+            <style>{`
                 @keyframes marquee {
                     0% { transform: translateX(0); }
                     100% { transform: translateX(-50%); }
