@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
+import InvoicePDF from "./InvoicePDF";
 
 function OrderConfirmation() {
     const location = useLocation();
     const { order, user, orderSummary, items, deliveryOption } =
-        location.state || {};
+    location.state || {};
+    const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
     if (!order || !user) {
         return (
@@ -41,6 +43,17 @@ function OrderConfirmation() {
             </div>
         );
     }
+
+    const handleGeneratePDF = async () => {
+        setIsGeneratingPDF(true);
+        try {
+            await InvoicePDF.generate({ order, user, orderSummary, items, deliveryOption });
+        } catch (error) {
+            alert('Error generating PDF. Please try again.');
+        } finally {
+            setIsGeneratingPDF(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 px-4 py-8">
@@ -90,11 +103,11 @@ function OrderConfirmation() {
                                     const images =
                                         typeof item.product?.images === "string"
                                             ? JSON.parse(
-                                                  item.product.images.replace(
-                                                      /\\([^\\])/g,
-                                                      "$1",
-                                                  ),
-                                              )
+                                                item.product.images.replace(
+                                                    /\\([^\\])/g,
+                                                    "$1",
+                                                ),
+                                            )
                                             : item.product?.images || [];
                                     const mainImage =
                                         images[0] || item.product?.image;
@@ -132,9 +145,9 @@ function OrderConfirmation() {
                                                         Rs.{" "}
                                                         {item.product?.price
                                                             ? parseFloat(
-                                                                  item.product
-                                                                      .price,
-                                                              ).toFixed(2)
+                                                                item.product
+                                                                    .price,
+                                                            ).toFixed(2)
                                                             : "0.00"}
                                                     </span>
                                                 </div>
@@ -419,9 +432,35 @@ function OrderConfirmation() {
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
                     <button
-                        onClick={() => window.print()}
-                        className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                        onClick={handleGeneratePDF}
+                        disabled={isGeneratingPDF}
+                        className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
+                            isGeneratingPDF
+                                ? 'bg-gray-400 cursor-not-allowed text-white'
+                                : 'bg-green-600 hover:bg-green-700 text-white'
+                        }`}
                     >
+                        {isGeneratingPDF ? (
+                            <>
+                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                Generating PDF...
+                            </>
+                        ) : (
+                            <>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Download Invoice PDF
+                            </>
+                        )}
+                    </button>
+                    <button
+                        onClick={() => window.print()}
+                        className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center justify-center gap-2"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
                         Print Receipt
                     </button>
                     <button
@@ -429,12 +468,6 @@ function OrderConfirmation() {
                         className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                     >
                         Continue Shopping
-                    </button>
-                    <button
-                        onClick={() => (window.location.href = "/")}
-                        className="bg-gray-800 text-white px-6 py-3 rounded-lg hover:bg-gray-900 transition-colors font-medium"
-                    >
-                        View All Orders
                     </button>
                 </div>
             </div>
