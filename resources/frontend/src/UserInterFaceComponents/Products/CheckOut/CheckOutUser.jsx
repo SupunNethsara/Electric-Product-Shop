@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import {clearCart, fetchCartItems} from "../../../Store/slices/cartSlice";
-import axios from "axios";;
+import { clearCart, fetchCartItems } from "../../../Store/slices/cartSlice";
+import axios from "axios";
 
 function CheckOutUser() {
     const [storeCode, setStoreCode] = useState("");
-    const [deliveryOption,
-        // setDeliveryOption
-    ] = useState("standard");
+    const [deliveryOption] = useState("standard");
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isProcessing, setIsProcessing] = useState(false);
     const dispatch = useDispatch();
     const location = useLocation();
     const navigate = useNavigate();
     const { items: cartItems, loading: cartLoading } = useSelector((state) => state.cart);
-    console.log('cartItems', cartItems);
+
     const deliveryOptions = [
         {
             id: "standard",
@@ -135,7 +134,16 @@ function CheckOutUser() {
             });
             dispatch(clearCart());
             console.log("Direct order created:", response.data);
-            navigate('/order-confirmation', { state: { order: response.data.order } });
+
+            const confirmationData = {
+                order: response.data.order,
+                user: user,
+                orderSummary: orderSummary,
+                items: getDisplayItems(),
+                deliveryOption: selectedDelivery
+            };
+
+            navigate('/order-confirmation', { state: confirmationData });
 
         } catch (error) {
             console.error(' Error creating direct order:', error);
@@ -162,25 +170,42 @@ function CheckOutUser() {
             });
 
             console.log("✅ Cart checkout successful:", response.data);
-            navigate('/order-confirmation', { state: { order: response.data.order } });
+
+            const confirmationData = {
+                order: response.data.order,
+                user: user,
+                orderSummary: orderSummary,
+                items: getDisplayItems(),
+                deliveryOption: selectedDelivery
+            };
+
+            navigate('/order-confirmation', { state: confirmationData });
 
         } catch (error) {
             console.error('Error processing cart checkout:', error);
             alert('Failed to process checkout. Please try again.');
         }
     };
-    const handleProceedToPay = () => {
+
+    const handleProceedToPay = async () => {
         if (displayItems.length === 0) {
             alert("No items to order!");
             return;
         }
 
+        setIsProcessing(true);
+
+        await new Promise(resolve => setTimeout(resolve, 4000));
+
         if (directBuyData) {
-            createDirectOrder();
+            await createDirectOrder();
         } else {
-            processCartCheckout();
+            await processCartCheckout();
         }
+
+        setIsProcessing(false);
     };
+
     const getDisplayItems = () => {
         if (directBuyData) {
             return [{
@@ -240,6 +265,19 @@ function CheckOutUser() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-8 mt-20 px-4 sm:px-6 lg:px-8 ">
+            {isProcessing && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-xl p-8 flex flex-col items-center">
+                        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mb-4"></div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Processing Your Order</h3>
+                        <p className="text-gray-600 text-center">Please wait while we confirm your order...</p>
+                        <div className="w-48 bg-gray-200 rounded-full h-2 mt-4">
+                            <div className="bg-green-600 h-2 rounded-full animate-pulse"></div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
                 <div className="flex-1 flex flex-col gap-6">
                     <div className="bg-white rounded-lg shadow-sm p-6">
@@ -277,34 +315,6 @@ function CheckOutUser() {
                             </button>
                         </div>
 
-                        {/*/!* Delivery Options *!/*/}
-                        {/*<div className="mb-6">*/}
-                        {/*    <h4 className="text-sm font-medium text-gray-900 mb-3">Delivery Option</h4>*/}
-                        {/*    <div className="flex flex-col gap-3">*/}
-                        {/*        {deliveryOptions.map(option => (*/}
-                        {/*            <div key={option.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">*/}
-                        {/*                <div className="flex items-center gap-3">*/}
-                        {/*                    <input*/}
-                        {/*                        type="radio"*/}
-                        {/*                        id={option.id}*/}
-                        {/*                        name="deliveryOption"*/}
-                        {/*                        checked={deliveryOption === option.id}*/}
-                        {/*                        onChange={() => setDeliveryOption(option.id)}*/}
-                        {/*                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"*/}
-                        {/*                    />*/}
-                        {/*                    <div className="flex flex-col">*/}
-                        {/*                        <label htmlFor={option.id} className="text-sm font-medium text-gray-700">*/}
-                        {/*                            <span className="font-semibold">Rs. {option.price}</span>*/}
-                        {/*                            <span className="ml-2">{option.name}</span>*/}
-                        {/*                        </label>*/}
-                        {/*                        <span className="text-xs text-gray-500 mt-1">{option.deliveryTime}</span>*/}
-                        {/*                    </div>*/}
-                        {/*                </div>*/}
-                        {/*            </div>*/}
-                        {/*        ))}*/}
-                        {/*    </div>*/}
-                        {/*</div>*/}
-
                         <div className="flex flex-col gap-4">
                             {displayItems.length > 0 ? (
                                 displayItems.map((item) => {
@@ -331,14 +341,14 @@ function CheckOutUser() {
                                                 </div>
                                             )}
 
-                                        <div className="flex-1 min-w-0">
-                                            <h5 className="text-sm font-medium text-gray-900 truncate">
-                                                {item.product?.name || 'Product'}
-                                                {item.isDirectBuy && (
-                                                    <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded">
-                                                        Direct Buy
-                                                    </span>
-                                                )}
+                                            <div className="flex-1 min-w-0">
+                                                <h5 className="text-sm font-medium text-gray-900 truncate">
+                                                    {item.product?.name || 'Product'}
+                                                    {item.isDirectBuy && (
+                                                        <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded">
+                                                            Direct Buy
+                                                        </span>
+                                                    )}
                                                 </h5>
                                                 <div className="flex flex-wrap items-center gap-2 mt-1">
                                                     <span className="text-sm font-semibold text-gray-900">
@@ -366,6 +376,7 @@ function CheckOutUser() {
                             )}
                         </div>
                     </div>
+
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <div className="flex items-center justify-between">
                             <h4 className="text-sm font-medium text-gray-900">Invoice and Contact Info</h4>
@@ -399,16 +410,17 @@ function CheckOutUser() {
                             </div>
                         </div>
 
+                        {/* FIXED: Removed the JSX fragment from disabled prop */}
                         <button
                             onClick={handleProceedToPay}
-                            disabled={displayItems.length === 0}
+                            disabled={displayItems.length === 0 || isProcessing}
                             className={`w-full mt-6 ${
-                                displayItems.length === 0
+                                displayItems.length === 0 || isProcessing
                                     ? 'bg-gray-400 cursor-not-allowed'
                                     : 'bg-green-600 hover:bg-green-700'
                             } text-white font-semibold py-3 px-4 rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
                         >
-                            {displayItems.length === 0 ? 'No Items to Order' : 'Confirm Order'}
+                            {isProcessing ? 'Processing...' : displayItems.length === 0 ? 'No Items to Order' : 'Confirm Order'}
                         </button>
 
                         {directBuyData && (
