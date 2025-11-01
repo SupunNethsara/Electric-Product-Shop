@@ -409,8 +409,6 @@ function CheckOutUser() {
                                 </div>
                             </div>
                         </div>
-
-                        {/* FIXED: Removed the JSX fragment from disabled prop */}
                         <button
                             onClick={handleProceedToPay}
                             disabled={displayItems.length === 0 || isProcessing}

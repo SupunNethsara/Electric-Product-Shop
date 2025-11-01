@@ -425,13 +425,13 @@ function OrderConfirmation() {
                         Print Receipt
                     </button>
                     <button
-                        onClick={() => (window.location.href = "/products")}
+                        onClick={() => (window.location.href = "/shop")}
                         className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                     >
                         Continue Shopping
                     </button>
                     <button
-                        onClick={() => (window.location.href = "/orders")}
+                        onClick={() => (window.location.href = "/")}
                         className="bg-gray-800 text-white px-6 py-3 rounded-lg hover:bg-gray-900 transition-colors font-medium"
                     >
                         View All Orders
