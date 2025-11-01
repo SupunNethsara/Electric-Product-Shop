@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { clearCart, fetchCartItems } from "../../../Store/slices/cartSlice";
 import axios from "axios";
+import CompleteProfileModal from "../../Common/CompleteProfileModal.jsx";
 
 function CheckOutUser() {
     const [storeCode, setStoreCode] = useState("");
@@ -10,6 +11,7 @@ function CheckOutUser() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [completeModal, setCompleteModal] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const dispatch = useDispatch();
     const location = useLocation();
@@ -50,6 +52,11 @@ function CheckOutUser() {
                     }
                 });
 
+                if (profileResponse.data.profile_exists === false || !profileResponse.data.profile) {
+                    setCompleteModal(true);
+                    return;
+                }
+
                 setUser({
                     ...profileResponse.data.profile.user,
                     profile: {
@@ -63,7 +70,16 @@ function CheckOutUser() {
 
             } catch (error) {
                 console.error('Error fetching data:', error);
-                setError(error.response?.data?.message || 'Failed to load data');
+                const message = error.response?.data?.message || 'Failed to load data';
+                setError(message);
+
+                if (message.includes("Call to a member function with() on null") ||
+                    message.includes("profile") ||
+                    message.includes("Profile not found") ||
+                    error.response?.status === 404) {
+                    setCompleteModal(true);
+                }
+
                 if (error.response?.status === 401) {
                     window.location.href = '/';
                 }
@@ -220,7 +236,7 @@ function CheckOutUser() {
 
     const displayItems = getDisplayItems();
 
-    if (loading || (!directBuyData && cartLoading)) {
+    if ((loading || (!directBuyData && cartLoading)) && !completeModal) {
         return (
             <div className="min-h-screen bg-gray-50 py-8 mt-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
                 <div className="text-center">
@@ -231,7 +247,7 @@ function CheckOutUser() {
         );
     }
 
-    if (error) {
+    if (error && !completeModal) {
         return (
             <div className="min-h-screen bg-gray-50 py-8 mt-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
                 <div className="text-center">
@@ -247,7 +263,7 @@ function CheckOutUser() {
         );
     }
 
-    if (!user) {
+    if (!user && !completeModal) {
         return (
             <div className="min-h-screen bg-gray-50 py-8 mt-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
                 <div className="text-center">
@@ -278,178 +294,185 @@ function CheckOutUser() {
                 </div>
             )}
 
-            <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
-                <div className="flex-1 flex flex-col gap-6">
-                    <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-semibold text-gray-900">Shipping & Billing</h2>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-2">
-                                <span className="text-gray-800 font-medium">{user?.name || 'Not provided'}</span>
+            {user && user.profile && (
+                <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
+                    <div className="flex-1 flex flex-col gap-6">
+                        <div className="bg-white rounded-lg shadow-sm p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-lg font-semibold text-gray-900">Shipping & Billing</h2>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-gray-600">{user?.profile?.phone || 'Not provided'}</span>
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-gray-800 font-medium">{user?.name || 'Not provided'}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-gray-600">{user?.profile?.phone || 'Not provided'}</span>
+                                </div>
+                                <div className="flex">
+                                    <span className="text-gray-600 text-sm">
+                                        {user?.profile?.address || 'Not provided'}
+                                        {user?.profile?.city && `, ${user.profile.city}`}
+                                        {user?.profile?.postal_code && `, ${user.profile.postal_code}`}
+                                        {user?.profile?.country && `, ${user.profile.country}`}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="flex">
-                                <span className="text-gray-600 text-sm">
-                                    {user?.profile?.address || 'Not provided'}
-                                    {user?.profile?.city && `, ${user.profile.city}`}
-                                    {user?.profile?.postal_code && `, ${user.profile.postal_code}`}
-                                    {user?.profile?.country && `, ${user.profile.country}`}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-md font-semibold text-gray-900">
-                                Package 1 of 1 {directBuyData && <span className="text-blue-600 text-sm">(Direct Purchase)</span>}
-                            </h3>
-                            <button
-                                onClick={() => navigate('/cart')}
-                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                            >
-                                EDIT
-                            </button>
                         </div>
 
-                        <div className="flex flex-col gap-4">
-                            {displayItems.length > 0 ? (
-                                displayItems.map((item) => {
-                                    const images = typeof item.product?.images === 'string'
-                                        ? JSON.parse(item.product.images.replace(/\\([^\\])/g, '$1'))
-                                        : item.product?.images || [];
-                                    const mainImage = images[0] || item.product?.image;
+                        <div className="bg-white rounded-lg shadow-sm p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-md font-semibold text-gray-900">
+                                    Package 1 of 1 {directBuyData && <span className="text-blue-600 text-sm">(Direct Purchase)</span>}
+                                </h3>
+                                <button
+                                    onClick={() => navigate('/cart')}
+                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                >
+                                    EDIT
+                                </button>
+                            </div>
 
-                                    return (
-                                        <div key={item.id} className="flex items-start gap-4 p-3 bg-gray-50 rounded-lg">
-                                            {mainImage ? (
-                                                <img
-                                                    src={mainImage}
-                                                    alt={item.product?.name || 'Product'}
-                                                    className="w-16 h-16 object-cover rounded-md flex-shrink-0"
-                                                    onError={(e) => {
-                                                        e.target.onerror = null;
-                                                        e.target.src = 'https://via.placeholder.com/80?text=No+Image';
-                                                    }}
-                                                />
-                                            ) : (
-                                                <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-gray-400 text-xs text-center p-2">
-                                                    No Image
-                                                </div>
-                                            )}
+                            <div className="flex flex-col gap-4">
+                                {displayItems.length > 0 ? (
+                                    displayItems.map((item) => {
+                                        const images = typeof item.product?.images === 'string'
+                                            ? JSON.parse(item.product.images.replace(/\\([^\\])/g, '$1'))
+                                            : item.product?.images || [];
+                                        const mainImage = images[0] || item.product?.image;
 
-                                            <div className="flex-1 min-w-0">
-                                                <h5 className="text-sm font-medium text-gray-900 truncate">
-                                                    {item.product?.name || 'Product'}
-                                                    {item.isDirectBuy && (
-                                                        <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded">
-                                                            Direct Buy
+                                        return (
+                                            <div key={item.id} className="flex items-start gap-4 p-3 bg-gray-50 rounded-lg">
+                                                {mainImage ? (
+                                                    <img
+                                                        src={mainImage}
+                                                        alt={item.product?.name || 'Product'}
+                                                        className="w-16 h-16 object-cover rounded-md flex-shrink-0"
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = 'https://via.placeholder.com/80?text=No+Image';
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-gray-400 text-xs text-center p-2">
+                                                        No Image
+                                                    </div>
+                                                )}
+
+                                                <div className="flex-1 min-w-0">
+                                                    <h5 className="text-sm font-medium text-gray-900 truncate">
+                                                        {item.product?.name || 'Product'}
+                                                        {item.isDirectBuy && (
+                                                            <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded">
+                                                                Direct Buy
+                                                            </span>
+                                                        )}
+                                                    </h5>
+                                                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                                                        <span className="text-sm font-semibold text-gray-900">
+                                                            Rs. {item.product?.price ? parseFloat(item.product.price).toFixed(2) : '0.00'}
                                                         </span>
-                                                    )}
-                                                </h5>
-                                                <div className="flex flex-wrap items-center gap-2 mt-1">
-                                                    <span className="text-sm font-semibold text-gray-900">
-                                                        Rs. {item.product?.price ? parseFloat(item.product.price).toFixed(2) : '0.00'}
-                                                    </span>
-                                                    <span className="text-sm text-gray-500">× {item.quantity}</span>
-                                                    <span className="text-sm font-semibold text-green-600">
-                                                        Rs. {(parseFloat(item.product?.price || 0) * item.quantity).toFixed(2)}
-                                                    </span>
+                                                        <span className="text-sm text-gray-500">× {item.quantity}</span>
+                                                        <span className="text-sm font-semibold text-green-600">
+                                                            Rs. {(parseFloat(item.product?.price || 0) * item.quantity).toFixed(2)}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    );
-                                })
-                            ) : (
-                                <div className="text-center py-4 text-gray-500">
-                                    No items to display.
-                                    <button
-                                        onClick={() => navigate('/products')}
-                                        className="ml-2 text-blue-600 hover:text-blue-800"
-                                    >
-                                        Continue Shopping
-                                    </button>
-                                </div>
-                            )}
+                                        );
+                                    })
+                                ) : (
+                                    <div className="text-center py-4 text-gray-500">
+                                        No items to display.
+                                        <button
+                                            onClick={() => navigate('/products')}
+                                            className="ml-2 text-blue-600 hover:text-blue-800"
+                                        >
+                                            Continue Shopping
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-lg shadow-sm p-6">
+                            <div className="flex items-center justify-between">
+                                <h4 className="text-sm font-medium text-gray-900">Invoice and Contact Info</h4>
+                                <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                    Edit
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-sm p-6">
-                        <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-medium text-gray-900">Invoice and Contact Info</h4>
-                            <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                Edit
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                    <div className="lg:w-96 flex flex-col gap-6">
+                        <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
+                            <h4 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h4>
 
-                <div className="lg:w-96 flex flex-col gap-6">
-                    <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h4>
-
-                        <div className="flex flex-col gap-3">
-                            <div className="flex justify-between items-center">
-                                <span className="text-gray-600">Items Total ({orderSummary.itemCount} Items)</span>
-                                <span className="text-gray-900 font-medium">Rs. {orderSummary.itemsTotal.toFixed(2)}</span>
-                            </div>
-
-                            <div className="flex justify-between items-center">
-                                <span className="text-gray-600">Delivery Fee</span>
-                                <span className="text-gray-900 font-medium">Rs. {orderSummary.deliveryFee.toFixed(2)}</span>
-                            </div>
-
-                            <div className="border-t border-gray-200 pt-3 mt-2">
+                            <div className="flex flex-col gap-3">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-lg font-semibold text-gray-900">Total:</span>
-                                    <span className="text-lg font-semibold text-gray-900">Rs. {orderSummary.total.toFixed(2)}</span>
+                                    <span className="text-gray-600">Items Total ({orderSummary.itemCount} Items)</span>
+                                    <span className="text-gray-900 font-medium">Rs. {orderSummary.itemsTotal.toFixed(2)}</span>
                                 </div>
-                            </div>
-                        </div>
-                        <button
-                            onClick={handleProceedToPay}
-                            disabled={displayItems.length === 0 || isProcessing}
-                            className={`w-full mt-6 ${
-                                displayItems.length === 0 || isProcessing
-                                    ? 'bg-gray-400 cursor-not-allowed'
-                                    : 'bg-green-600 hover:bg-green-700'
-                            } text-white font-semibold py-3 px-4 rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
-                        >
-                            {isProcessing ? 'Processing...' : displayItems.length === 0 ? 'No Items to Order' : 'Confirm Order'}
-                        </button>
 
-                        {directBuyData && (
-                            <p className="text-xs text-gray-500 text-center mt-3">
-                                This is a direct purchase. Item will not be added to your cart.
-                            </p>
-                        )}
-                    </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600">Delivery Fee</span>
+                                    <span className="text-gray-900 font-medium">Rs. {orderSummary.deliveryFee.toFixed(2)}</span>
+                                </div>
 
-                    <div className="bg-white rounded-lg shadow-sm p-6">
-                        <h4 className="text-sm font-medium text-gray-900 mb-3">Enter Store Code</h4>
-                        <div className="flex gap-3">
-                            <div className="flex-1">
-                                <input
-                                    type="text"
-                                    value={storeCode}
-                                    onChange={(e) => setStoreCode(e.target.value)}
-                                    placeholder="Enter code"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                />
+                                <div className="border-t border-gray-200 pt-3 mt-2">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-lg font-semibold text-gray-900">Total:</span>
+                                        <span className="text-lg font-semibold text-gray-900">Rs. {orderSummary.total.toFixed(2)}</span>
+                                    </div>
+                                </div>
                             </div>
                             <button
-                                onClick={handleApplyStoreCode}
-                                className="flex-shrink-0 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                onClick={handleProceedToPay}
+                                disabled={displayItems.length === 0 || isProcessing}
+                                className={`w-full mt-6 ${
+                                    displayItems.length === 0 || isProcessing
+                                        ? 'bg-gray-400 cursor-not-allowed'
+                                        : 'bg-green-600 hover:bg-green-700'
+                                } text-white font-semibold py-3 px-4 rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
                             >
-                                Apply
+                                {isProcessing ? 'Processing...' : displayItems.length === 0 ? 'No Items to Order' : 'Confirm Order'}
                             </button>
+
+                            {directBuyData && (
+                                <p className="text-xs text-gray-500 text-center mt-3">
+                                    This is a direct purchase. Item will not be added to your cart.
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="bg-white rounded-lg shadow-sm p-6">
+                            <h4 className="text-sm font-medium text-gray-900 mb-3">Enter Store Code</h4>
+                            <div className="flex gap-3">
+                                <div className="flex-1">
+                                    <input
+                                        type="text"
+                                        value={storeCode}
+                                        onChange={(e) => setStoreCode(e.target.value)}
+                                        placeholder="Enter code"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                    />
+                                </div>
+                                <button
+                                    onClick={handleApplyStoreCode}
+                                    className="flex-shrink-0 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                >
+                                    Apply
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            )}
+
+            <CompleteProfileModal
+                isOpen={completeModal}
+                onClose={() => setCompleteModal(false)}
+            />
         </div>
     );
 }

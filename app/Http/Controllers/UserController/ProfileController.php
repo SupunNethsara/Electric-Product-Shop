@@ -11,17 +11,42 @@ class ProfileController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
-        $profile = $user->profile->with('user')->first();
+        try {
+            $user = auth()->user();
 
-        return response()->json([
-            'profile' => $profile ? $profile->makeHidden('user_id') : null
-        ]);
+            if (!$user) {
+                return response()->json([
+                    'message' => 'User not authenticated'
+                ], 401);
+            }
+
+            $profile = $user->profile;
+
+            if (!$profile) {
+                return response()->json([
+                    'message' => 'Profile not found',
+                    'profile_exists' => false
+                ], 200);
+            }
+
+            $profile->load('user');
+
+            return response()->json([
+                'profile' => $profile->makeHidden('user_id'),
+                'profile_exists' => true
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error retrieving profile',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function store(Request $request)
     {
-         $request->validate([
+        $request->validate([
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:100',
@@ -36,11 +61,14 @@ class ProfileController extends Controller
             $user = auth()->user();
             $profileData = $request->except('profile_image');
             $profileData['user_id'] = $user->id;
+
             $profile = Profile::updateOrCreate(
                 ['user_id' => $user->id],
                 $profileData
             );
+
             $profile->load('user');
+
             return response()->json([
                 'message' => 'Profile updated successfully!',
                 'profile' => $profile->makeHidden('user_id')
