@@ -5,12 +5,79 @@ namespace App\Http\Controllers\OrderController;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OderController extends Controller
 {
+    public function getAllOrder()
+    {
+        return response()->json([
+           'orders'=>Order::with('user')->get()
+        ]);
+    }
+
+    public function getUserOrder(Request $request)
+    {
+        $orderCode = $request->input('order_code');
+
+        $order = Order::with('user.profile')->where('order_code', $orderCode)->first();
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        $orderItems = OrderItem::where('order_id', $order->id)
+            ->with('product')
+            ->get();
+
+        return response()->json([
+            'order' => $order,
+            'items' => $orderItems,
+            'user' => $order->user,
+            'profile' => $order->user->profile ?? null,
+        ]);
+    }
+    public function updateStatus(Request $request)
+    {
+        $request->validate([
+            'order_id' => 'required|exists:orders,id',
+            'status' => 'required|in:pending,contacted,processing,shipped,completed,cancelled'
+        ]);
+
+        try {
+            $order = Order::findOrFail($request->order_id);
+            $oldStatus = $order->status;
+            $order->status = $request->status;
+            $order->save();
+
+            // You can add status history logging here if needed
+            // StatusHistory::create([
+            //     'order_id' => $order->id,
+            //     'from_status' => $oldStatus,
+            //     'to_status' => $request->status,
+            //     'changed_by' => Auth::id()
+            // ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order status updated successfully',
+                'order' => $order
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order status',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
     public function directOrder(Request $request)
     {
         $request->validate([
@@ -44,7 +111,7 @@ class OderController extends Controller
             DB::commit();
             return response()->json(['success' => true, 'order' => $order->load('items')], 201);
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -82,7 +149,7 @@ class OderController extends Controller
             DB::commit();
             return response()->json(['success' => true, 'order' => $order->load('items')], 201);
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 500);
         }
