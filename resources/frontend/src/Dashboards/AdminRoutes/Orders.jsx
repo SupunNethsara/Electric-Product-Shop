@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import dayjs from "dayjs";
+import OrderViewModal from "./Common/OrderComponents/OrderViewModal.jsx";
 
 export default function Orders() {
     const [query, setQuery] = useState("");
@@ -25,7 +26,6 @@ export default function Orders() {
                     status: o.status?.toLowerCase()
                 }));
                 setOrders(normalizedOrders);
-                setIsModalOpen(true);
             } catch (e) {
                 console.error("Error fetching orders:", e);
             } finally {
@@ -47,10 +47,14 @@ export default function Orders() {
                 }
             );
             setViewData(response.data);
-
+            setIsModalOpen(true);
         } catch (error) {
             console.error("Error fetching order:", error.response?.data || error.message);
         }
+    };
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setViewData(null);
     };
     const filtered = orders.filter(o => {
         const matchesQuery =
@@ -128,7 +132,6 @@ export default function Orders() {
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
-                {/* Header Section */}
                 <div className="mb-8">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                         <div>
@@ -214,7 +217,6 @@ export default function Orders() {
                     </div>
                 </div>
 
-                {/* Orders Table */}
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
@@ -298,6 +300,7 @@ export default function Orders() {
                                                 </button>
                                             </div>
                                         </td>
+
                                     </tr>
                                 ))
                             )}
@@ -305,8 +308,11 @@ export default function Orders() {
                         </table>
                     </div>
                 </div>
-
-                {/* Footer */}
+                <OrderViewModal
+                    isOpen={isModalOpen}
+                    onClose={closeModal}
+                    orderData={viewData}
+                />
                 <div className="mt-4 flex justify-between items-center text-sm text-gray-600">
                     <p>
                         Showing <span className="font-medium">{filtered.length}</span> of{" "}
