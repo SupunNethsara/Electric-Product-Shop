@@ -23,11 +23,13 @@ class OderController extends Controller
     public function getUserOrder(Request $request)
     {
         $orderCode = $request->input('order_code');
-        $order = Order::with('user')->where('order_code', $orderCode)->first();
+
+        $order = Order::with('user.profile')->where('order_code', $orderCode)->first();
 
         if (!$order) {
             return response()->json(['message' => 'Order not found'], 404);
         }
+
         $orderItems = OrderItem::where('order_id', $order->id)
             ->with('product')
             ->get();
@@ -36,8 +38,10 @@ class OderController extends Controller
             'order' => $order,
             'items' => $orderItems,
             'user' => $order->user,
+            'profile' => $order->user->profile ?? null,
         ]);
     }
+
 
 
     public function directOrder(Request $request)

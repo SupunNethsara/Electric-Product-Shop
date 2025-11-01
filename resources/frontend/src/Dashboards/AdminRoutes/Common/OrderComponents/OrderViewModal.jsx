@@ -61,11 +61,11 @@ const OrderViewModal = ({ isOpen, onClose, orderData }) => {
     };
 
     const handleDownloadInvoice = () => {
-        InvoiceGenerator.generatePDF(order, items);
+        InvoiceGenerator.generatePDF(orderData);
     };
 
     const handlePrintInvoice = () => {
-        InvoiceGenerator.printInvoice(order, items);
+        InvoiceGenerator.printInvoice(orderData);
     };
 
     return (

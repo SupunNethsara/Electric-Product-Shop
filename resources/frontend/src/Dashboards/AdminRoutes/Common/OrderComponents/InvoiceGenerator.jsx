@@ -2,7 +2,7 @@ import React from 'react';
 import dayjs from 'dayjs';
 
 class InvoiceGenerator {
-    static generatePDF(order, items) {
+    static generatePDF(orderData) {
         // Check if jsPDF is available
         if (typeof window === 'undefined') return;
 
@@ -10,18 +10,19 @@ class InvoiceGenerator {
             // Dynamically import jsPDF
             import('jspdf').then((jsPDFModule) => {
                 const { jsPDF } = jsPDFModule;
-                this.createPDF(jsPDF, order, items);
+                this.createPDF(jsPDF, orderData);
             }).catch(error => {
                 console.error('Error loading jsPDF:', error);
-                this.fallbackDownload(order, items);
+                this.fallbackDownload(orderData);
             });
         } catch (error) {
             console.error('PDF generation error:', error);
-            this.fallbackDownload(order, items);
+            this.fallbackDownload(orderData);
         }
     }
 
-    static createPDF(jsPDF, order, items) {
+    static createPDF(jsPDF, orderData) {
+        const { order, items, user, profile } = orderData;
         const doc = new jsPDF();
 
         // PDF styling
@@ -64,18 +65,22 @@ class InvoiceGenerator {
         doc.text(`Status: ${order.status.toUpperCase()}`, detailsStart, yPosition);
         yPosition += 15;
 
-        // Customer information
+        // Customer information - using user and profile data
         doc.setFont('helvetica', 'bold');
         doc.text('BILL TO:', margin, yPosition);
         yPosition += 5;
         doc.setFont('helvetica', 'normal');
-        doc.text(`Customer: ${order.customer_name || 'Walk-in Customer'}`, margin, yPosition);
+        doc.text(`Customer: ${user?.name || 'Walk-in Customer'}`, margin, yPosition);
         yPosition += 5;
-        doc.text(`Email: ${order.customer_email || 'N/A'}`, margin, yPosition);
+        doc.text(`Email: ${user?.email || 'N/A'}`, margin, yPosition);
         yPosition += 5;
-        doc.text(`Phone: ${order.customer_phone || 'N/A'}`, margin, yPosition);
+        doc.text(`Phone: ${profile?.phone || 'N/A'}`, margin, yPosition);
         yPosition += 5;
-        doc.text(`Payment: ${order.payment_method?.replace(/_/g, ' ') || 'N/A'}`, margin, yPosition);
+        doc.text(`Address: ${profile?.address || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`City: ${profile?.city || 'N/A'}, ${profile?.country || 'N/A'}`, margin, yPosition);
+        yPosition += 5;
+        doc.text(`Payment Method: ${order.payment_method?.replace(/_/g, ' ') || 'N/A'}`, margin, yPosition);
         yPosition += 10;
 
         // Order items table header
@@ -103,6 +108,7 @@ class InvoiceGenerator {
 
             const itemName = item.product?.name || 'Product';
             const model = item.product?.model || '';
+            const itemCode = item.product?.item_code || '';
             const quantity = item.quantity;
             const price = parseFloat(item.price || 0);
             const total = price * quantity;
@@ -110,8 +116,10 @@ class InvoiceGenerator {
             // Item number
             doc.text(itemNumber.toString(), margin + 5, yPosition + 5);
 
-            // Item description (with model if available)
-            const description = model ? `${itemName} (${model})` : itemName;
+            // Item description (with model and item code if available)
+            const description = model || itemCode ?
+                `${itemName} (${model}${itemCode ? ` - ${itemCode}` : ''})` :
+                itemName;
             doc.text(description.substring(0, 35), margin + 15, yPosition + 5);
 
             // Quantity, price, and total
@@ -158,7 +166,9 @@ class InvoiceGenerator {
         doc.save(`invoice-${order.order_code}-${dayjs().format('YYYY-MM-DD')}.pdf`);
     }
 
-    static fallbackDownload(order, items) {
+    static fallbackDownload(orderData) {
+        const { order, items, user, profile } = orderData;
+
         // Create a simple text invoice as fallback
         let invoiceText = `TAX INVOICE\n`;
         invoiceText += `Company: Tech Solutions Ltd.\n`;
@@ -166,13 +176,24 @@ class InvoiceGenerator {
         invoiceText += `Date: ${dayjs(order.created_at).format("DD/MM/YYYY hh:mm A")}\n`;
         invoiceText += `Status: ${order.status}\n\n`;
         invoiceText += `BILL TO:\n`;
-        invoiceText += `Customer: ${order.customer_name || 'Walk-in Customer'}\n`;
+        invoiceText += `Customer: ${user?.name || 'Walk-in Customer'}\n`;
+        invoiceText += `Email: ${user?.email || 'N/A'}\n`;
+        invoiceText += `Phone: ${profile?.phone || 'N/A'}\n`;
+        invoiceText += `Address: ${profile?.address || 'N/A'}\n`;
         invoiceText += `Payment: ${order.payment_method?.replace(/_/g, ' ') || 'N/A'}\n\n`;
         invoiceText += `ITEMS:\n`;
 
         items?.forEach((item, index) => {
             const total = parseFloat(item.price || 0) * item.quantity;
-            invoiceText += `${index + 1}. ${item.product?.name || 'Product'} - Qty: ${item.quantity} - Rs. ${total.toLocaleString()}\n`;
+            const itemName = item.product?.name || 'Product';
+            const model = item.product?.model || '';
+            const itemCode = item.product?.item_code || '';
+
+            const description = model || itemCode ?
+                `${itemName} (${model}${itemCode ? ` - ${itemCode}` : ''})` :
+                itemName;
+
+            invoiceText += `${index + 1}. ${description} - Qty: ${item.quantity} - Rs. ${total.toLocaleString()}\n`;
         });
 
         invoiceText += `\nSubtotal: Rs. ${(parseFloat(order.total_amount) - parseFloat(order.delivery_fee || 0)).toLocaleString()}\n`;
@@ -189,14 +210,14 @@ class InvoiceGenerator {
         URL.revokeObjectURL(url);
     }
 
-    static printInvoice(order, items) {
+    static printInvoice(orderData) {
         const printWindow = window.open('', '_blank');
         if (!printWindow) {
             alert('Please allow popups to print invoice');
             return;
         }
 
-        const printContent = this.generatePrintHTML(order, items);
+        const printContent = this.generatePrintHTML(orderData);
         printWindow.document.write(printContent);
         printWindow.document.close();
         printWindow.focus();
@@ -207,7 +228,8 @@ class InvoiceGenerator {
         }, 500);
     }
 
-    static generatePrintHTML(order, items) {
+    static generatePrintHTML(orderData) {
+        const { order, items, user, profile } = orderData;
         const subtotal = parseFloat(order.total_amount) - parseFloat(order.delivery_fee || 0);
         const deliveryFee = parseFloat(order.delivery_fee || 0);
         const totalAmount = parseFloat(order.total_amount || 0);
@@ -222,13 +244,17 @@ class InvoiceGenerator {
         .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
         .company-name { font-size: 24px; font-weight: bold; color: #000080; }
         .invoice-details { float: right; text-align: right; }
-        .section { margin: 15px 0; }
+        .section { margin: 15px 0; clear: both; }
         .table { width: 100%; border-collapse: collapse; margin: 20px 0; }
         .table th { background-color: #f0f0f0; padding: 8px; text-align: left; border: 1px solid #ddd; }
         .table td { padding: 8px; border: 1px solid #ddd; }
         .summary { float: right; text-align: right; margin-top: 20px; }
-        .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #666; }
-        @media print { body { margin: 0; } }
+        .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #666; clear: both; }
+        .customer-info { float: left; width: 60%; }
+        @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -248,11 +274,15 @@ class InvoiceGenerator {
     </div>
 
     <div class="section">
-        <strong>BILL TO:</strong><br>
-        Customer: ${order.customer_name || 'Walk-in Customer'}<br>
-        Email: ${order.customer_email || 'N/A'}<br>
-        Phone: ${order.customer_phone || 'N/A'}<br>
-        Payment: ${order.payment_method?.replace(/_/g, ' ') || 'N/A'}
+        <div class="customer-info">
+            <strong>BILL TO:</strong><br>
+            Customer: ${user?.name || 'Walk-in Customer'}<br>
+            Email: ${user?.email || 'N/A'}<br>
+            Phone: ${profile?.phone || 'N/A'}<br>
+            Address: ${profile?.address || 'N/A'}<br>
+            City: ${profile?.city || 'N/A'}, ${profile?.country || 'N/A'}<br>
+            Payment: ${order.payment_method?.replace(/_/g, ' ') || 'N/A'}
+        </div>
     </div>
 
     <table class="table">
@@ -268,10 +298,18 @@ class InvoiceGenerator {
         <tbody>
             ${items?.map((item, index) => {
             const total = parseFloat(item.price || 0) * item.quantity;
+            const itemName = item.product?.name || 'Product';
+            const model = item.product?.model || '';
+            const itemCode = item.product?.item_code || '';
+
+            const description = model || itemCode ?
+                `${itemName} (${model}${itemCode ? ` - ${itemCode}` : ''})` :
+                itemName;
+
             return `
                 <tr>
                     <td>${index + 1}</td>
-                    <td>${item.product?.name || 'Product'} ${item.product?.model ? `(${item.product.model})` : ''}</td>
+                    <td>${description}</td>
                     <td>${item.quantity}</td>
                     <td>Rs. ${parseFloat(item.price || 0).toLocaleString()}</td>
                     <td>Rs. ${total.toLocaleString()}</td>
