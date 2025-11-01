@@ -96,6 +96,7 @@ const cartSlice = createSlice({
             state.error = null;
         },
     },
+
     extraReducers: (builder) => {
         builder
             // Fetch cart items

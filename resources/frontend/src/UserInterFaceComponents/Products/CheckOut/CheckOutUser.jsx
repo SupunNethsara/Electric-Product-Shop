@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import { fetchCartItems } from "../../../Store/slices/cartSlice";
-import axios from "axios";
+import {clearCart, fetchCartItems} from "../../../Store/slices/cartSlice";
+import axios from "axios";;
 
 function CheckOutUser() {
     const [storeCode, setStoreCode] = useState("");
@@ -133,7 +133,7 @@ function CheckOutUser() {
             const response = await axios.post('http://127.0.0.1:8000/api/orders/direct', orderData, {
                 headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
             });
-
+            dispatch(clearCart());
             console.log("Direct order created:", response.data);
             navigate('/order-confirmation', { state: { order: response.data.order } });
 
