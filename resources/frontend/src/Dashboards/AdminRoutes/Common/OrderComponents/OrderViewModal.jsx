@@ -73,7 +73,6 @@ const OrderViewModal = ({ isOpen, onClose, orderData }) => {
             <div className="fixed inset-0 bg-black/50" onClick={onClose}></div>
             <div className="flex min-h-full items-center justify-center p-4">
                 <div className="relative bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-                    {/* Header */}
                     <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white flex-shrink-0">
                         <div>
                             <h2 className="text-xl font-semibold text-gray-900">Order Details - HR Investigation</h2>
@@ -235,7 +234,6 @@ const OrderViewModal = ({ isOpen, onClose, orderData }) => {
                         </div>
                     </div>
 
-                    {/* Fixed Footer with Buttons */}
                     <div className="flex-shrink-0 border-t border-gray-200 bg-gray-50">
                         <div className="flex justify-end gap-3 p-6">
                             <button

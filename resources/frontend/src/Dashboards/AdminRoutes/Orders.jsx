@@ -292,9 +292,6 @@ export default function Orders() {
                                                 <button onClick = {()=>handleOrderView(order.order_code)} className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
                                                     View
                                                 </button>
-                                                <button className="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-md transition-colors">
-                                                    PDF
-                                                </button>
                                                 <button className="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors">
                                                     Edit
                                                 </button>
