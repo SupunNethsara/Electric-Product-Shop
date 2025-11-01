@@ -162,7 +162,6 @@ export default function Orders() {
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
-                {/* Header Section */}
                 <div className="mb-8">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                         <div>
@@ -212,7 +211,6 @@ export default function Orders() {
                     ))}
                 </div>
 
-                {/* Search and Filter Section */}
                 <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
                     <div className="flex flex-col lg:flex-row gap-4 items-center">
                         <div className="flex-1 w-full relative">
@@ -258,7 +256,6 @@ export default function Orders() {
                     </div>
                 </div>
 
-                {/* Orders Table */}
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
@@ -379,8 +376,6 @@ export default function Orders() {
                         </table>
                     </div>
                 </div>
-
-                {/* Footer Information */}
                 <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-600">
                     <p>
                         Showing <span className="font-medium">{filtered.length}</span> of{" "}
@@ -416,8 +411,6 @@ export default function Orders() {
                         </div>
                     </div>
                 </div>
-
-                {/* Modals */}
                 <OrderViewModal
                     isOpen={isModalOpen}
                     onClose={closeModal}
