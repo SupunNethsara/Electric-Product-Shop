@@ -81,7 +81,7 @@ function OrderConfirmation() {
                                     Order Confirmed!
                                 </h1>
                                 <p className="text-gray-600 text-lg">
-                                    Your order #{order.order_number || order.id}{" "}
+                                    Your order #{order.order_code || order.id}{" "}
                                     has been processed successfully
                                 </p>
                             </div>

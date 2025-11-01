@@ -14,7 +14,7 @@ const InvoicePDF = {
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px;">
                         <div>
                             <h1 style="font-size: 28px; font-weight: bold; color: #000; margin: 0 0 10px 0;">INVOICE</h1>
-                            <p style="color: #666; margin: 5px 0;"><strong>Order #:</strong> ${order.order_number || order.id}</p>
+                            <p style="color: #666; margin: 5px 0;"><strong>Order #:</strong> ${order.order_code || order.id}</p>
                             <p style="color: #666; margin: 5px 0;"><strong>Date:</strong> ${InvoicePDF.formatDate(order.created_at)}</p>
                         </div>
                         <div style="text-align: right;">
