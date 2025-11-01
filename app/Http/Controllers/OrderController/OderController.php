@@ -41,7 +41,41 @@ class OderController extends Controller
             'profile' => $order->user->profile ?? null,
         ]);
     }
+    public function updateStatus(Request $request)
+    {
+        $request->validate([
+            'order_id' => 'required|exists:orders,id',
+            'status' => 'required|in:pending,contacted,processing,shipped,completed,cancelled'
+        ]);
 
+        try {
+            $order = Order::findOrFail($request->order_id);
+            $oldStatus = $order->status;
+            $order->status = $request->status;
+            $order->save();
+
+            // You can add status history logging here if needed
+            // StatusHistory::create([
+            //     'order_id' => $order->id,
+            //     'from_status' => $oldStatus,
+            //     'to_status' => $request->status,
+            //     'changed_by' => Auth::id()
+            // ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order status updated successfully',
+                'order' => $order
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order status',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 
     public function directOrder(Request $request)

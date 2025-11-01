@@ -2,14 +2,17 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import dayjs from "dayjs";
 import OrderViewModal from "./Common/OrderComponents/OrderViewModal.jsx";
+import StatusUpdateModal from "./Common/OrderComponents/StatusUpdateModal.jsx";
 
 export default function Orders() {
     const [query, setQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    const[viewData , setViewData] = useState(null);
+    const [viewData, setViewData] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState(null);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -52,15 +55,38 @@ export default function Orders() {
             console.error("Error fetching order:", error.response?.data || error.message);
         }
     };
+
+    const handleStatusUpdate = (orderId, newStatus) => {
+        setOrders(prevOrders =>
+            prevOrders.map(order =>
+                order.id === orderId
+                    ? { ...order, status: newStatus }
+                    : order
+            )
+        );
+    };
+
+    const handleEditStatus = (order) => {
+        setSelectedOrder(order);
+        setIsStatusModalOpen(true);
+    };
+
     const closeModal = () => {
         setIsModalOpen(false);
         setViewData(null);
     };
+
+    const closeStatusModal = () => {
+        setIsStatusModalOpen(false);
+        setSelectedOrder(null);
+    };
+
     const filtered = orders.filter(o => {
         const matchesQuery =
             o.id.toString().toLowerCase().includes(query.toLowerCase()) ||
-            o.customer?.toLowerCase().includes(query.toLowerCase()) ||
-            o.user?.name?.toLowerCase().includes(query.toLowerCase());
+            o.order_code?.toLowerCase().includes(query.toLowerCase()) ||
+            o.user?.name?.toLowerCase().includes(query.toLowerCase()) ||
+            o.user?.email?.toLowerCase().includes(query.toLowerCase());
         const matchesStatus =
             statusFilter === "all" || o.status === statusFilter.toLowerCase();
         return matchesQuery && matchesStatus;
@@ -118,6 +144,10 @@ export default function Orders() {
         );
     };
 
+    const getStatusCount = (status) => {
+        return orders.filter(o => o.status === status).length;
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -132,10 +162,11 @@ export default function Orders() {
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
+                {/* Header Section */}
                 <div className="mb-8">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
+                            <h1 className="text-2xl font-bold text-gray-900">Orders Management</h1>
                             <p className="text-gray-600 mt-1">Manage and track customer orders</p>
                         </div>
                         <div className="flex items-center gap-6 mt-4 lg:mt-0">
@@ -154,14 +185,23 @@ export default function Orders() {
                     </div>
                 </div>
 
+                {/* Status Overview Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    {["pending", "processing", "completed", "cancelled"].map((status) => (
-                        <div key={status} className="bg-white rounded-lg border border-gray-200 p-4">
+                    {[
+                        { status: "pending", label: "Pending" },
+                        { status: "processing", label: "Processing" },
+                        { status: "shipped", label: "Shipped" },
+                        { status: "completed", label: "Completed" }
+                    ].map(({ status, label }) => (
+                        <div key={status} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-gray-600 capitalize">{status}</p>
+                                    <p className="text-sm font-medium text-gray-600">{label}</p>
                                     <p className="text-2xl font-bold text-gray-900 mt-1">
-                                        {orders.filter(o => o.status === status).length}
+                                        {getStatusCount(status)}
+                                    </p>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        {Math.round((getStatusCount(status) / orders.length) * 100) || 0}% of total
                                     </p>
                                 </div>
                                 <div className={`p-3 rounded-lg ${statusColor(status).split(" ")[0]}`}>
@@ -172,6 +212,7 @@ export default function Orders() {
                     ))}
                 </div>
 
+                {/* Search and Filter Section */}
                 <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
                     <div className="flex flex-col lg:flex-row gap-4 items-center">
                         <div className="flex-1 w-full relative">
@@ -184,7 +225,7 @@ export default function Orders() {
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Search orders by ID, customer name..."
+                                placeholder="Search orders by ID, code, customer name or email..."
                                 className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                             />
                         </div>
@@ -197,11 +238,11 @@ export default function Orders() {
                             >
                                 <option value="all">All Status</option>
                                 <option value="pending">Pending</option>
+                                <option value="contacted">Contacted</option>
                                 <option value="processing">Processing</option>
                                 <option value="shipped">Shipped</option>
                                 <option value="completed">Completed</option>
                                 <option value="cancelled">Cancelled</option>
-                                <option value="contacted">Contacted</option>
                             </select>
 
                             <button
@@ -211,12 +252,13 @@ export default function Orders() {
                                 }}
                                 className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
                             >
-                                Clear
+                                Clear Filters
                             </button>
                         </div>
                     </div>
                 </div>
 
+                {/* Orders Table */}
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
@@ -229,7 +271,7 @@ export default function Orders() {
                                     Customer
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Date
+                                    Date & Time
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Amount
@@ -245,33 +287,48 @@ export default function Orders() {
                             <tbody className="divide-y divide-gray-200">
                             {filtered.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-8 text-center">
+                                    <td colSpan="6" className="px-6 py-12 text-center">
                                         <div className="flex flex-col items-center justify-center text-gray-500">
-                                            <svg className="w-12 h-12 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                             </svg>
-                                            <p className="font-medium">No orders found</p>
-                                            <p className="text-sm mt-1">
+                                            <p className="font-medium text-lg">No orders found</p>
+                                            <p className="text-sm mt-1 max-w-md">
                                                 {query || statusFilter !== "all"
-                                                    ? "Try adjusting your search criteria"
-                                                    : "No orders have been placed yet"}
+                                                    ? "No orders match your search criteria. Try adjusting your filters."
+                                                    : "No orders have been placed yet. Orders will appear here once customers start placing orders."}
                                             </p>
+                                            {(query || statusFilter !== "all") && (
+                                                <button
+                                                    onClick={() => {
+                                                        setQuery("");
+                                                        setStatusFilter("all");
+                                                    }}
+                                                    className="mt-4 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                                >
+                                                    Clear All Filters
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
                             ) : (
                                 filtered.map(order => (
-                                    <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                                    <tr key={order.id} className="hover:bg-gray-50 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div>
                                                 <p className="font-medium text-gray-900 text-sm">#{order.order_code}</p>
-                                                <p className="text-xs text-gray-500 mt-0.5">{order.items?.length || 0} items</p>
+                                                <p className="text-xs text-gray-500 mt-0.5">
+                                                    {order.items?.length || 0} item{order.items?.length !== 1 ? 's' : ''}
+                                                </p>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div>
                                                 <p className="font-medium text-gray-900 text-sm">{order.user?.name || "N/A"}</p>
-                                                <p className="text-xs text-gray-500">{order.user?.email || ""}</p>
+                                                <p className="text-xs text-gray-500 truncate max-w-[150px]">
+                                                    {order.user?.email || ""}
+                                                </p>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
@@ -279,25 +336,42 @@ export default function Orders() {
                                             <div className="text-xs text-gray-500">{dayjs(order.created_at).format("h:mm A")}</div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <p className="font-semibold text-gray-900 text-sm">Rs. {order.total_amount?.toLocaleString() || "0"}</p>
+                                            <p className="font-semibold text-gray-900 text-sm">
+                                                Rs. {parseFloat(order.total_amount || 0).toLocaleString()}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                Delivery: Rs. {parseFloat(order.delivery_fee || 0).toLocaleString()}
+                                            </p>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${statusColor(order.status)}`}>
                                                 {statusIcon(order.status)}
-                                                <span>{order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+                                                <span className="capitalize">{order.status}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-1">
-                                                <button onClick = {()=>handleOrderView(order.order_code)} className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => handleOrderView(order.order_code)}
+                                                    className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors flex items-center gap-1"
+                                                >
+                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
                                                     View
                                                 </button>
-                                                <button className="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors">
-                                                    Edit
+                                                <button
+                                                    onClick={() => handleEditStatus(order)}
+                                                    className="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors flex items-center gap-1"
+                                                >
+                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                    Status
                                                 </button>
                                             </div>
                                         </td>
-
                                     </tr>
                                 ))
                             )}
@@ -305,16 +379,24 @@ export default function Orders() {
                         </table>
                     </div>
                 </div>
-                <OrderViewModal
-                    isOpen={isModalOpen}
-                    onClose={closeModal}
-                    orderData={viewData}
-                />
-                <div className="mt-4 flex justify-between items-center text-sm text-gray-600">
+
+                {/* Footer Information */}
+                <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-600">
                     <p>
                         Showing <span className="font-medium">{filtered.length}</span> of{" "}
                         <span className="font-medium">{orders.length}</span> orders
+                        {query && (
+                            <span className="ml-2">
+                                for "<span className="font-medium">{query}</span>"
+                            </span>
+                        )}
+                        {statusFilter !== "all" && (
+                            <span className="ml-2">
+                                with status "<span className="font-medium capitalize">{statusFilter}</span>"
+                            </span>
+                        )}
                     </p>
+
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1.5">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -324,8 +406,30 @@ export default function Orders() {
                             <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
                             <span className="text-xs">Pending</span>
                         </div>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <span className="text-xs">Processing</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                            <span className="text-xs">Cancelled</span>
+                        </div>
                     </div>
                 </div>
+
+                {/* Modals */}
+                <OrderViewModal
+                    isOpen={isModalOpen}
+                    onClose={closeModal}
+                    orderData={viewData}
+                />
+
+                <StatusUpdateModal
+                    isOpen={isStatusModalOpen}
+                    onClose={closeStatusModal}
+                    order={selectedOrder}
+                    onStatusUpdate={handleStatusUpdate}
+                />
             </div>
         </div>
     );
