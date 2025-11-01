@@ -7,6 +7,8 @@ export default function Orders() {
     const [statusFilter, setStatusFilter] = useState("all");
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const[viewData , setViewData] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -18,14 +20,12 @@ export default function Orders() {
                     "http://127.0.0.1:8000/api/orders/getAllOrder",
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
-
-                // Normalize statuses to lowercase
                 const normalizedOrders = (response.data.orders || response.data[0] || []).map(o => ({
                     ...o,
                     status: o.status?.toLowerCase()
                 }));
-
                 setOrders(normalizedOrders);
+                setIsModalOpen(true);
             } catch (e) {
                 console.error("Error fetching orders:", e);
             } finally {
@@ -36,6 +36,22 @@ export default function Orders() {
         if (token) handleOrderData();
     }, []);
 
+    const handleOrderView = async (orderCode) => {
+        const token = localStorage.getItem("token");
+        try {
+            const response = await axios.get(
+                "http://127.0.0.1:8000/api/orders/getUserOrder",
+                {
+                    params: { order_code: orderCode },
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+            setViewData(response.data);
+
+        } catch (error) {
+            console.error("Error fetching order:", error.response?.data || error.message);
+        }
+    };
     const filtered = orders.filter(o => {
         const matchesQuery =
             o.id.toString().toLowerCase().includes(query.toLowerCase()) ||
@@ -135,7 +151,6 @@ export default function Orders() {
                     </div>
                 </div>
 
-                {/* Status Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     {["pending", "processing", "completed", "cancelled"].map((status) => (
                         <div key={status} className="bg-white rounded-lg border border-gray-200 p-4">
@@ -154,7 +169,6 @@ export default function Orders() {
                     ))}
                 </div>
 
-                {/* Search & Filters */}
                 <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
                     <div className="flex flex-col lg:flex-row gap-4 items-center">
                         <div className="flex-1 w-full relative">
@@ -273,7 +287,7 @@ export default function Orders() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-1">
-                                                <button className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                                                <button onClick = {()=>handleOrderView(order.order_code)} className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
                                                     View
                                                 </button>
                                                 <button className="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-md transition-colors">
