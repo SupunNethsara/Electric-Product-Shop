@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\DB;
 
 class OderController extends Controller
 {
+    public function getAllOrder()
+    {
+        return response()->json([
+           'orders'=>Order::with('user')->get()
+        ]);
+    }
     public function directOrder(Request $request)
     {
         $request->validate([

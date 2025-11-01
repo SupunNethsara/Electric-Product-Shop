@@ -13,6 +13,7 @@
     "@reduxjs/toolkit": "^2.9.0",
     "@tailwindcss/vite": "^4.1.14",
     "axios": "^1.12.2",
+    "dayjs": "^1.11.19",
     "gsap": "^3.13.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.3",
