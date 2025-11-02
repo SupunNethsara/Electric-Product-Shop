@@ -30,14 +30,10 @@ function UserProfile() {
                 return <div className="p-8 text-center"><RecentOrders/></div>;
             case 'wishlist':
                 return <div className="p-8 text-center">Wishlist Page - Coming Soon</div>;
-            case 'addresses':
-                return <div className="p-8 text-center">Addresses Page - Coming Soon</div>;
             case 'payments':
                 return <div className="p-8 text-center">Payments Page - Coming Soon</div>;
             case 'notifications':
                 return <div className="p-8 text-center">Notifications Page - Coming Soon</div>;
-            case 'settings':
-                return <div className="p-8 text-center">Settings Page - Coming Soon</div>;
             default:
                 return <PersonalDetails />;
         }
