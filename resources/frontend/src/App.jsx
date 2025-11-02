@@ -17,7 +17,7 @@ import CheckOutUser from "./UserInterFaceComponents/Products/CheckOut/CheckOutUs
 import ProductDetails from "./UserInterFaceComponents/Products/ProductDetails.jsx";
 import UserInterFace from "./UserInterFaceComponents/Common/UserInterFace.jsx";
 import AuthCallback from "./pages/AuthCallback";
-import UserProfile from "./UserInterFaceComponents/Common/UserProfile.jsx";
+import UserProfile from "./UserInterFaceComponents/Common/UserProfileRoutes/UserProfile.jsx";
 import Toast from "./UserInterFaceComponents/Common/Toast.jsx";
 import OrderConfirmation from "./UserInterFaceComponents/Common/OrderConfirmation.jsx";
 import GlobalModals from "./UserInterFaceComponents/Common/GlobalModals.jsx";
