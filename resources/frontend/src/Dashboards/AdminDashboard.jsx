@@ -14,7 +14,8 @@ const AdminDashboard = () => {
             <Header />
 
                 <Routes>
-                    <Route path="/" element={<Statics />} />
+                    <Route index element={<Statics />} />
+                    <Route path="/statics" element={<Statics/>}/>
                     <Route path="/products" element={<Products />}/>
                     <Route path="/categories" element={<Categories />}/>
                     <Route path="/orders" element={<Orders />}/>
