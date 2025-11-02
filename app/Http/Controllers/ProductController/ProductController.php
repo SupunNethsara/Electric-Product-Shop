@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\ProductController;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ValidateFilesRequest;
 use App\Imports\ProductDetailsImport;
 use App\Imports\ProductPricingImport;
 use App\Models\Product;
@@ -36,12 +37,9 @@ class ProductController extends Controller
 
         return response()->json($products);
     }
-    public function validateFiles(Request $request)
+    public function validateFiles(ValidateFilesRequest $request)
     {
-        $request->validate([
-            'details_file' => 'required|file|mimes:xlsx,csv',
-            'pricing_file' => 'required|file|mimes:xlsx,csv',
-        ]);
+        $request->validated();
 
         $detailsImport = new ProductDetailsImport();
         $pricingImport = new ProductPricingImport();
