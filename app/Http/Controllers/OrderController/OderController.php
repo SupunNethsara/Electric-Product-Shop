@@ -42,6 +42,35 @@ class OderController extends Controller
             'profile' => $order->user->profile ?? null,
         ]);
     }
+    public function getUserOrders(Request $request)
+    {
+        $userId = Auth::id();
+
+        $orders = Order::where('user_id', $userId)
+            ->with('user.profile')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        if ($orders->isEmpty()) {
+            return response()->json([]);
+        }
+
+        $ordersWithItems = [];
+        foreach ($orders as $order) {
+            $orderItems = OrderItem::where('order_id', $order->id)
+                ->with('product')
+                ->get();
+
+            $ordersWithItems[] = [
+                'order' => $order,
+                'items' => $orderItems,
+                'user' => $order->user,
+                'profile' => $order->user->profile ?? null,
+            ];
+        }
+
+        return response()->json($ordersWithItems);
+    }
     public function updateStatus(Request $request)
     {
         $request->validate([

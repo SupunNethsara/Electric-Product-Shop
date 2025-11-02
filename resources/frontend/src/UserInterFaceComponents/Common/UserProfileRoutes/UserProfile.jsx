@@ -8,7 +8,8 @@ import {
     CreditCard,
     Bell,
 } from 'lucide-react';
-import PersonalDetails from './UserProfileRoutes/PersonalDetails.jsx';
+import PersonalDetails from './PersonalDetails.jsx';
+import RecentOrders from "./RecentOrders.jsx";
 
 function UserProfile() {
     const [activeTab, setActiveTab] = useState('profile');
@@ -17,10 +18,8 @@ function UserProfile() {
         { id: 'profile', label: 'My Profile', icon: User },
         { id: 'orders', label: 'Recent Orders', icon: ShoppingBag },
         { id: 'wishlist', label: 'Wishlist', icon: Heart },
-        { id: 'addresses', label: 'Addresses', icon: MapPin },
         { id: 'payments', label: 'Payment Methods', icon: CreditCard },
         { id: 'notifications', label: 'Notifications', icon: Bell },
-        { id: 'settings', label: 'Settings', icon: Settings }
     ];
 
     const renderContent = () => {
@@ -28,7 +27,7 @@ function UserProfile() {
             case 'profile':
                 return <PersonalDetails />;
             case 'orders':
-                return <div className="p-8 text-center">Orders Page - Coming Soon</div>;
+                return <div className="p-8 text-center"><RecentOrders/></div>;
             case 'wishlist':
                 return <div className="p-8 text-center">Wishlist Page - Coming Soon</div>;
             case 'addresses':
