@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\UserController;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProfileAddingRequest;
 use App\Models\Profile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -44,19 +45,9 @@ class ProfileController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(ProfileAddingRequest $request)
     {
-        $request->validate([
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:100',
-            'postal_code' => 'nullable|string|max:20',
-            'country' => 'nullable|string|max:100',
-            'bio' => 'nullable|string|max:500',
-            'birth_date' => 'nullable|date',
-            'gender' => 'nullable|string|in:Male,Female,Other',
-        ]);
-
+        $request->validated();
         try {
             $user = auth()->user();
             $profileData = $request->except('profile_image');

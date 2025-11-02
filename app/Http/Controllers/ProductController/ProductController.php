@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\ProductController;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ImageUploadRequest;
+use App\Http\Requests\UploadProudctRequest;
+use App\Http\Requests\ValidateFilesRequest;
 use App\Imports\ProductDetailsImport;
 use App\Imports\ProductPricingImport;
 use App\Models\Product;
@@ -36,12 +39,9 @@ class ProductController extends Controller
 
         return response()->json($products);
     }
-    public function validateFiles(Request $request)
+    public function validateFiles(ValidateFilesRequest $request)
     {
-        $request->validate([
-            'details_file' => 'required|file|mimes:xlsx,csv',
-            'pricing_file' => 'required|file|mimes:xlsx,csv',
-        ]);
+        $request->validated();
 
         $detailsImport = new ProductDetailsImport();
         $pricingImport = new ProductPricingImport();
@@ -60,13 +60,9 @@ class ProductController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Validation passed successfully!']);
     }
 
-    public function uploadProducts(Request $request)
+    public function uploadProducts(UploadProudctRequest $request)
     {
-        $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'details_file' => 'required|file|mimes:xlsx,csv',
-            'pricing_file' => 'required|file|mimes:xlsx,csv',
-        ]);
+        $request->validated();
 
         $detailsImport = new ProductDetailsImport();
         $pricingImport = new ProductPricingImport();
@@ -117,20 +113,13 @@ class ProductController extends Controller
         return response()->json(['message' => 'Products uploaded successfully!']);
     }
 
-    public function uploadImages(Request $request)
+    public function uploadImages(ImageUploadRequest $request)
     {
         try {
-            $validated = $request->validate([
-                'product_id' => 'required|string|exists:products,id',
-                'item_code' => 'required|string',
-                'image_urls' => 'required|array|min:1|max:4',
-                'image_urls.*' => 'url',
-                'main_image_index' => 'sometimes|integer|min:0|max:2'
-            ]);
+          $request->validated();
             $product = Product::find($request->product_id);
 
             if (!$product) {
-                \Log::error('Product not found', ['product_id' => $request->product_id]);
                 return response()->json([
                     'message' => 'Product not found',
                     'errors' => [
@@ -153,19 +142,12 @@ class ProductController extends Controller
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('Validation failed during image upload', [
-                'errors' => $e->errors(),
-                'input' => $request->all()
-            ]);
             return response()->json([
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Error uploading images', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
+
             return response()->json([
                 'message' => 'Failed to upload images',
                 'error' => $e->getMessage()

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\OrderController;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\OrderRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Exception;
@@ -78,15 +79,9 @@ class OderController extends Controller
     }
 
 
-    public function directOrder(Request $request)
+    public function directOrder(OrderRequest $request)
     {
-        $request->validate([
-            'items' => 'required|array',
-            'total_amount' => 'required|numeric',
-            'delivery_fee' => 'required|numeric',
-            'delivery_option' => 'required|string',
-        ]);
-
+        $request->validated();
         try {
             DB::beginTransaction();
 
@@ -116,14 +111,9 @@ class OderController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-    public function cartCheckout(Request $request)
+    public function cartCheckout(OrderRequest $request)
     {
-        $request->validate([
-            'items' => 'required|array',
-            'total_amount' => 'required|numeric',
-            'delivery_fee' => 'required|numeric',
-            'delivery_option' => 'required|string',
-        ]);
+        $request->validated();
 
         try {
             DB::beginTransaction();
