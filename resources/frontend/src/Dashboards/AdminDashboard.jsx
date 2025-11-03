@@ -7,21 +7,19 @@ import Orders from "./AdminRoutes/Orders.jsx";
 import Quotations from "./AdminRoutes/Quotations.jsx";
 import UserManage from "./AdminRoutes/UserManage.jsx";
 
-
 const AdminDashboard = () => {
     return (
         <div className="min-h-screen bg-gray-50">
             <Header />
-
-                <Routes>
-                    <Route path="/" element={<Statics />} />
-                    <Route path="/products" element={<Products />}/>
-                    <Route path="/categories" element={<Categories />}/>
-                    <Route path="/orders" element={<Orders />}/>
-                    <Route path="/quotations" element={<Quotations />}/>
-                    <Route path="/user-manage" element={<UserManage />}/>
-                </Routes>
-
+            <Routes>
+                <Route index element={<Statics />} />
+                <Route path="/statics" element={<Statics />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/categories" element={<Categories />} />
+                <Route path="/orders" element={<Orders />} />
+                <Route path="/quotations" element={<Quotations />} />
+                <Route path="/user-manage" element={<UserManage />} />
+            </Routes>
         </div>
     );
 };
