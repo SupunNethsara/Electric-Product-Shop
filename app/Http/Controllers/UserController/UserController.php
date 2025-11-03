@@ -10,7 +10,7 @@ class UserController extends Controller
     public function getAllUsers()
     {
         try {
-            $users = User::select('id', 'name', 'email', 'role', 'created_at')
+            $users = User::with('profile')
                 ->orderBy('created_at', 'desc')
                 ->get();
 
