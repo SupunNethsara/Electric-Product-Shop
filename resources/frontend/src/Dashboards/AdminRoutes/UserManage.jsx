@@ -9,23 +9,17 @@ function UserManage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [updatingStatus, setUpdatingStatus] = useState(null);
 
-    // Fetch users from API
     useEffect(() => {
         const fetchUsers = async () => {
             try {
                 const response = await axios.get('http://127.0.0.1:8000/api/admin/all-users');
-                console.log('API Response:', response.data); // Debug log
 
-                // Map through users and ensure proper data structure
                 const usersWithProperData = (response.data.users || []).map(user => ({
                     ...user,
-                    // Use the actual is_active field from API, default to true if not provided
                     is_active: user.is_active !== undefined ? user.is_active : true,
-                    // Ensure profile is properly handled
                     profile: user.profile || null
                 }));
 
-                console.log('Processed Users:', usersWithProperData); // Debug log
                 setUsers(usersWithProperData);
             } catch (err) {
                 console.error('Error fetching users:', err);
@@ -38,22 +32,20 @@ function UserManage() {
         fetchUsers();
     }, []);
 
-    // Toggle user active status
+
     const toggleUserStatus = async (userId, currentStatus) => {
         setUpdatingStatus(userId);
         try {
-            const response = await axios.put(`http://127.0.0.1:8000/api/admin/users/${userId}/status`, {
-                is_active: !currentStatus
-            });
+            const response = await axios.put(
+                `http://127.0.0.1:8000/api/admin/deactivate-user/${userId}`
+            );
 
-            // Update local state
             setUsers(users.map(user =>
                 user.id === userId
                     ? { ...user, is_active: !currentStatus }
                     : user
             ));
 
-            // Update selected user if modal is open
             if (selectedUser && selectedUser.id === userId) {
                 setSelectedUser({ ...selectedUser, is_active: !currentStatus });
             }
@@ -66,19 +58,17 @@ function UserManage() {
         }
     };
 
-    // Handle user click to show details
+
     const handleUserClick = (user) => {
         setSelectedUser(user);
         setIsModalOpen(true);
     };
 
-    // Close modal
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedUser(null);
     };
 
-    // Get role badge color
     const getRoleColor = (role) => {
         switch (role) {
             case 'super_admin':
@@ -92,7 +82,6 @@ function UserManage() {
         }
     };
 
-    // Get status badge color and text
     const getStatusInfo = (isActive) => {
         return {
             color: isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800',
@@ -100,7 +89,6 @@ function UserManage() {
         };
     };
 
-    // Check if profile has any data
     const hasProfileData = (profile) => {
         if (!profile) return false;
         return profile.phone || profile.address || profile.city || profile.country ||
@@ -135,13 +123,11 @@ function UserManage() {
 
     return (
         <div className="p-6">
-            {/* Header */}
             <div className="mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
                 <p className="text-gray-600">Manage all users in the system</p>
             </div>
 
-            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 <div className="bg-white rounded-lg shadow p-6">
                     <div className="flex items-center">
@@ -207,7 +193,6 @@ function UserManage() {
                 </div>
             </div>
 
-            {/* Users Table */}
             <div className="bg-white shadow rounded-lg">
                 <div className="px-6 py-4 border-b border-gray-200">
                     <h2 className="text-lg font-medium text-gray-900">All Users</h2>
@@ -280,7 +265,6 @@ function UserManage() {
                                             View
                                         </button>
 
-                                        {/* Deactivate/Activate Button */}
                                         <button
                                             onClick={() => toggleUserStatus(user.id, user.is_active)}
                                             disabled={updatingStatus === user.id}
@@ -305,9 +289,8 @@ function UserManage() {
                 </div>
             </div>
 
-            {/* User Details Modal */}
             {isModalOpen && selectedUser && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                <div className="fixed inset-0 bg-gray-600/50 overflow-y-auto h-full w-full z-50">
                     <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
                         <div className="mt-3">
                             <div className="flex justify-between items-center pb-3 border-b">
