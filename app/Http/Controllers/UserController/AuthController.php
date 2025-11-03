@@ -66,7 +66,7 @@ class AuthController extends Controller
     public function redirectToGoogle()
     {
         return Socialite::driver('google')
-            ->redirectUrl(config('services.google.redirect')) // Use config
+            ->redirectUrl(config('services.google.redirect'))
             ->stateless()
             ->redirect();
     }
