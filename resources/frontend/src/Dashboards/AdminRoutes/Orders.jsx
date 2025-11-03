@@ -183,8 +183,6 @@ export default function Orders() {
                         </div>
                     </div>
                 </div>
-
-                {/* Status Overview Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     {[
                         { status: "pending", label: "Pending" },
@@ -315,9 +313,6 @@ export default function Orders() {
                                         <td className="px-6 py-4">
                                             <div>
                                                 <p className="font-medium text-gray-900 text-sm">#{order.order_code}</p>
-                                                <p className="text-xs text-gray-500 mt-0.5">
-                                                    {order.items?.length || 0} item{order.items?.length !== 1 ? 's' : ''}
-                                                </p>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">

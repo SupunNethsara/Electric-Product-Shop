@@ -121,7 +121,6 @@ const Sidebar = () => {
                 </nav>
             </div>
 
-            {/* Quick Upload Section */}
             <div className="px-4 py-4 border-t border-gray-200 flex-shrink-0">
                 <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-4 text-white">
                     <h3 className="text-sm font-semibold mb-2">Quick Upload</h3>
@@ -129,7 +128,7 @@ const Sidebar = () => {
                         Upload product data via Excel files
                     </p>
                     <Link
-                        to="/admin/products/upload"
+                        to="/admin/products"
                         className="flex items-center justify-center w-full bg-white text-green-600 text-sm font-medium py-2 px-3 rounded-lg hover:bg-green-50 transition-colors duration-200"
                     >
                         <Upload size={16} className="mr-2" />

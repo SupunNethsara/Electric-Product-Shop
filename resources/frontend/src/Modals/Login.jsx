@@ -95,7 +95,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
                 if (role === 'super_admin') {
                     navigate('/super-admin');
                 } else if (role === 'admin') {
-                    navigate('/admin/dashboard');
+                    navigate('/admin');
                 } else {
                     navigate('/');
                 }
