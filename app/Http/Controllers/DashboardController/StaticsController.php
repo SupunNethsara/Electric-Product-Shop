@@ -18,6 +18,7 @@ class StaticsController extends Controller
             'totalProducts' => Product::count(),
             'totalCategories' => Category::count(),
             'pendingOrders' => Order::where('status', 'pending')->count(),
+            'totalRevenue' => Order::sum('total_amount'),
         ]);
     }
 }

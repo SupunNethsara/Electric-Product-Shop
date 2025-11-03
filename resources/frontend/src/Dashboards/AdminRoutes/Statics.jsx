@@ -89,7 +89,7 @@ function Statistics() {
     return (
         <div className="min-h-screen bg-white p-6">
             <div className="max-w-7xl mx-auto">
-                <MetricsGrid data={dashboardData.summary} />
+                <MetricsGrid />
                 <ChartsGrid
                     monthlyOrders={dashboardData.monthlyOrders}
                     ordersByStatus={dashboardData.ordersByStatus}
