@@ -157,5 +157,73 @@ class StaticsController extends Controller
             ], 500);
         }
     }
+    public function getRecentOrders()
+    {
+        try {
+            $recentOrders = Order::with(['user', 'items.product'])
+                ->orderBy('created_at', 'desc')
+                ->take(4)
+                ->get()
+                ->map(function ($order) {
+                    return [
+                        'id' => $order->id,
+                        'order_code' => $order->order_code,
+                        'customer_name' => $order->user->name,
+                        'customer_email' => $order->user->email,
+                        'total_amount' => (float) $order->total_amount,
+                        'status' => $order->status,
+                        'created_at' => $order->created_at->toISOString(),
+                        'formatted_date' => $order->created_at->format('M d, Y'),
+                        'formatted_time' => $order->created_at->format('h:i A'),
+                        'items_count' => $order->items->count(),
+                        'items' => $order->items->take(2)->map(function ($item) { // Show only first 2 items
+                            return [
+                                'product_name' => $item->product->name ?? 'Unknown Product',
+                                'quantity' => $item->quantity,
+                                'price' => (float) $item->price
+                            ];
+                        })
+                    ];
+                });
+
+            return response()->json([
+                'recent_orders' => $recentOrders
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Recent orders error: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Failed to fetch recent orders',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function recentUsers()
+    {
+        try {
+            $recentUsers = User::whereNotIn('role', ['Super_Admin', 'admin'])
+            ->orderBy('created_at', 'desc')
+                ->take(5)
+                ->get(['id', 'name', 'email', 'created_at']);
+
+            $recentUsers = $recentUsers->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'date' => $user->created_at->toDateString(),
+                ];
+            });
+
+            return response()->json([
+                'recentUsers' => $recentUsers
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch recent users',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 }
