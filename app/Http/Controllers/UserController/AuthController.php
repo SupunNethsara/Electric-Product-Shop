@@ -46,7 +46,11 @@ class AuthController extends Controller
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
-
+        if ($user->status !== 'active') {
+            return response()->json([
+                'message' => 'Your account is inactive. Please contact an administrator.',
+            ], 403);
+        }
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -55,6 +59,7 @@ class AuthController extends Controller
             'token' => $token,
         ]);
     }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
