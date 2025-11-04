@@ -1,16 +1,17 @@
 import Header from "./AdminComponents/Header.jsx";
 import { Routes ,Route } from "react-router-dom";
+import SaStatics from "./SuperAdminRoutes/SaStatics.jsx";
 
 
 const SuperAdminDashboard = () => {
     return (
-        <div className="min-h-screen rounded-2xl bg-gray-50">
+        <div className="min-h-screen bg-gray-50">
             <Header />
-            <main>
-                <Routes>
+            <Routes>
+                <Route index element={<SaStatics />} />
+                <Route path="/sastatics" element={<SaStatics />} />
 
-                </Routes>
-            </main>
+            </Routes>
         </div>
     );
 };
