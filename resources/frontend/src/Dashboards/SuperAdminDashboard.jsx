@@ -10,8 +10,8 @@ const SuperAdminDashboard = () => {
             <Header />
             <Routes>
                 <Route index element={<SaStatics />} />
-                <Route path="/sastatics" element={<SaStatics />} />
-                <Route path="/adminManage" element={<AdminManagement />} />
+                <Route path="sastatics" element={<SaStatics />} />
+                <Route path="adminManage" element={<AdminManagement />} />
             </Routes>
         </div>
     );
