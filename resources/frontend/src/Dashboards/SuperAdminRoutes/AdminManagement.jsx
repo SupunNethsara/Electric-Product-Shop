@@ -2,7 +2,7 @@ import React from 'react';
 
 function AdminManagement() {
     return (
-        <div></div>
+        <div>Supun</div>
     );
 }
 

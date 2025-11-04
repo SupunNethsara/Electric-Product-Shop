@@ -26,7 +26,7 @@ function SuperAdminSidebar() {
         },
         {
             name: 'Admin Management',
-            href: '/super-admin/admins',
+            href: '/super-admin/adminManage',
             icon: UserPlus,
             current: location.pathname.includes('/super-admin/admins')
         },
