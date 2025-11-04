@@ -2,18 +2,16 @@ import React from "react";
 import { X } from "lucide-react";
 
 function MobileFilterDrawer({
-    setIsFilterOpen,
-    selectedCategories,
-    selectedBrands,
-    priceRange,
-    availability,
-    categories,
-    brands,
-    toggleCategory,
-    toggleBrand,
-    setPriceRange,
-    setAvailability,
-}) {
+                                setIsFilterOpen,
+                                selectedCategories,
+                                priceRange,
+                                availability,
+                                categories,
+                                toggleCategory,
+                                setPriceRange,
+                                setAvailability,
+                                clearAllFilters,
+                            }) {
     return (
         <div
             className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden"
@@ -62,7 +60,6 @@ function MobileFilterDrawer({
                             </div>
                         </div>
 
-                        {/* Categories */}
                         <div>
                             <h3 className="font-medium text-gray-900 mb-3 text-sm">
                                 Categories
@@ -70,47 +67,17 @@ function MobileFilterDrawer({
                             <div className="space-y-2">
                                 {categories.map((category) => (
                                     <label
-                                        key={category}
+                                        key={category.id}
                                         className="flex items-center gap-2 cursor-pointer"
                                     >
                                         <input
                                             type="checkbox"
-                                            checked={selectedCategories.includes(
-                                                category,
-                                            )}
-                                            onChange={() =>
-                                                toggleCategory(category)
-                                            }
+                                            checked={selectedCategories.includes(category.id)}
+                                            onChange={() => toggleCategory(category.id)}
                                             className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
                                         />
                                         <span className="text-sm text-gray-700">
-                                            {category}
-                                        </span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div>
-                            <h3 className="font-medium text-gray-900 mb-3 text-sm">
-                                Brands
-                            </h3>
-                            <div className="space-y-2">
-                                {brands.map((brand) => (
-                                    <label
-                                        key={brand}
-                                        className="flex items-center gap-2 cursor-pointer"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedBrands.includes(
-                                                brand,
-                                            )}
-                                            onChange={() => toggleBrand(brand)}
-                                            className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
-                                        />
-                                        <span className="text-sm text-gray-700">
-                                            {brand}
+                                            {category.name}
                                         </span>
                                     </label>
                                 ))}
@@ -153,6 +120,14 @@ function MobileFilterDrawer({
                                 ))}
                             </div>
                         </div>
+                    </div>
+                    <div className="mt-6">
+                        <button
+                            onClick={clearAllFilters}
+                            className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                            Clear All Filters
+                        </button>
                     </div>
                 </div>
             </div>

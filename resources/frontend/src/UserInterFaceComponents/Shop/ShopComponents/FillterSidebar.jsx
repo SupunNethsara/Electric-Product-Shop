@@ -3,13 +3,10 @@ import React from "react";
 function FillterSidebar({
                             isFilterOpen = false,
                             selectedCategories = [],
-                            selectedBrands = [],
                             priceRange = [0, 1000],
                             availability = "all",
                             categories = [],
-                            brands = [],
                             toggleCategory = () => {},
-                            toggleBrand = () => {},
                             setPriceRange = () => {},
                             setAvailability = () => {},
                             clearAllFilters = () => {},
@@ -99,29 +96,7 @@ function FillterSidebar({
                         )}
                     </div>
                 </div>
-                <div className="mb-4 pb-4 border-b border-gray-200">
-                    <h3 className="font-medium text-gray-900 mb-3 text-sm">
-                        Brands
-                    </h3>
-                    <div className="space-y-2">
-                        {brands.map((brand) => (
-                            <label
-                                key={brand}
-                                className="flex items-center gap-2 cursor-pointer group"
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={selectedBrands.includes(brand)}
-                                    onChange={() => toggleBrand(brand)}
-                                    className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
-                                />
-                                <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
-                                    {brand}
-                                </span>
-                            </label>
-                        ))}
-                    </div>
-                </div>
+
                 <div className="mb-2">
                     <h3 className="font-medium text-gray-900 mb-3 text-sm">
                         Availability
