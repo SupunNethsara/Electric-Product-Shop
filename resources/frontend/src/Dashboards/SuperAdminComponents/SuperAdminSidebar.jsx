@@ -32,9 +32,9 @@ function SuperAdminSidebar() {
         },
         {
             name: 'System Users',
-            href: '/super-admin/users',
+            href: '/super-admin/userManage',
             icon: Users,
-            current: location.pathname.includes('/super-admin/users')
+            current: location.pathname.includes('/super-admin/userManage')
         },
         {
             name: 'Role Management',
