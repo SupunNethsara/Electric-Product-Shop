@@ -9,6 +9,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
         email: '',
         password: '',
         password_confirmation: '',
+        role:'user'
     });
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);

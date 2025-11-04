@@ -119,12 +119,7 @@ function App() {
                         element={
                             <SuperAdminRoute>
                                 <SuperAdminLayout>
-                                    <Routes>
-                                        <Route
-                                            index
-                                            element={<SuperAdminDashboard />}
-                                        />
-                                    </Routes>
+                                        <SuperAdminDashboard/>
                                 </SuperAdminLayout>
                             </SuperAdminRoute>
                         }

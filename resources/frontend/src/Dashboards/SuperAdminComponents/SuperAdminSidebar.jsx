@@ -26,9 +26,9 @@ function SuperAdminSidebar() {
         },
         {
             name: 'Admin Management',
-            href: '/super-admin/admins',
+            href: '/super-admin/adminManage',
             icon: UserPlus,
-            current: location.pathname.includes('/super-admin/admins')
+            current: location.pathname.includes('/super-admin/adminManage')
         },
         {
             name: 'System Users',
@@ -112,7 +112,7 @@ function SuperAdminSidebar() {
                 })}
             </nav>
 
-            {/* System Controls Section */}
+
             <div className="px-4 mt-4 mb-4">
                 <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-4 text-white">
                     <h3 className="text-sm font-semibold mb-2">System Controls</h3>
