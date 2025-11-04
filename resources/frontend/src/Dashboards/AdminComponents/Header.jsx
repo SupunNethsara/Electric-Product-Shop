@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bell, ChevronDown, Search, LogOut, User, Settings } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { logoutUser } from "../../Store/slices/authSlice.js";
 
 function Header() {
-    const { user } = useSelector((state) => state.auth);
+    const { user, role} = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -73,33 +73,38 @@ function Header() {
                                     }`}
                                 />
                             </button>
-
                             {isUserDropdownOpen && (
                                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                                     <div className="px-4 py-3 border-b border-gray-100">
                                         <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                                         <p className="text-sm text-gray-500 capitalize">{user?.role}</p>
                                     </div>
-                                    <button
-                                        onClick={() => {
-                                            navigate('/profile');
-                                            setIsUserDropdownOpen(false);
-                                        }}
-                                        className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                                    >
-                                        <User size={16} className="mr-3 text-gray-400" />
-                                        Your Profile
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            navigate('/admin/settings');
-                                            setIsUserDropdownOpen(false);
-                                        }}
-                                        className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                                    >
-                                        <Settings size={16} className="mr-3 text-gray-400" />
-                                        Settings
-                                    </button>
+
+                                    {(role !== "admin" && role !== "super_admin") && (
+                                        <>
+                                            <button
+                                                onClick={() => {
+                                                    navigate('/profile');
+                                                    setIsUserDropdownOpen(false);
+                                                }}
+                                                className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                                            >
+                                                <User size={16} className="mr-3 text-gray-400" />
+                                                Your Profile
+                                            </button>
+
+                                            <button
+                                                onClick={() => {
+                                                    navigate('/admin/settings');
+                                                    setIsUserDropdownOpen(false);
+                                                }}
+                                                className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                                            >
+                                                <Settings size={16} className="mr-3 text-gray-400" />
+                                                Settings
+                                            </button>
+                                        </>
+                                    )}
 
                                     <div className="border-t border-gray-100 mt-2 pt-2">
                                         <button
@@ -112,6 +117,8 @@ function Header() {
                                     </div>
                                 </div>
                             )}
+
+
                         </div>
                     </div>
                 </div>
