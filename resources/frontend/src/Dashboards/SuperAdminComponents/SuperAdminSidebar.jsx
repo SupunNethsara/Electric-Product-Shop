@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
+
 function SuperAdminSidebar() {
     const location = useLocation();
     const { user } = useSelector((state) => state.auth);
@@ -66,8 +67,10 @@ function SuperAdminSidebar() {
             current: location.pathname.includes('/super-admin/organization')
         }
     ];
+
     return (
-        <div className="w-64 mr-2 h-screen bg-white shadow-xl flex flex-col">
+        <div className="w-64 h-screen bg-white shadow-xl flex flex-col">
+            {/* User Info Section */}
             <div className="px-6 py-4 border-b border-gray-200">
                 <div className="flex items-center space-x-3 mb-3">
                     <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
@@ -86,6 +89,7 @@ function SuperAdminSidebar() {
                 </div>
             </div>
 
+            {/* Navigation Menu */}
             <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
                 {navigationItems.map((item) => {
                     const Icon = item.icon;
@@ -108,6 +112,7 @@ function SuperAdminSidebar() {
                 })}
             </nav>
 
+            {/* System Controls Section */}
             <div className="px-4 mt-4 mb-4">
                 <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-4 text-white">
                     <h3 className="text-sm font-semibold mb-2">System Controls</h3>
@@ -123,7 +128,6 @@ function SuperAdminSidebar() {
                     </Link>
                 </div>
             </div>
-
         </div>
     );
 }
