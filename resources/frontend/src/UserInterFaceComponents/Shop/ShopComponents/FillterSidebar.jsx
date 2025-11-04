@@ -72,7 +72,6 @@ function FillterSidebar({
                     </div>
                 </div>
 
-                {/* Categories Section */}
                 <div className="mb-4 pb-4 border-b border-gray-200">
                     <h3 className="font-medium text-gray-900 mb-3 text-sm">
                         Categories
@@ -100,8 +99,6 @@ function FillterSidebar({
                         )}
                     </div>
                 </div>
-
-                {/* Brands Section */}
                 <div className="mb-4 pb-4 border-b border-gray-200">
                     <h3 className="font-medium text-gray-900 mb-3 text-sm">
                         Brands
@@ -125,8 +122,6 @@ function FillterSidebar({
                         ))}
                     </div>
                 </div>
-
-                {/* Availability Section */}
                 <div className="mb-2">
                     <h3 className="font-medium text-gray-900 mb-3 text-sm">
                         Availability
