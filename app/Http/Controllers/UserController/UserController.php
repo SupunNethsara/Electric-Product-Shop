@@ -13,7 +13,7 @@ class UserController extends Controller
             $users = User::with(['profile' => function($query) {
                 $query->select('id', 'user_id', 'phone', 'address', 'city', 'postal_code', 'country', 'bio', 'birth_date', 'gender');
             }])
-                ->select('id', 'name', 'email', 'role', 'status', 'email_verified_at', 'created_at', 'updated_at')
+                ->select('id', 'name', 'email', 'role', 'status', 'email_verified_at', 'created_at', 'updated_at')->where('role', 'user')
                 ->orderBy('created_at', 'desc')
                 ->get();
 
