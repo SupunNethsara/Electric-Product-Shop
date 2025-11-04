@@ -23,16 +23,78 @@ class ProductController extends Controller
     public function getActiveProducts(Request $request)
     {
         $perPage = $request->get('per_page', 20);
+        $page = $request->get('page', 1);
+        $searchQuery = $request->get('search', '');
+        $categories = $request->get('categories', []);
+        $brands = $request->get('brands', []);
+        $minPrice = $request->get('min_price', 0);
+        $maxPrice = $request->get('max_price', 300000);
+        $availability = $request->get('availability', 'all');
+        $sortBy = $request->get('sort_by', 'featured');
 
-        $products = Product::where('status', 'active')//in the production mode change it to active
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+        $query = Product::where('status', 'active');
+        if (!empty($searchQuery)) {
+            $query->where(function($q) use ($searchQuery) {
+                $q->where('name', 'like', "%{$searchQuery}%")
+                    ->orWhere('brand', 'like', "%{$searchQuery}%")
+                    ->orWhere('description', 'like', "%{$searchQuery}%");
+            });
+        }
+        if (!empty($categories)) {
+            if (is_string($categories)) {
+                $categories = explode(',', $categories);
+            }
+            $query->whereIn('category_id', $categories);
+        }
 
-        return response()->json($products);
+        if (!empty($brands)) {
+            if (is_string($brands)) {
+                $brands = explode(',', $brands);
+            }
+            $query->whereIn('brand', $brands);
+        }
+        $query->whereBetween('price', [$minPrice, $maxPrice]);
+
+        if ($availability === 'in-stock') {
+            $query->where('availability', '>', 0);
+        } elseif ($availability === 'out-of-stock') {
+            $query->where('availability', 0);
+        }
+
+        switch ($sortBy) {
+            case 'price-low':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'price-high':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'rating':
+                $query->orderBy('rating', 'desc');
+                break;
+            case 'name':
+                $query->orderBy('name', 'asc');
+                break;
+            default:
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
+
+        $products = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'data' => $products->items(),
+            'meta' => [
+                'current_page' => $products->currentPage(),
+                'last_page' => $products->lastPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
+                'from' => $products->firstItem(),
+                'to' => $products->lastItem(),
+            ]
+        ]);
     }
-
     public function homeProducts(){
-        $products = Product::where('status', 'active')//in the production mode change it to active
+        $products = Product::where('status', 'active')
             ->orderBy('created_at', 'desc')
             ->take(15)
             ->get();

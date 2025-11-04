@@ -5,28 +5,9 @@ import ProductSection from "./ShopComponents/ProductSection.jsx";
 import MobileFilterDrawer from "./ShopComponents/MobileFilterDrawer.jsx";
 import axios from "axios";
 
-const fuzzySearch = (query, text) => {
-    if (!query) return true;
-    if (!text) return false;
-
-    const queryLower = query.toString().toLowerCase();
-    const textLower = text.toString().toLowerCase();
-
-    if (textLower.includes(queryLower)) return true;
-
-    let queryIndex = 0;
-    for (let i = 0; i < textLower.length && queryIndex < queryLower.length; i++) {
-        if (textLower[i] === queryLower[queryIndex]) {
-            queryIndex++;
-        }
-    }
-    return queryIndex === queryLower.length;
-};
-
 function ProductShop() {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
-    const [filteredProducts, setFilteredProducts] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [selectedBrands, setSelectedBrands] = useState([]);
@@ -35,6 +16,53 @@ function ProductShop() {
     const [sortBy, setSortBy] = useState('featured');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [isSortOpen, setIsSortOpen] = useState(false);
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(12);
+    const [totalProducts, setTotalProducts] = useState(0);
+    const [loading, setLoading] = useState(false);
+
+    // Build query parameters
+    const buildQueryParams = useMemo(() => {
+        const params = {
+            page: currentPage,
+            per_page: itemsPerPage,
+        };
+
+        if (searchQuery) params.search = searchQuery;
+        if (selectedCategories.length > 0) params.categories = selectedCategories.join(',');
+        if (selectedBrands.length > 0) params.brands = selectedBrands.join(',');
+        if (priceRange[0] > 0) params.min_price = priceRange[0];
+        if (priceRange[1] < 300000) params.max_price = priceRange[1];
+        if (availability !== 'all') params.availability = availability;
+        if (sortBy !== 'featured') params.sort_by = sortBy;
+
+        return params;
+    }, [currentPage, itemsPerPage, searchQuery, selectedCategories, selectedBrands, priceRange, availability, sortBy]);
+
+    // Fetch products with filters and pagination
+    const fetchProducts = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get('http://127.0.0.1:8000/api/products/active', {
+                params: buildQueryParams
+            });
+
+            setProducts(response.data.data);
+            setTotalProducts(response.data.meta.total);
+        } catch (error) {
+            console.error('Error fetching products:', error);
+            setProducts([]);
+            setTotalProducts(0);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchProducts();
+    }, [buildQueryParams]);
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -52,88 +80,23 @@ function ProductShop() {
             }
         };
 
-        const fetchProducts = async () => {
-            try {
-                const response = await axios.get('http://127.0.0.1:8000/api/products/active');
-                const productsData = response.data.data || [];
-                setProducts(productsData);
-            } catch (error) {
-                console.error('Error fetching products:', error);
-                setProducts([]);
-            }
-        };
-        fetchProducts();
         fetchCategories();
     }, []);
 
+    // Get unique brands from ALL products (you might want to create a brands API endpoint)
     const brands = useMemo(() => {
-        const uniqueBrands = [...new Set(products.map(product => product.brand).filter(Boolean))];
-        return uniqueBrands;
-    }, [products]);
+        // For better performance, consider creating a brands API endpoint
+        return ['Brand A', 'Brand B', 'Brand C']; // Replace with actual brands from API
+    }, []);
 
     const displayCategories = useMemo(() => {
-        if (categories.length === 0) return [];
+        return categories;
+    }, [categories]);
 
-        const productCategoryIds = [...new Set(products.map(product => product.category_id).filter(Boolean))];
-
-      return categories.filter(cat =>
-            productCategoryIds.includes(cat.id)
-        );
-    }, [categories, products]);
-
+    // Reset to page 1 when filters change
     useEffect(() => {
-        let results = products;
-
-        if (searchQuery) {
-            results = results.filter(product =>
-                fuzzySearch(searchQuery, product.name) ||
-                fuzzySearch(searchQuery, product.brand) ||
-                fuzzySearch(searchQuery, product.description)
-            );
-        }
-
-        if (selectedCategories.length > 0) {
-            results = results.filter(product =>
-                selectedCategories.includes(product.category_id)
-            );
-        }
-
-        if (selectedBrands.length > 0) {
-            results = results.filter(product =>
-                selectedBrands.includes(product.brand)
-            );
-        }
-
-        results = results.filter(product => {
-            const price = Number(product.price);
-            return price >= priceRange[0] && price <= priceRange[1];
-        });
-
-        if (availability === 'in-stock') {
-            results = results.filter(product => product.availability > 0);
-        } else if (availability === 'out-of-stock') {
-            results = results.filter(product => product.availability === 0);
-        }
-
-        switch (sortBy) {
-            case 'price-low':
-                results.sort((a, b) => a.price - b.price);
-                break;
-            case 'price-high':
-                results.sort((a, b) => b.price - a.price);
-                break;
-            case 'rating':
-                results.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-                break;
-            case 'name':
-                results.sort((a, b) => a.name.localeCompare(b.name));
-                break;
-            default:
-                break;
-        }
-
-        setFilteredProducts(results);
-    }, [products, searchQuery, selectedCategories, selectedBrands, priceRange, availability, sortBy]);
+        setCurrentPage(1);
+    }, [searchQuery, selectedCategories, selectedBrands, priceRange, availability, sortBy]);
 
     const toggleCategory = (categoryId) => {
         setSelectedCategories(prev =>
@@ -158,6 +121,17 @@ function ProductShop() {
         setPriceRange([0, 300000]);
         setAvailability('all');
         setSortBy('featured');
+        setCurrentPage(1);
+    };
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleItemsPerPageChange = (value) => {
+        setItemsPerPage(Number(value));
+        setCurrentPage(1);
     };
 
     const sortOptions = [
@@ -179,6 +153,12 @@ function ProductShop() {
                     setIsSortOpen={setIsSortOpen}
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
+                    itemsPerPage={itemsPerPage}
+                    onItemsPerPageChange={handleItemsPerPageChange}
+                    totalProducts={totalProducts}
+                    currentPage={currentPage}
+                    onPageChange={handlePageChange}
+                    totalPages={Math.ceil(totalProducts / itemsPerPage)}
                 />
 
                 <div className="flex gap-6">
@@ -196,16 +176,20 @@ function ProductShop() {
                         setAvailability={setAvailability}
                         clearAllFilters={clearAllFilters}
                     />
-                    <ProductSection
-                        filteredProducts={filteredProducts}
-                        searchQuery={searchQuery}
-                        selectedCategories={selectedCategories}
-                        selectedBrands={selectedBrands}
-                        categories={categories}
-                        toggleCategory={toggleCategory}
-                        toggleBrand={toggleBrand}
-                        clearAllFilters={clearAllFilters}
-                    />
+
+                    <div className="flex-1">
+                        <ProductSection
+                            filteredProducts={products}
+                            searchQuery={searchQuery}
+                            selectedCategories={selectedCategories}
+                            selectedBrands={selectedBrands}
+                            categories={categories}
+                            toggleCategory={toggleCategory}
+                            toggleBrand={toggleBrand}
+                            clearAllFilters={clearAllFilters}
+                            loading={loading}
+                        />
+                    </div>
                 </div>
             </div>
 
