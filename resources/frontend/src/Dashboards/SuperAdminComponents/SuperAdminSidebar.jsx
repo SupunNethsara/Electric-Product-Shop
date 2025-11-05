@@ -37,12 +37,6 @@ function SuperAdminSidebar() {
             current: location.pathname.includes('/super-admin/userManage')
         },
         {
-            name: 'Role Management',
-            href: '/super-admin/roles',
-            icon: UserCheck,
-            current: location.pathname.includes('/super-admin/roles')
-        },
-        {
             name: 'System Settings',
             href: '/super-admin/settings',
             icon: Settings,
