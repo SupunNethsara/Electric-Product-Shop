@@ -95,27 +95,27 @@ function SystemSettings() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-white p-6">
             <div className="max-w-7xl mx-auto">
-                <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
-                    <p className="text-gray-600 mt-1">Configure your ecommerce platform settings</p>
-                </div>
-
                 {message && (
-                    <div className={`mb-4 p-4 rounded-md ${
+                    <div className={`mb-6 p-4 rounded-lg border-l-4 ${
                         message.includes('Error')
-                            ? 'bg-red-50 border border-red-200 text-red-700'
-                            : 'bg-green-50 border border-green-200 text-green-700'
+                            ? 'bg-red-50 border-red-400 text-red-700'
+                            : 'bg-green-50 border-green-400 text-green-700'
                     }`}>
-                        {message}
+                        <div className="flex items-center">
+                            <span className="text-lg mr-2">
+                                {message.includes('Error') ? '❌' : '✅'}
+                            </span>
+                            {message}
+                        </div>
                     </div>
                 )}
 
                 <div className="flex flex-col lg:flex-row gap-6">
                     <div className="w-full lg:w-64">
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">System Settings</h3>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                            <h3 className="text-lg font-semibold text-gray-800 mb-5">System Settings</h3>
                             <nav className="space-y-2">
                                 {[
                                     { id: 'general', label: 'General Settings', icon: '⚙️' },
@@ -123,14 +123,14 @@ function SystemSettings() {
                                 ].map(tab => (
                                     <button
                                         key={tab.id}
-                                        className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-md transition-colors ${
+                                        className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl transition-all duration-200 ${
                                             activeTab === tab.id
-                                                ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                                                : 'text-gray-700 hover:bg-gray-50'
+                                                ? 'bg-green-50 text-green-700 border border-green-200 shadow-sm'
+                                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
                                         }`}
                                         onClick={() => setActiveTab(tab.id)}
                                     >
-                                        <span className="text-lg">{tab.icon}</span>
+                                        <span className="text-xl">{tab.icon}</span>
                                         <span className="font-medium">{tab.label}</span>
                                     </button>
                                 ))}
@@ -139,110 +139,121 @@ function SystemSettings() {
                     </div>
 
                     <div className="flex-1">
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            {/* General Settings */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
                             {activeTab === 'general' && (
                                 <div className="space-y-8">
-                                    <h2 className="text-xl font-semibold text-gray-900 border-b border-gray-200 pb-4">
-                                        General Settings
-                                    </h2>
+                                    <div className="border-b border-gray-100 pb-6">
+                                        <h2 className="text-2xl font-semibold text-gray-800">General Settings</h2>
+                                        <p className="text-gray-600 mt-2">Manage your site's basic information and preferences</p>
+                                    </div>
 
                                     {loading ? (
-                                        <div className="flex justify-center items-center py-8">
-                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                            <span className="ml-2 text-gray-600">Loading settings...</span>
+                                        <div className="flex justify-center items-center py-12">
+                                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600"></div>
+                                            <span className="ml-3 text-gray-600">Loading settings...</span>
                                         </div>
                                     ) : (
                                         <>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                {/* Site Name */}
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                <div className="space-y-2">
+                                                    <label className="block text-sm font-medium text-gray-700">
                                                         Site Name
                                                     </label>
                                                     <input
                                                         type="text"
                                                         value={settings.siteName}
                                                         onChange={(e) => handleSettingChange('siteName', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-colors duration-200"
+                                                        placeholder="Enter your site name"
                                                     />
                                                 </div>
-
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                <div className="space-y-2">
+                                                    <label className="block text-sm font-medium text-gray-700">
                                                         Admin Email
                                                     </label>
                                                     <input
                                                         type="email"
                                                         value={settings.adminEmail}
                                                         onChange={(e) => handleSettingChange('adminEmail', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-colors duration-200"
+                                                        placeholder="admin@example.com"
                                                     />
                                                 </div>
-
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                <div className="space-y-2">
+                                                    <label className="block text-sm font-medium text-gray-700">
                                                         Mobile Number
                                                     </label>
                                                     <input
                                                         type="text"
                                                         value={settings.mobile}
                                                         onChange={(e) => handleSettingChange('mobile', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-colors duration-200"
+                                                        placeholder="+94 71 123 4567"
                                                     />
                                                 </div>
 
-                                                <div className="md:col-span-2">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                <div className="space-y-2">
+                                                    <label className="block text-sm font-medium text-gray-700">
+                                                        Items Per Page
+                                                    </label>
+                                                    <select
+                                                        value={settings.itemsPerPage}
+                                                        onChange={(e) => handleSettingChange('itemsPerPage', parseInt(e.target.value))}
+                                                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-colors duration-200"
+                                                    >
+                                                        <option value={12}>12 items</option>
+                                                        <option value={24}>24 items</option>
+                                                        <option value={48}>48 items</option>
+                                                        <option value={96}>96 items</option>
+                                                    </select>
+                                                </div>
+
+                                                <div className="md:col-span-2 space-y-2">
+                                                    <label className="block text-sm font-medium text-gray-700">
                                                         Address
                                                     </label>
                                                     <textarea
                                                         value={settings.address}
                                                         onChange={(e) => handleSettingChange('address', e.target.value)}
                                                         rows={2}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-colors duration-200"
+                                                        placeholder="Enter your business address"
                                                     />
                                                 </div>
-                                                <div className="md:col-span-2">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+
+                                                <div className="md:col-span-2 space-y-2">
+                                                    <label className="block text-sm font-medium text-gray-700">
                                                         Site Description
                                                     </label>
                                                     <textarea
                                                         value={settings.siteDescription}
                                                         onChange={(e) => handleSettingChange('siteDescription', e.target.value)}
                                                         rows={3}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-colors duration-200"
+                                                        placeholder="Describe your ecommerce store"
                                                     />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                        Items Per Page
-                                                    </label>
-                                                    <select
-                                                        value={settings.itemsPerPage}
-                                                        onChange={(e) => handleSettingChange('itemsPerPage', parseInt(e.target.value))}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                                                    >
-                                                        <option value={12}>12</option>
-                                                        <option value={24}>24</option>
-                                                        <option value={48}>48</option>
-                                                        <option value={96}>96</option>
-                                                    </select>
                                                 </div>
                                             </div>
 
-                                            <div className="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
+                                            <div className="flex flex-wrap gap-4 pt-8 border-t border-gray-100">
                                                 <button
                                                     onClick={saveSettings}
                                                     disabled={loading}
-                                                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md"
                                                 >
-                                                    {loading ? 'Saving...' : 'Save Settings'}
+                                                    {loading ? (
+                                                        <span className="flex items-center">
+                                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                                            Saving...
+                                                        </span>
+                                                    ) : (
+                                                        'Save Settings'
+                                                    )}
                                                 </button>
                                                 <button
                                                     onClick={resetSettings}
                                                     disabled={loading}
-                                                    className="px-6 py-2 bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="px-8 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     Reset to Defaults
                                                 </button>
@@ -252,10 +263,16 @@ function SystemSettings() {
                                 </div>
                             )}
 
-                            {/* Security Tab */}
                             {activeTab === 'security' && (
-                                <div className="flex items-center justify-center h-40 text-gray-500 text-lg font-semibold">
-                                    🔒 Security settings — Coming Soon...
+                                <div className="text-center py-16">
+                                    <div className="text-gray-300 text-6xl mb-4">🔒</div>
+                                    <h3 className="text-2xl font-semibold text-gray-600 mb-3">Security & Access</h3>
+                                    <p className="text-gray-500 max-w-md mx-auto">
+                                        Enhanced security features are coming soon. We're working on advanced access controls and security settings to keep your platform safe.
+                                    </p>
+                                    <div className="mt-6 inline-flex items-center px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-medium">
+                                        Coming Soon
+                                    </div>
                                 </div>
                             )}
                         </div>
