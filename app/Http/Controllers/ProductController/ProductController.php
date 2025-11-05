@@ -26,20 +26,20 @@ class ProductController extends Controller
         $page = $request->get('page', 1);
         $searchQuery = $request->get('search', '');
         $categories = $request->get('categories', []);
-        $brands = $request->get('brands', []);
         $minPrice = $request->get('min_price', 0);
         $maxPrice = $request->get('max_price', 300000);
         $availability = $request->get('availability', 'all');
         $sortBy = $request->get('sort_by', 'featured');
 
         $query = Product::where('status', 'active');
+
         if (!empty($searchQuery)) {
             $query->where(function($q) use ($searchQuery) {
                 $q->where('name', 'like', "%{$searchQuery}%")
-                    ->orWhere('brand', 'like', "%{$searchQuery}%")
                     ->orWhere('description', 'like', "%{$searchQuery}%");
             });
         }
+
         if (!empty($categories)) {
             if (is_string($categories)) {
                 $categories = explode(',', $categories);
@@ -47,12 +47,6 @@ class ProductController extends Controller
             $query->whereIn('category_id', $categories);
         }
 
-        if (!empty($brands)) {
-            if (is_string($brands)) {
-                $brands = explode(',', $brands);
-            }
-            $query->whereIn('brand', $brands);
-        }
         $query->whereBetween('price', [$minPrice, $maxPrice]);
 
         if ($availability === 'in-stock') {

@@ -32,15 +32,9 @@ function SuperAdminSidebar() {
         },
         {
             name: 'System Users',
-            href: '/super-admin/users',
+            href: '/super-admin/userManage',
             icon: Users,
-            current: location.pathname.includes('/super-admin/users')
-        },
-        {
-            name: 'Role Management',
-            href: '/super-admin/roles',
-            icon: UserCheck,
-            current: location.pathname.includes('/super-admin/roles')
+            current: location.pathname.includes('/super-admin/userManage')
         },
         {
             name: 'System Settings',
@@ -120,7 +114,7 @@ function SuperAdminSidebar() {
                         Manage system-wide settings and access
                     </p>
                     <Link
-                        to="/super-admin/admins"
+                        to="/super-admin/userManage"
                         className="flex items-center justify-center w-full bg-white text-green-600 text-sm font-medium py-2 px-3 rounded-lg hover:bg-green-50 transition-colors duration-200"
                     >
                         <UserPlus size={16} className="mr-2" />

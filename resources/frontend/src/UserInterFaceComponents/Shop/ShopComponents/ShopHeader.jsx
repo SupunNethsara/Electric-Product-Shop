@@ -7,8 +7,11 @@ function ShopHeader({
                         setSortBy,
                         isSortOpen,
                         setIsSortOpen,
-                        searchQuery,
-                        setSearchQuery,
+                        searchInput,
+                        setSearchInput,
+                        onSearch,
+                        onKeyPress,
+                        onClearSearch,
                         isFilterOpen,
                         setIsFilterOpen,
                         itemsPerPage,
@@ -27,18 +30,31 @@ function ShopHeader({
                         <input
                             type="text"
                             placeholder="Search products, brands, categories..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                            value={searchInput}
+                            onChange={(e) => {
+                                console.log('🔤 Input changed:', e.target.value);
+                                setSearchInput(e.target.value);
+                            }}
+                            onKeyPress={onKeyPress}
+                            className="w-full pl-10 pr-20 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                         />
-                        {searchQuery && (
+                        {searchInput && (
                             <button
-                                onClick={() => setSearchQuery('')}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                onClick={onClearSearch}
+                                className="absolute right-12 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                             >
                                 <X size={18} />
                             </button>
                         )}
+                        <button
+                            onClick={() => {
+                                console.log('🖱️ Search button clicked, input value:', searchInput);
+                                onSearch();
+                            }}
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition-colors duration-200 text-sm"
+                        >
+                            Search
+                        </button>
                     </div>
                 </div>
 
@@ -56,6 +72,7 @@ function ShopHeader({
                             <option value="48">48</option>
                         </select>
                     </div>
+
                     <div className="relative">
                         <button
                             onClick={() => setIsSortOpen(!isSortOpen)}
@@ -64,7 +81,10 @@ function ShopHeader({
                             <span className="text-sm">
                                 {sortOptions.find(opt => opt.value === sortBy)?.label}
                             </span>
-                            <ChevronDown size={16} className={`transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} />
+                            <ChevronDown
+                                size={16}
+                                className={`transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`}
+                            />
                         </button>
 
                         {isSortOpen && (
@@ -88,15 +108,17 @@ function ShopHeader({
                             </div>
                         )}
                     </div>
+
                     <button
                         onClick={() => setIsFilterOpen(!isFilterOpen)}
-                        className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors duration-200"
+                        className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors duration-200 lg:hidden"
                     >
                         <Filter size={18} />
                         <span className="text-sm">Filters</span>
                     </button>
                 </div>
             </div>
+
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between pt-4 border-t border-gray-100">
                 <div className="text-sm text-gray-600">
                     {totalProducts > 0 ? (
@@ -112,11 +134,17 @@ function ShopHeader({
                             {' '}of{' '}
                             <span className="font-semibold">{totalProducts}</span>
                             {' '}products
+                            {searchInput && (
+                                <span className="ml-2 text-green-600">
+                                    for "{searchInput}"
+                                </span>
+                            )}
                         </>
                     ) : (
                         'No products found'
                     )}
                 </div>
+
                 {totalPages > 1 && (
                     <div className="flex items-center gap-2">
                         <button
@@ -155,9 +183,11 @@ function ShopHeader({
                                     </button>
                                 );
                             })}
+
                             {totalPages > 5 && currentPage < totalPages - 2 && (
                                 <span className="px-2 text-gray-400">...</span>
                             )}
+
                             {totalPages > 5 && currentPage < totalPages - 2 && (
                                 <button
                                     onClick={() => onPageChange(totalPages)}

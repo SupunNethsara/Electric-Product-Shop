@@ -14,4 +14,5 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
     Route::post('/superadmin/add-admin', [SuperAdminController::class, 'addAdmins']);
     Route::put('/superadmin/admins/{id}', [SuperAdminController::class, 'updateAdmin']);
     Route::delete('/superadmin/admins/{id}', [SuperAdminController::class, 'deleteAdmin']);
+    Route::get('/superadmin/all-users', [UserController::class, 'getAllUsersToSuperAdmin']);
 });
