@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\AdminsController\SystemSettingController;
 
+use App\Http\Controllers\Controller;
 use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 
@@ -10,6 +11,7 @@ class SystemSettingController extends Controller
     public function index()
     {
         $settings = SystemSetting::first();
+
         if (!$settings) {
             $settings = SystemSetting::create();
         }
@@ -17,10 +19,10 @@ class SystemSettingController extends Controller
         return response()->json($settings);
     }
 
-
     public function update(Request $request)
     {
         $settings = SystemSetting::first();
+
         if (!$settings) {
             $settings = SystemSetting::create();
         }
@@ -35,7 +37,7 @@ class SystemSettingController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Settings updated successfully',
+            'message' => 'Settings updated successfully!',
             'data' => $settings
         ]);
     }
