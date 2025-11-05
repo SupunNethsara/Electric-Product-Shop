@@ -13,7 +13,7 @@ function SystemSettings() {
     });
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
-
+    const token = localStorage.getItem('token');
     useEffect(() => {
         fetchSettings();
     }, []);
@@ -21,7 +21,7 @@ function SystemSettings() {
     const fetchSettings = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://127.0.0.1:8000/api/system-settings');
+            const response = await axios.get('http://127.0.0.1:8000/api/system-settings' );
             const data = response.data;
 
             setSettings({
@@ -59,6 +59,10 @@ function SystemSettings() {
                 address: settings.address,
                 siteDescription: settings.siteDescription,
                 itemsPerPage: settings.itemsPerPage,
+            } ,{
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
             });
 
             setMessage(response.data.message);
