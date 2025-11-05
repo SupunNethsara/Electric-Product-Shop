@@ -10,18 +10,31 @@ function SystemSettings() {
         address: '',
         siteDescription: '',
         itemsPerPage: 24,
+        logo: null,
+        logoUrl: null
     });
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
+    const [logoPreview, setLogoPreview] = useState(null);
+    const [logoFile, setLogoFile] = useState(null);
     const token = localStorage.getItem('token');
+
     useEffect(() => {
         fetchSettings();
     }, []);
 
+    useEffect(() => {
+        if (settings.siteName) {
+            document.title = `${settings.siteName} - System Settings`;
+        } else {
+            document.title = 'eCommerce - System Settings';
+        }
+    }, [settings.siteName]);
+
     const fetchSettings = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://127.0.0.1:8000/api/system-settings' );
+            const response = await axios.get('http://127.0.0.1:8000/api/system-settings');
             const data = response.data;
 
             setSettings({
@@ -31,7 +44,13 @@ function SystemSettings() {
                 address: data.address || '',
                 siteDescription: data.site_description || '',
                 itemsPerPage: data.items_per_page || 24,
+                logo: data.logo || null,
+                logoUrl: data.logo_url || null
             });
+
+            if (data.logo_url) {
+                setLogoPreview(data.logo_url);
+            }
         } catch (error) {
             console.error('Error fetching settings:', error);
             setMessage('Error loading settings');
@@ -47,21 +66,59 @@ function SystemSettings() {
         }));
     };
 
+    const handleLogoChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.type !== 'image/png') {
+                setMessage('Error: Only PNG files are allowed for logo');
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                setMessage('Error: Logo file size should be less than 2MB');
+                return;
+            }
+
+            setLogoFile(file);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setLogoPreview(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const removeLogo = () => {
+        setLogoFile(null);
+        setLogoPreview(null);
+        setSettings(prev => ({
+            ...prev,
+            logo: null,
+            logoUrl: null
+        }));
+    };
+
     const saveSettings = async () => {
         try {
             setLoading(true);
             setMessage('');
 
-            const response = await axios.put('http://127.0.0.1:8000/api/system-settings', {
-                siteName: settings.siteName,
-                adminEmail: settings.adminEmail,
-                mobile: settings.mobile,
-                address: settings.address,
-                siteDescription: settings.siteDescription,
-                itemsPerPage: settings.itemsPerPage,
-            } ,{
+            const formData = new FormData();
+            formData.append('_method', 'PUT');
+            formData.append('siteName', settings.siteName);
+            formData.append('adminEmail', settings.adminEmail);
+            formData.append('mobile', settings.mobile || '');
+            formData.append('address', settings.address || '');
+            formData.append('siteDescription', settings.siteDescription || '');
+            formData.append('itemsPerPage', settings.itemsPerPage.toString());
+
+            if (logoFile) {
+                formData.append('logo', logoFile);
+            }
+
+            const response = await axios.post('http://127.0.0.1:8000/api/system-settings', formData, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data',
                 },
             });
 
@@ -75,11 +132,27 @@ function SystemSettings() {
                 address: updatedData.address,
                 siteDescription: updatedData.site_description,
                 itemsPerPage: updatedData.items_per_page,
+                logo: updatedData.logo,
+                logoUrl: updatedData.logo_url
             });
+
+            if (updatedData.logo_url) {
+                setLogoPreview(updatedData.logo_url);
+            }
+
+            setLogoFile(null);
 
         } catch (error) {
             console.error('Error saving settings:', error);
-            setMessage('Error saving settings');
+            if (error.response && error.response.data.errors) {
+                const errors = error.response.data.errors;
+                const errorMessages = Object.values(errors).flat().join(', ');
+                setMessage(`Validation Error: ${errorMessages}`);
+            } else if (error.response && error.response.data.message) {
+                setMessage(`Error: ${error.response.data.message}`);
+            } else {
+                setMessage('Error saving settings');
+            }
         } finally {
             setLoading(false);
         }
@@ -94,13 +167,24 @@ function SystemSettings() {
                 address: '123 Main Street, Colombo, Sri Lanka',
                 siteDescription: 'Best online shopping experience',
                 itemsPerPage: 24,
+                logo: null,
+                logoUrl: null
             });
+            setLogoPreview(null);
+            setLogoFile(null);
         }
     };
 
     return (
         <div className="min-h-screen bg-white p-6">
             <div className="max-w-7xl mx-auto">
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-800">System Settings</h1>
+                    <p className="text-gray-600 mt-2">
+                        Configure {settings.siteName || 'your ecommerce'} platform settings
+                    </p>
+                </div>
+
                 {message && (
                     <div className={`mb-6 p-4 rounded-lg border-l-4 ${
                         message.includes('Error')
@@ -159,6 +243,47 @@ function SystemSettings() {
                                     ) : (
                                         <>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                <div className="md:col-span-2 space-y-4">
+                                                    <label className="block text-sm font-medium text-gray-700">
+                                                        Site Logo (PNG only)
+                                                    </label>
+                                                    <div className="flex items-center space-x-6">
+                                                        <div className="flex-shrink-0">
+                                                            {logoPreview ? (
+                                                                <img
+                                                                    src={logoPreview}
+                                                                    alt="Logo preview"
+                                                                    className="w-20 h-20 object-contain border border-gray-200 rounded-lg"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-400">
+                                                                    No Logo
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <input
+                                                                type="file"
+                                                                accept=".png,image/png"
+                                                                onChange={handleLogoChange}
+                                                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                                                            />
+                                                            <p className="text-xs text-gray-500 mt-2">
+                                                                PNG format only. Maximum file size: 2MB
+                                                            </p>
+                                                        </div>
+                                                        {logoPreview && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={removeLogo}
+                                                                className="px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+
                                                 <div className="space-y-2">
                                                     <label className="block text-sm font-medium text-gray-700">
                                                         Site Name
@@ -170,7 +295,11 @@ function SystemSettings() {
                                                         className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-colors duration-200"
                                                         placeholder="Enter your site name"
                                                     />
+                                                    <p className="text-xs text-gray-500">
+                                                        This will be displayed as your page title
+                                                    </p>
                                                 </div>
+
                                                 <div className="space-y-2">
                                                     <label className="block text-sm font-medium text-gray-700">
                                                         Admin Email
@@ -183,6 +312,7 @@ function SystemSettings() {
                                                         placeholder="admin@example.com"
                                                     />
                                                 </div>
+
                                                 <div className="space-y-2">
                                                     <label className="block text-sm font-medium text-gray-700">
                                                         Mobile Number
