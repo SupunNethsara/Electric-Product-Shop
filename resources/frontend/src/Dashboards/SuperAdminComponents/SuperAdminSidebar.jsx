@@ -43,12 +43,6 @@ function SuperAdminSidebar() {
             current: location.pathname.includes('/super-admin/settings')
         },
         {
-            name: 'Security & Access',
-            href: '/super-admin/security',
-            icon: Shield,
-            current: location.pathname.includes('/super-admin/security')
-        },
-        {
             name: 'System Reports',
             href: '/super-admin/reports',
             icon: BarChart3,
