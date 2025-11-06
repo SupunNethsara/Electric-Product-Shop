@@ -1,13 +1,50 @@
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Star } from 'lucide-react';
 
 const ProductCard = ({ product }) => {
     const navigate = useNavigate();
+    const [ratingData, setRatingData] = useState({
+        average_rating: 0,
+        total_reviews: 0
+    });
+    const [loading, setLoading] = useState(true);
+
     const handleBuyClick = () => {
         navigate('/productDetails', { state: { product } });
     };
 
+    useEffect(() => {
+        const fetchRatingData = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch(`http://127.0.0.1:8000/api/products/${product.id}/rating-summary`);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setRatingData({
+                        average_rating: data.average_rating || 0,
+                        total_reviews: data.total_reviews || 0
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to fetch rating data:', error);
+                setRatingData({
+                    average_rating: product.average_rating || 0,
+                    total_reviews: product.reviews_count || 0
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchRatingData();
+    }, [product.id]);
+
     const originalPrice = parseFloat(product.price) * 1.3;
     const discountPercent = Math.round(((originalPrice - parseFloat(product.price)) / originalPrice) * 100);
+
+    const isOutOfStock = product.status === 'disabled' || product.availability === 0;
 
     return (
         <div className="bg-white border border-gray-200 rounded-sm hover:shadow-lg transition-all duration-200 hover:border-green-500 group">
@@ -24,7 +61,7 @@ const ProductCard = ({ product }) => {
                     </div>
                 </div>
 
-                {product.status === 'disabled' && (
+                {isOutOfStock && (
                     <div className="absolute top-2 right-2 bg-gray-600 text-white px-2 py-1 text-xs font-bold rounded">
                         Out of Stock
                     </div>
@@ -37,35 +74,50 @@ const ProductCard = ({ product }) => {
                 </h3>
 
                 <div className="flex items-center gap-1 mb-2">
-                    <div className="flex items-center bg-green-600 text-white px-1 py-0.5 rounded text-xs font-bold">
-                        <span>{4.2}</span>
-                        <svg className="w-3 h-3 ml-0.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                    </div>
-                    <span className="text-xs text-gray-500">225</span>
+                    {loading ? (
+                        <div className="flex items-center gap-2">
+                            <div className="flex items-center bg-gray-200 text-gray-200 px-1 py-0.5 rounded text-xs font-bold animate-pulse">
+                                <span>0.0</span>
+                                <Star size={12} className="ml-0.5" />
+                            </div>
+                            <span className="text-xs text-gray-300 animate-pulse">(0)</span>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="flex items-center bg-green-600 text-white px-1 py-0.5 rounded text-xs font-bold">
+                                <span>{ratingData.average_rating.toFixed(1)}</span>
+                                <Star size={12} className="ml-0.5 fill-current" />
+                            </div>
+                            <span className="text-xs text-gray-500">
+                                ({ratingData.total_reviews})
+                            </span>
+                        </>
+                    )}
                 </div>
 
                 <div className="mb-3">
                     <div className="flex items-baseline gap-2 mb-1">
                         <span className="text-md font-bold text-green-600">Rs. {product.price}</span>
-
                     </div>
                     <div className="text-xs text-gray-600">
-                        <span className="text-green-600 font-semibold">{product.availability}</span> pieces available
+                        <span className={`font-semibold ${
+                            isOutOfStock ? 'text-red-600' : 'text-green-600'
+                        }`}>
+                            {isOutOfStock ? 'Out of stock' : `${product.availability} pieces available`}
+                        </span>
                     </div>
                 </div>
 
                 <button
                     onClick={handleBuyClick}
-                    disabled={product.status === 'disabled'}
+                    disabled={isOutOfStock}
                     className={`w-full py-2 px-4 rounded text-sm font-semibold transition-all duration-200 ${
-                        product.status !== 'disabled'
+                        !isOutOfStock
                             ? 'bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg'
                             : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                     }`}
                 >
-                    {product.status === 'disabled' ? (
+                    {isOutOfStock ? (
                         'Out of Stock'
                     ) : (
                         <span className="flex items-center justify-center gap-1">

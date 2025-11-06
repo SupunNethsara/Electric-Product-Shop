@@ -3,14 +3,14 @@ import { Search, X } from "lucide-react";
 import ProductCard from "../../Products/ProductCard.jsx";
 
 export default function ProductSection({
-                                           filteredProducts = [],
-                                           searchQuery = "",
-                                           selectedCategories = [],
-                                           categories = [],
-                                           toggleCategory = () => {},
-                                           clearAllFilters = () => {},
-                                           loading = false
-                                       }) {
+    filteredProducts = [],
+    searchQuery = "",
+    selectedCategories = [],
+    categories = [],
+    toggleCategory = () => {},
+    clearAllFilters = () => {},
+    loading = false,
+}) {
     return (
         <div className="flex-1">
             <div className="flex items-center justify-between mb-4">
