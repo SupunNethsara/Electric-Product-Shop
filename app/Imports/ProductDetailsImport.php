@@ -19,6 +19,11 @@ class ProductDetailsImport implements ToCollection, WithHeadingRow
                 'name' => 'required|string',
                 'model' => 'nullable|string',
                 'description' => 'nullable|string',
+                'hedding' => 'nullable|string',
+                'warranty' => 'nullable|string',
+                'specification' => 'nullable|string',
+                'tags' => 'nullable|string',
+                'youtube_video_id' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {

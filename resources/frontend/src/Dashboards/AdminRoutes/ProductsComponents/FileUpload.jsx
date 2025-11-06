@@ -28,7 +28,7 @@ const FileUpload = ({ files, onFileSelect, onRemoveFile }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
                         <h5 className="text-blue-700 font-medium">Details File (first row is header):</h5>
-                        <p className="text-blue-600">item_code, name, model, description, hedding, warranty, specification, tags, youtube_video_id, availability</p>
+                        <p className="text-blue-600">item_code, name, model, description, hedding, warranty, specification, tags, youtube_video_id</p>
                     </div>
                     <div>
                         <h5 className="text-blue-700 font-medium">Pricing File (first row is header):</h5>

@@ -24,7 +24,6 @@ return new class extends Migration
             $table->string('warranty')->nullable();
             $table->text('specification')->nullable();
             $table->string('tags')->nullable();
-            $table->string('specification_pdf_id')->nullable();
             $table->string('youtube_video_id')->nullable();
             $table->integer('availability')->default(0);
             $table->string('image')->nullable();
