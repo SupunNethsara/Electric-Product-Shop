@@ -111,6 +111,7 @@ class OderController extends Controller
     public function directOrder(OrderRequest $request)
     {
         $request->validated();
+
         try {
             DB::beginTransaction();
 
@@ -124,22 +125,41 @@ class OderController extends Controller
             ]);
 
             foreach ($request->items as $item) {
+                $product = \App\Models\Product::find($item['product_id']);
+
+                if (!$product) {
+                    throw new Exception("Product not found: ID {$item['product_id']}");
+                }
+
+                if ($product->availability < $item['quantity']) {
+                    throw new Exception("Not enough stock for product: {$product->name}");
+                }
+
                 OrderItem::create([
                     'order_id' => $order->id,
-                    'product_id' => $item['product_id'],
+                    'product_id' => $product->id,
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                 ]);
+
+                $product->availability -= $item['quantity'];
+                $product->save();
             }
 
             DB::commit();
-            return response()->json(['success' => true, 'order' => $order->load('items')], 201);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order placed successfully!',
+                'order' => $order->load('items')
+            ], 201);
 
         } catch (Exception $e) {
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
     public function cartCheckout(OrderRequest $request)
     {
         $request->validated();
