@@ -15,7 +15,8 @@ import {
     ChevronLeft,
     ChevronRight,
     Plus,
-    Filter
+    FileText,
+    Play
 } from 'lucide-react';
 import { openLoginModal } from "../../Store/slices/modalSlice.js";
 import { addToCart } from "../../Store/slices/cartSlice.js";
@@ -43,7 +44,6 @@ const ProductDetails = () => {
     const [activeTab, setActiveTab] = useState('description');
     const { success, error: showError } = useToast();
 
-    // Review states
     const [reviews, setReviews] = useState([]);
     const [ratingSummary, setRatingSummary] = useState({
         average_rating: 0,
@@ -198,7 +198,7 @@ const ProductDetails = () => {
             average_rating: result.summary.average_rating,
             total_reviews: result.summary.total_reviews
         }));
-        fetchReviews(); // Refresh reviews list
+        fetchReviews();
     };
 
     const handleEditReview = (review) => {
@@ -242,10 +242,30 @@ const ProductDetails = () => {
         return [product.image || '/images/placeholder-product.png'];
     };
 
+    const parseSpecification = () => {
+        if (!product.specification) return null;
+        try {
+            if (typeof product.specification === 'string') {
+                return JSON.parse(product.specification);
+            }
+            return product.specification;
+        } catch {
+            return { 'Specification': product.specification };
+        }
+    };
+
+    const getTags = () => {
+        if (!product.tags) return [];
+        return product.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+    };
+
     const productImages = getProductImages();
-    const currentPrice = parseFloat(product?.price || 0);
-    const originalPrice = currentPrice * 1.3;
-    const discountPercent = Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
+    const specifications = parseSpecification();
+    const tags = getTags();
+
+    const currentPrice = parseFloat(product?.buy_now_price || product?.price || 0);
+    const originalPrice = product?.price && product.buy_now_price ? parseFloat(product.price) : currentPrice * 1.3;
+    const discountPercent = originalPrice > currentPrice ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100) : 0;
     const savings = originalPrice - currentPrice;
 
     if (loading) {
@@ -308,7 +328,6 @@ const ProductDetails = () => {
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 lg:p-8">
-                        {/* Product images section remains the same */}
                         <div className="space-y-4">
                             <div className="relative group aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden">
                                 <img
@@ -322,6 +341,13 @@ const ProductDetails = () => {
                                 >
                                     <ZoomIn size={20} />
                                 </button>
+
+                                {product.youtube_video_id && (
+                                    <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 rounded-lg text-sm font-medium flex items-center gap-1">
+                                        <Play size={14} />
+                                        Video Available
+                                    </div>
+                                )}
                             </div>
 
                             {productImages.length > 1 && (
@@ -346,17 +372,21 @@ const ProductDetails = () => {
                                 </div>
                             )}
                         </div>
-
                         <div className="space-y-6">
                             <div className="space-y-3">
                                 <div className="flex items-start justify-between">
                                     <div>
                                         <div className="text-sm text-gray-500 mb-1">
-                                            {product.category || 'Electronics'} › {product.subcategory || 'Gadgets'}
+                                            {product.category?.name || 'Electronics'}
                                         </div>
                                         <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
                                             {product.name}
                                         </h1>
+                                        {product.hedding && (
+                                            <p className="text-lg text-gray-700 mt-1 font-medium">
+                                                {product.hedding}
+                                            </p>
+                                        )}
                                         {product.model && (
                                             <p className="text-gray-600 mt-1">
                                                 Model: {product.model}
@@ -398,27 +428,43 @@ const ProductDetails = () => {
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Price and other details remain the same */}
                             <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-5 border border-green-100">
                                 <div className="flex items-baseline gap-3 mb-1">
                                     <span className="text-3xl font-bold text-green-600">
                                         Rs. {currentPrice.toLocaleString()}
                                     </span>
-                                    <span className="text-lg text-gray-500 line-through">
-                                        Rs. {originalPrice.toLocaleString()}
-                                    </span>
-                                    <span className="bg-red-500 text-white text-sm font-bold px-2 py-1 rounded-full">
-                                        {discountPercent}% OFF
-                                    </span>
+                                    {product.price && product.buy_now_price && product.price > product.buy_now_price && (
+                                        <>
+                                            <span className="text-lg text-gray-500 line-through">
+                                                Rs. {originalPrice.toLocaleString()}
+                                            </span>
+                                            <span className="bg-red-500 text-white text-sm font-bold px-2 py-1 rounded-full">
+                                                {discountPercent}% OFF
+                                            </span>
+                                        </>
+                                    )}
                                 </div>
-                                <p className="text-green-600 font-medium">
-                                    You save Rs. {savings.toLocaleString()}
-                                </p>
+                                {savings > 0 && (
+                                    <p className="text-green-600 font-medium">
+                                        You save Rs. {savings.toLocaleString()}
+                                    </p>
+                                )}
+                                {product.price && !product.buy_now_price && (
+                                    <p className="text-gray-600 text-sm">
+                                        Regular price
+                                    </p>
+                                )}
                             </div>
-
-                            {/* Shipping and warranty sections remain the same */}
                             <div className="grid grid-cols-2 gap-3">
+                                {product.warranty && (
+                                    <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg border border-orange-100">
+                                        <Shield size={20} className="text-orange-600 flex-shrink-0" />
+                                        <div>
+                                            <div className="font-medium text-orange-900 text-sm">Warranty</div>
+                                            <div className="text-orange-700 text-xs">{product.warranty}</div>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
                                     <Truck size={20} className="text-blue-600 flex-shrink-0" />
                                     <div>
@@ -426,16 +472,20 @@ const ProductDetails = () => {
                                         <div className="text-blue-700 text-xs">On orders over Rs. 1,999</div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg border border-orange-100">
-                                    <Shield size={20} className="text-orange-600 flex-shrink-0" />
-                                    <div>
-                                        <div className="font-medium text-orange-900 text-sm">1 Year Warranty</div>
-                                        <div className="text-orange-700 text-xs">Quality guaranteed</div>
-                                    </div>
-                                </div>
                             </div>
+                            {tags.length > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                    {tags.map((tag, index) => (
+                                        <span
+                                            key={index}
+                                            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                                        >
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
 
-                            {/* Quantity and buttons section remains the same */}
                             <div className="space-y-4 pt-4 border-t border-gray-200">
                                 <div className="flex items-center gap-4">
                                     <span className="font-medium text-gray-900 min-w-20">Quantity:</span>
@@ -536,12 +586,62 @@ const ProductDetails = () => {
                                     <p className="text-gray-700 leading-relaxed">
                                         {product.description || "This high-quality product is designed to deliver exceptional performance and reliability. Crafted with precision and attention to detail, it offers outstanding value and meets the highest standards of quality and durability."}
                                     </p>
+
+                                    {product.youtube_video_id && (
+                                        <div className="mt-6">
+                                            <h4 className="text-lg font-semibold text-gray-900 mb-3">Product Video</h4>
+                                            <div className="aspect-video max-w-2xl">
+                                                <iframe
+                                                    width="100%"
+                                                    height="100%"
+                                                    src={`https://www.youtube.com/embed/${product.youtube_video_id}`}
+                                                    title={`${product.name} - Product Video`}
+                                                    frameBorder="0"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                    className="rounded-lg"
+                                                ></iframe>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {product.specification_pdf_id && (
+                                        <div className="mt-6">
+                                            <h4 className="text-lg font-semibold text-gray-900 mb-3">Product Specifications</h4>
+                                            <a
+                                                href={`/api/documents/${product.specification_pdf_id}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                            >
+                                                <FileText size={16} />
+                                                Download Specification PDF
+                                            </a>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
                             {activeTab === 'specifications' && (
                                 <div className="space-y-6">
-                                    {/* Specifications content */}
+                                    <h3 className="text-xl font-semibold text-gray-900">Product Specifications</h3>
+
+                                    {specifications ? (
+                                        <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                                            {Object.entries(specifications).map(([key, value]) => (
+                                                <div key={key} className="flex border-b border-gray-200 last:border-b-0">
+                                                    <div className="w-1/3 bg-gray-100 px-4 py-3 font-medium text-gray-900 border-r border-gray-200">
+                                                        {key}
+                                                    </div>
+                                                    <div className="w-2/3 px-4 py-3 text-gray-700">
+                                                        {String(value)}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-gray-500 italic">No specifications available for this product.</p>
+                                    )}
+
                                 </div>
                             )}
 
@@ -604,8 +704,6 @@ const ProductDetails = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Image Zoom Modal (remains the same) */}
             {showZoomModal && (
                 <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => setShowZoomModal(false)}>
                     <div className="relative max-w-4xl w-full max-h-[90vh]">
@@ -660,7 +758,6 @@ const ProductDetails = () => {
                 </div>
             )}
 
-            {/* Review Form Modal */}
             {showReviewForm && (
                 <ReviewForm
                     product={product}
