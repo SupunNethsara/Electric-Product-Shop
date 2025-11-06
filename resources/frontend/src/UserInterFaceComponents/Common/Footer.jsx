@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import {
     Facebook,
     Twitter,
@@ -12,7 +13,41 @@ import {
 } from 'lucide-react';
 
 const Footer = () => {
+    const [settings, setSettings] = useState({
+        siteName: 'GoCart',
+        adminEmail: '',
+        mobile: '',
+        address: '',
+        siteDescription: '',
+        logoUrl: null
+    });
+    const [loading, setLoading] = useState(true);
+
     const currentYear = new Date().getFullYear();
+
+    useEffect(() => {
+        fetchSettings();
+    }, []);
+
+    const fetchSettings = async () => {
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/api/system-settings');
+            const data = response.data;
+
+            setSettings({
+                siteName: data.site_name || 'GoCart',
+                adminEmail: data.admin_email || '',
+                mobile: data.mobile || '',
+                address: data.address || '',
+                siteDescription: data.site_description || '',
+                logoUrl: data.logo_url || null
+            });
+        } catch (error) {
+            console.error('Error fetching settings:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const footerSections = [
         {
@@ -47,8 +82,6 @@ const Footer = () => {
         }
     ];
 
-
-
     const socialLinks = [
         {
             name: "Facebook",
@@ -72,39 +105,65 @@ const Footer = () => {
         }
     ];
 
+    if (loading) {
+        return (
+            <footer className="bg-gray-900 text-white">
+                <div className="max-w-7xl mx-auto px-6 py-12 text-center">
+                    <div className="animate-pulse">Loading footer...</div>
+                </div>
+            </footer>
+        );
+    }
+
     return (
         <footer className="bg-gray-900 text-white">
             <div className="max-w-7xl mx-auto px-6 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
                     <div className="lg:col-span-2">
                         <Link to="/" className="inline-block mb-4">
-                            <div className="text-3xl font-semibold">
-                                <span className="text-green-600">go</span>cart
-                                <span className="text-green-600 text-4xl">.</span>
-                            </div>
+                            {settings.logoUrl ? (
+                                <div className="flex items-center gap-1">
+                                    <img
+                                        src={settings.logoUrl}
+                                        alt="Logo"
+                                        className="h-18 w-auto object-contain"
+                                    />
+                                </div>
+                            ) : (
+                                <div className="text-3xl font-semibold">
+                                    <span className="text-green-600">go</span>cart
+                                    <span className="text-green-600 text-4xl">.</span>
+                                </div>
+                            )}
                         </Link>
+
                         <p className="text-gray-300 mb-6 max-w-md leading-relaxed">
-                            Your trusted partner for quality electronics and gadgets.
-                            We bring you the latest technology with unbeatable prices
-                            and exceptional customer service.
+                            {settings.siteDescription || "Your trusted partner for quality electronics and gadgets. We bring you the latest technology with unbeatable prices and exceptional customer service."}
                         </p>
 
                         <div className="space-y-3">
-                            <div className="flex items-center gap-3 text-gray-300">
-                                <Phone className="w-4 h-4 text-green-600" />
-                                <span>+1 (555) 123-4567</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-gray-300">
-                                <Mail className="w-4 h-4 text-green-600" />
-                                <span>support@gocart.com</span>
-                            </div>
-                            <div className="flex items-start gap-3 text-gray-300">
-                                <MapPin className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
-                                <span>Address</span>
-                            </div>
+                            {settings.mobile && (
+                                <div className="flex items-center gap-3 text-gray-300">
+                                    <Phone className="w-4 h-4 text-green-600" />
+                                    <span>{settings.mobile}</span>
+                                </div>
+                            )}
+                            {settings.adminEmail && (
+                                <div className="flex items-center gap-3 text-gray-300">
+                                    <Mail className="w-4 h-4 text-green-600" />
+                                    <span>{settings.adminEmail}</span>
+                                </div>
+                            )}
+                            {settings.address && (
+                                <div className="flex items-start gap-3 text-gray-300">
+                                    <MapPin className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+                                    <span className="text-sm">{settings.address}</span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
+                    {/* Footer Links */}
                     {footerSections.map((section) => (
                         <div key={section.title}>
                             <h3 className="font-semibold text-lg mb-4 text-white">
@@ -128,6 +187,7 @@ const Footer = () => {
 
                 <div className="border-t border-gray-700 my-8"></div>
 
+                {/* Social Links */}
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-4">
                         <span className="text-gray-300 text-sm">Follow us:</span>
@@ -147,10 +207,13 @@ const Footer = () => {
                         </div>
                     </div>
                 </div>
+
                 <div className="border-t border-gray-700 my-6"></div>
+
+                {/* Bottom Section */}
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-center">
                     <div className="text-gray-400 text-sm">
-                        &copy; {currentYear} GoCart. All rights reserved.
+                        &copy; {currentYear} {settings.siteName}. All rights reserved.
                     </div>
 
                     <div className="flex items-center gap-4 text-sm text-gray-400">
@@ -181,8 +244,6 @@ const Footer = () => {
                     </div>
                 </div>
             </div>
-
-
         </footer>
     );
 };

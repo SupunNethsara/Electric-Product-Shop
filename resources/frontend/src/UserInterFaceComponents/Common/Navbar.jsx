@@ -5,6 +5,7 @@ import { logoutUser } from "../../Store/slices/authSlice.js";
 import { openLoginModal, openRegisterModal } from "../../Store/slices/modalSlice.js";
 import { useState, useEffect, useRef } from "react";
 import { Search, ShoppingCart, Menu, X } from "lucide-react";
+import axios from "axios";
 
 const Navbar = () => {
     const dispatch = useDispatch();
@@ -15,8 +16,30 @@ const Navbar = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-
+    const [settings, setSettings] = useState({
+        logoUrl: null
+    });
+    const [loading, setLoading] = useState(true);
     const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        fetchSettings();
+    }, []);
+
+    const fetchSettings = async () => {
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/api/system-settings');
+            const data = response.data;
+
+            setSettings({
+                logoUrl: data.logo_url || null
+            });
+        } catch (error) {
+            console.error('Error fetching settings:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -83,15 +106,72 @@ const Navbar = () => {
         return "Profile";
     };
 
+    const renderLogo = () => {
+        if (loading) {
+            return (
+                <div className="animate-pulse bg-gray-200 h-10 w-32 rounded"></div>
+            );
+        }
+
+        if (settings.logoUrl) {
+            return (
+                <img
+                    src={settings.logoUrl}
+                    alt="Logo"
+                    className="h-15 w-auto object-contain"
+                    onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                    }}
+                />
+            );
+        }
+        return (
+            <div className="text-2xl font-semibold text-slate-700">
+                <span className="text-green-600">go</span>cart
+                <span className="text-green-600 text-3xl">.</span>
+            </div>
+        );
+    };
+    const renderLogoWithBadge = () => {
+        if (loading) {
+            return (
+                <div className="animate-pulse bg-gray-200 h-8 w-24 rounded"></div>
+            );
+        }
+
+        if (settings.logoUrl) {
+            return (
+                <div className="relative flex items-center">
+                    <img
+                        src={settings.logoUrl}
+                        alt="Logo"
+                        className="h-13 w-auto object-contain"
+                        onError={(e) => {
+                            e.target.style.display = 'none';
+                        }}
+                    />
+
+                </div>
+            );
+        }
+        return (
+            <div className="relative float-left text-4xl font-semibold text-slate-700">
+                <span className="text-green-600">go</span>cart
+                <span className="text-green-600 text-5xl leading-0">.</span>
+                <p className="absolute text-xs font-semibold -top-1 -right-8 px-3 p-0.5 rounded-full flex items-center gap-2 text-white bg-green-500">
+                    plus
+                </p>
+            </div>
+        );
+    };
+
     if (isLoading && !isAuthenticated) {
         return (
             <nav className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="flex justify-between items-center h-16">
-                        <Link to="/" className="text-2xl font-semibold text-slate-700">
-                            <span className="text-green-600">go</span>cart
-                            <span className="text-green-600 text-3xl">.</span>
-                        </Link>
+                        {renderLogo()}
                         <div className="animate-pulse bg-gray-200 h-8 w-24 rounded"></div>
                     </div>
                 </div>
@@ -106,14 +186,10 @@ const Navbar = () => {
                     <div className="flex items-center justify-between max-w-7xl mx-auto py-4 transition-all">
                         <Link
                             to="/"
-                            className="relative float-left text-4xl font-semibold text-slate-700"
+                            className="flex items-center"
                             onClick={() => setIsMobileMenuOpen(false)}
                         >
-                            <span className="text-green-600">go</span>cart
-                            <span className="text-green-600 text-5xl leading-0">.</span>
-                            <p className="absolute text-xs font-semibold -top-1 -right-8 px-3 p-0.5 rounded-full flex items-center gap-2 text-white bg-green-500">
-                                plus
-                            </p>
+                            {renderLogoWithBadge()}
                         </Link>
 
                         <div className="hidden sm:flex items-center gap-4 lg:gap-8 text-slate-600">

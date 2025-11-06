@@ -2,6 +2,8 @@ import Header from "./AdminComponents/Header.jsx";
 import { Routes ,Route } from "react-router-dom";
 import SaStatics from "./SuperAdminRoutes/SaStatics.jsx";
 import AdminManagement from "./SuperAdminRoutes/AdminManagement.jsx";
+import UserManage from "./SuperAdminRoutes/UserManage.jsx";
+import SystemSettings from "./SuperAdminRoutes/SystemSettings.jsx";
 
 
 const SuperAdminDashboard = () => {
@@ -12,6 +14,8 @@ const SuperAdminDashboard = () => {
                 <Route index element={<SaStatics />} />
                 <Route path="sastatics" element={<SaStatics />} />
                 <Route path="adminManage" element={<AdminManagement />} />
+                <Route path="userManage" element={<UserManage />} />
+                <Route path="settings" element={<SystemSettings />} />
             </Routes>
         </div>
     );

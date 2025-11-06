@@ -3,20 +3,19 @@ import { Search, X } from "lucide-react";
 import ProductCard from "../../Products/ProductCard.jsx";
 
 export default function ProductSection({
-    filteredProducts = [],
-    searchQuery = "",
-    selectedCategories = [],
-    selectedBrands = [],
-    categories = [],
-    toggleCategory = () => {},
-    toggleBrand = () => {},
-    clearAllFilters = () => {},
-}) {
+                                           filteredProducts = [],
+                                           searchQuery = "",
+                                           selectedCategories = [],
+                                           categories = [],
+                                           toggleCategory = () => {},
+                                           clearAllFilters = () => {},
+                                           loading = false
+                                       }) {
     return (
         <div className="flex-1">
             <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-gray-600">
-                    {searchQuery && ` for "${searchQuery}"`}
+                    {searchQuery && `Search results for "${searchQuery}"`}
                 </p>
 
                 <div className="flex flex-wrap gap-1">
@@ -42,20 +41,15 @@ export default function ProductSection({
                             </span>
                         );
                     })}
-                    {selectedBrands.map((brand) => (
-                        <span
-                            key={brand}
-                            className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs"
-                        >
-                            {brand}
-                            <button onClick={() => toggleBrand(brand)}>
-                                <X size={12} />
-                            </button>
-                        </span>
-                    ))}
                 </div>
             </div>
-            {filteredProducts.length === 0 ? (
+
+            {loading ? (
+                <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+                    <p className="text-gray-600 mt-3">Loading products...</p>
+                </div>
+            ) : filteredProducts.length === 0 ? (
                 <div className="text-center py-12">
                     <div className="text-gray-400 mb-3">
                         <Search size={48} className="mx-auto" />

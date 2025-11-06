@@ -37,7 +37,7 @@ function UserManage() {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:8000/api/admin/all-users', {
+                const response = await axios.get('http://127.0.0.1:8000/api/superadmin/all-users', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -61,7 +61,7 @@ function UserManage() {
         fetchUsers();
     }, []);
 
-
+    // Filter and sort users
     const filteredUsers = users.filter(user => {
         const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.email.toLowerCase().includes(searchTerm.toLowerCase());
