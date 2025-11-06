@@ -8,14 +8,65 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    use HasFactory , HasUuids;
+    use HasFactory, HasUuids;
 
     protected $fillable = [
         'category_id', 'item_code', 'name', 'model',
-        'description', 'price', 'availability', 'image'
+        'description', 'price', 'availability', 'image', 'images', 'status'
     ];
 
-    public function category() {
+    protected $casts = [
+        'images' => 'array'
+    ];
+
+    protected $appends = [
+        'average_rating',
+        'reviews_count',
+        'rating_distribution'
+    ];
+
+    public function category()
+    {
         return $this->belongsTo(Category::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        return $this->reviews()->avg('rating') ?: 0;
+    }
+
+    public function getReviewsCountAttribute()
+    {
+        return $this->reviews()->count();
+    }
+
+    public function getRatingDistributionAttribute()
+    {
+        $distribution = $this->reviews()
+            ->selectRaw('rating, COUNT(*) as count')
+            ->groupBy('rating')
+            ->orderBy('rating', 'desc')
+            ->pluck('count', 'rating')
+            ->toArray();
+
+        $fullDistribution = [];
+        for ($i = 5; $i >= 1; $i--) {
+            $fullDistribution[$i] = $distribution[$i] ?? 0;
+        }
+
+        return $fullDistribution;
+    }
+
+    public function getUserReviewAttribute()
+    {
+        if (auth()->check()) {
+            return $this->reviews()->where('user_id', auth()->id())->first();
+        }
+        return null;
     }
 }

@@ -13,19 +13,23 @@ import {
     AlertCircle,
     ZoomIn,
     ChevronLeft,
-    RotateCcw,
-    ChevronRight
+    ChevronRight,
+    Plus,
+    Filter
 } from 'lucide-react';
 import { openLoginModal } from "../../Store/slices/modalSlice.js";
 import { addToCart } from "../../Store/slices/cartSlice.js";
 import useToast from "../Common/useToast.jsx";
+import ReviewForm from "./Reviews/ReviewForm.jsx";
+import RatingSummary from "./Reviews/RatingSummary.jsx";
+import ReviewsList from "./Reviews/ReviewsList.jsx";
 
 const ProductDetails = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { id } = useParams();
-    const { isAuthenticated } = useSelector(state => state.auth);
+    const { isAuthenticated, user } = useSelector(state => state.auth);
     const { cartLoading } = useSelector(state => state.cart);
 
     const [product, setProduct] = useState(location.state?.product || null);
@@ -38,6 +42,23 @@ const ProductDetails = () => {
     const [showZoomModal, setShowZoomModal] = useState(false);
     const [activeTab, setActiveTab] = useState('description');
     const { success, error: showError } = useToast();
+
+    // Review states
+    const [reviews, setReviews] = useState([]);
+    const [ratingSummary, setRatingSummary] = useState({
+        average_rating: 0,
+        total_reviews: 0,
+        rating_distribution: {}
+    });
+    const [reviewsLoading, setReviewsLoading] = useState(false);
+    const [showReviewForm, setShowReviewForm] = useState(false);
+    const [editingReview, setEditingReview] = useState(null);
+    const [reviewsFilters, setReviewsFilters] = useState({
+        rating: '',
+        sort: 'newest',
+        page: 1,
+        per_page: 10
+    });
 
     useEffect(() => {
         const fetchProductDetails = async () => {
@@ -58,6 +79,46 @@ const ProductDetails = () => {
 
         fetchProductDetails();
     }, [id, location.state]);
+
+    useEffect(() => {
+        if (product) {
+            fetchRatingSummary();
+            fetchReviews();
+        }
+    }, [product, reviewsFilters]);
+
+    const fetchRatingSummary = async () => {
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/api/products/${product.id}/rating-summary`);
+            if (response.ok) {
+                const summary = await response.json();
+                setRatingSummary(summary);
+            }
+        } catch (error) {
+            console.error('Failed to fetch rating summary:', error);
+        }
+    };
+
+    const fetchReviews = async () => {
+        setReviewsLoading(true);
+        try {
+            const params = new URLSearchParams();
+            Object.entries(reviewsFilters).forEach(([key, value]) => {
+                if (value) params.append(key, value);
+            });
+
+            const response = await fetch(`http://127.0.0.1:8000/api/products/${product.id}/reviews?${params}`);
+            if (response.ok) {
+                const data = await response.json();
+                setReviews(data.data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch reviews:', error);
+            showError('Failed to load reviews');
+        } finally {
+            setReviewsLoading(false);
+        }
+    };
 
     const handleAddToCart = async () => {
         if (!isAuthenticated) {
@@ -126,6 +187,47 @@ const ProductDetails = () => {
             navigator.clipboard.writeText(window.location.href).then(() => {
                 alert('Link copied to clipboard!');
             });
+        }
+    };
+
+    const handleReviewSuccess = (result) => {
+        setShowReviewForm(false);
+        setEditingReview(null);
+        setRatingSummary(prev => ({
+            ...prev,
+            average_rating: result.summary.average_rating,
+            total_reviews: result.summary.total_reviews
+        }));
+        fetchReviews(); // Refresh reviews list
+    };
+
+    const handleEditReview = (review) => {
+        setEditingReview(review);
+        setShowReviewForm(true);
+    };
+
+    const handleDeleteReview = async (review) => {
+        if (!window.confirm('Are you sure you want to delete this review?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/api/products/${product.id}/reviews/${review.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (response.ok) {
+                success('Review deleted successfully');
+                fetchRatingSummary();
+                fetchReviews();
+            } else {
+                throw new Error('Failed to delete review');
+            }
+        } catch (error) {
+            showError(error.message);
         }
     };
 
@@ -206,6 +308,7 @@ const ProductDetails = () => {
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 lg:p-8">
+                        {/* Product images section remains the same */}
                         <div className="space-y-4">
                             <div className="relative group aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden">
                                 <img
@@ -272,11 +375,11 @@ const ProductDetails = () => {
                                 <div className="flex items-center gap-4 flex-wrap">
                                     <div className="flex items-center gap-2">
                                         <div className="flex items-center bg-green-100 text-green-800 px-2 py-1 rounded-lg text-sm font-semibold">
-                                            <span>4.8</span>
+                                            <span>{ratingSummary.average_rating.toFixed(1)}</span>
                                             <Star size={14} className="ml-1 fill-current" />
                                         </div>
                                         <span className="text-gray-600 text-sm">
-                                            (128 reviews)
+                                            ({ratingSummary.total_reviews} reviews)
                                         </span>
                                     </div>
                                     <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
@@ -296,6 +399,7 @@ const ProductDetails = () => {
                                 </div>
                             </div>
 
+                            {/* Price and other details remain the same */}
                             <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-5 border border-green-100">
                                 <div className="flex items-baseline gap-3 mb-1">
                                     <span className="text-3xl font-bold text-green-600">
@@ -312,6 +416,8 @@ const ProductDetails = () => {
                                     You save Rs. {savings.toLocaleString()}
                                 </p>
                             </div>
+
+                            {/* Shipping and warranty sections remain the same */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
                                     <Truck size={20} className="text-blue-600 flex-shrink-0" />
@@ -328,6 +434,8 @@ const ProductDetails = () => {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Quantity and buttons section remains the same */}
                             <div className="space-y-4 pt-4 border-t border-gray-200">
                                 <div className="flex items-center gap-4">
                                     <span className="font-medium text-gray-900 min-w-20">Quantity:</span>
@@ -404,7 +512,7 @@ const ProductDetails = () => {
                                 {[
                                     { id: 'description', label: 'Description' },
                                     { id: 'specifications', label: 'Specifications' },
-                                    { id: 'reviews', label: 'Reviews' }
+                                    { id: 'reviews', label: `Reviews (${ratingSummary.total_reviews})` }
                                 ].map((tab) => (
                                     <button
                                         key={tab.id}
@@ -433,20 +541,63 @@ const ProductDetails = () => {
 
                             {activeTab === 'specifications' && (
                                 <div className="space-y-6">
-
-
+                                    {/* Specifications content */}
                                 </div>
                             )}
 
                             {activeTab === 'reviews' && (
-                                <div className="space-y-6">
-                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <div className="space-y-8">
+                                    <RatingSummary
+                                        averageRating={ratingSummary.average_rating}
+                                        totalReviews={ratingSummary.total_reviews}
+                                        ratingDistribution={ratingSummary.rating_distribution}
+                                    />
 
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                        <div className="flex items-center gap-4">
+                                            <select
+                                                value={reviewsFilters.rating}
+                                                onChange={(e) => setReviewsFilters(prev => ({ ...prev, rating: e.target.value, page: 1 }))}
+                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                                            >
+                                                <option value="">All Ratings</option>
+                                                <option value="5">5 Stars</option>
+                                                <option value="4">4 Stars</option>
+                                                <option value="3">3 Stars</option>
+                                                <option value="2">2 Stars</option>
+                                                <option value="1">1 Star</option>
+                                            </select>
+
+                                            <select
+                                                value={reviewsFilters.sort}
+                                                onChange={(e) => setReviewsFilters(prev => ({ ...prev, sort: e.target.value, page: 1 }))}
+                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                                            >
+                                                <option value="newest">Newest First</option>
+                                                <option value="oldest">Oldest First</option>
+                                                <option value="highest">Highest Rated</option>
+                                                <option value="lowest">Lowest Rated</option>
+                                            </select>
+                                        </div>
+
+                                        {isAuthenticated && (
+                                            <button
+                                                onClick={() => setShowReviewForm(true)}
+                                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
+                                            >
+                                                <Plus size={16} />
+                                                Write a Review
+                                            </button>
+                                        )}
                                     </div>
 
-                                    <div className="space-y-6 mt-8">
-
-                                    </div>
+                                    <ReviewsList
+                                        reviews={reviews}
+                                        currentUserId={user?.id}
+                                        onEdit={handleEditReview}
+                                        onDelete={handleDeleteReview}
+                                        loading={reviewsLoading}
+                                    />
                                 </div>
                             )}
                         </div>
@@ -454,7 +605,7 @@ const ProductDetails = () => {
                 </div>
             </div>
 
-            {/* Image Zoom Modal */}
+            {/* Image Zoom Modal (remains the same) */}
             {showZoomModal && (
                 <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => setShowZoomModal(false)}>
                     <div className="relative max-w-4xl w-full max-h-[90vh]">
@@ -507,6 +658,19 @@ const ProductDetails = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Review Form Modal */}
+            {showReviewForm && (
+                <ReviewForm
+                    product={product}
+                    existingReview={editingReview}
+                    onSuccess={handleReviewSuccess}
+                    onCancel={() => {
+                        setShowReviewForm(false);
+                        setEditingReview(null);
+                    }}
+                />
             )}
         </div>
     );
