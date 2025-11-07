@@ -158,7 +158,13 @@ class ProductController extends Controller
                         'name' => $detailRow[1] ?? 'No Name',
                         'model' => $detailRow[2] ?? '',
                         'description' => $detailRow[3] ?? '',
+                        'hedding' => $detailRow[4] ?? null,
+                        'warranty' => $detailRow[5] ?? null,
+                        'specification' => $detailRow[6] ?? null,
+                        'tags' => $detailRow[7] ?? null,
+                        'youtube_video_id' => $detailRow[8] ?? null,
                         'price' => $priceRow[1] ?? 0,
+                        'buy_now_price' => $priceRow[3] ?? null,
                         'availability' => $priceRow[2] ?? 0,
                     ]
                 );

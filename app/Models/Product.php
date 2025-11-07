@@ -11,8 +11,9 @@ class Product extends Model
     use HasFactory, HasUuids;
 
     protected $fillable = [
-        'category_id', 'item_code', 'name', 'model',
-        'description', 'price', 'availability', 'image', 'images', 'status'
+        'category_id', 'item_code', 'name', 'model', 'hedding','warranty',
+        'description', 'specification', 'tags', 'specification_pdf_id',
+        'youtube_video_id', 'price', 'buy_now_price', 'availability', 'image', 'images', 'status'
     ];
 
     protected $casts = [

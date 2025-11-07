@@ -17,6 +17,7 @@ class ProductPricingImport implements ToCollection, WithHeadingRow
             $validator = Validator::make($row->toArray(), [
                 'item_code' => 'required|string',
                 'price' => 'required|numeric|min:0',
+                'buy_now_price' => 'nullable|numeric|min:0',
                 'availability' => 'required|integer|min:0',
             ]);
 

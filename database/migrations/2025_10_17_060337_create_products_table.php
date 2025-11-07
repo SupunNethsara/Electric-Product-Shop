@@ -19,6 +19,12 @@ return new class extends Migration
             $table->string('model')->nullable();
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2)->nullable();
+            $table->decimal('buy_now_price', 10, 2)->nullable();
+            $table->string('hedding')->nullable();
+            $table->string('warranty')->nullable();
+            $table->text('specification')->nullable();
+            $table->string('tags')->nullable();
+            $table->longText('youtube_video_id')->nullable();
             $table->integer('availability')->default(0);
             $table->string('image')->nullable();
             $table->json('images')->nullable();
