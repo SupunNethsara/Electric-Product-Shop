@@ -20,12 +20,50 @@ class ProductController extends Controller
         $perPage = $request->get('per_page', 15);
         $page = $request->get('page', 1);
 
-        $products = Product::paginate($perPage);
+        $query = Product::query();
+
+        // Search filter
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('item_code', 'like', "%{$search}%")
+                    ->orWhere('model', 'like', "%{$search}%");
+            });
+        }
+
+        // Status filter
+        if ($request->has('status') && $request->status != 'all') {
+            $query->where('status', $request->status);
+        }
+
+        // Price filters
+        if ($request->has('min_price') && $request->min_price != '') {
+            $query->where(function($q) use ($request) {
+                $q->where('buy_now_price', '>=', $request->min_price)
+                    ->orWhere('price', '>=', $request->min_price);
+            });
+        }
+
+        if ($request->has('max_price') && $request->max_price != '') {
+            $query->where(function($q) use ($request) {
+                $q->where('buy_now_price', '<=', $request->max_price)
+                    ->orWhere('price', '<=', $request->max_price);
+            });
+        }
+
+        // Stock filter
+        if ($request->has('in_stock') && $request->in_stock) {
+            $query->where('availability', '>', 0);
+        }
+
+        // Order by latest first
+        $query->orderBy('created_at', 'desc');
+
+        $products = $query->paginate($perPage, ['*'], 'page', $page);
 
         return response()->json([
             'data' => $products->items(),
-            'page' => $page,
-            'total' => $products->count(),
             'pagination' => [
                 'current_page' => $products->currentPage(),
                 'per_page' => $products->perPage(),
