@@ -15,8 +15,6 @@ import {
     ChevronLeft,
     ChevronRight,
     Plus,
-    FileText,
-    Play
 } from 'lucide-react';
 import { openLoginModal } from "../../Store/slices/modalSlice.js";
 import { addToCart } from "../../Store/slices/cartSlice.js";
@@ -24,6 +22,84 @@ import useToast from "../Common/useToast.jsx";
 import ReviewForm from "./Reviews/ReviewForm.jsx";
 import RatingSummary from "./Reviews/RatingSummary.jsx";
 import ReviewsList from "./Reviews/ReviewsList.jsx";
+
+const groupSpecifications = (specs) => {
+    const groups = {
+        general: {},
+        technical: {},
+        features: {},
+        dimensions: {},
+        warranty: {}
+    };
+    const categoryKeywords = {
+        technical: ['processor', 'ram', 'storage', 'battery', 'display', 'camera', 'os', 'connectivity', 'speed', 'resolution', 'capacity'],
+        dimensions: ['weight', 'size', 'dimension', 'height', 'width', 'depth', 'length', 'thickness'],
+        features: ['feature', 'color', 'material', 'waterproof', 'wireless', 'bluetooth', 'wifi', 'nfc', 'gps'],
+        warranty: ['warranty', 'guarantee', 'support', 'service']
+    };
+
+    Object.entries(specs).forEach(([key, value]) => {
+        const lowerKey = key.toLowerCase();
+        let assigned = false;
+        for (const [category, keywords] of Object.entries(categoryKeywords)) {
+            if (keywords.some(keyword => lowerKey.includes(keyword))) {
+                groups[category][key] = value;
+                assigned = true;
+                break;
+            }
+        }
+        if (!assigned) {
+            groups.general[key] = value;
+        }
+    });
+    return Object.fromEntries(
+        Object.entries(groups).filter(([_, categorySpecs]) => Object.keys(categorySpecs).length > 0)
+    );
+};
+
+const formatSpecificationKey = (key) => {
+    return key
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, l => l.toUpperCase())
+        .trim();
+};
+
+const renderSpecificationValue = (value) => {
+    if (typeof value === 'boolean') {
+        return value ? (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                Yes
+            </span>
+        ) : (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                No
+            </span>
+        );
+    }
+
+    if (Array.isArray(value)) {
+        return (
+            <div className="flex flex-wrap gap-1">
+                {value.map((item, index) => (
+                    <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {String(item)}
+                    </span>
+                ))}
+            </div>
+        );
+    }
+
+    if (typeof value === 'string' && value.includes('http')) {
+        return (
+            <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline text-sm">
+                View Document
+            </a>
+        );
+    }
+
+    return <span className="text-sm sm:text-base">{String(value)}</span>;
+};
 
 const ProductDetails = () => {
     const location = useLocation();
@@ -341,13 +417,6 @@ const ProductDetails = () => {
                                 >
                                     <ZoomIn size={20} />
                                 </button>
-
-                                {product.youtube_video_id && (
-                                    <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 rounded-lg text-sm font-medium flex items-center gap-1">
-                                        <Play size={14} />
-                                        Video Available
-                                    </div>
-                                )}
                             </div>
 
                             {productImages.length > 1 && (
@@ -372,6 +441,7 @@ const ProductDetails = () => {
                                 </div>
                             )}
                         </div>
+
                         <div className="space-y-6">
                             <div className="space-y-3">
                                 <div className="flex items-start justify-between">
@@ -428,6 +498,8 @@ const ProductDetails = () => {
                                     </div>
                                 </div>
                             </div>
+
+
                             <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-5 border border-green-100">
                                 <div className="flex items-baseline gap-3 mb-1">
                                     <span className="text-3xl font-bold text-green-600">
@@ -455,6 +527,7 @@ const ProductDetails = () => {
                                     </p>
                                 )}
                             </div>
+
                             <div className="grid grid-cols-2 gap-3">
                                 {product.warranty && (
                                     <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg border border-orange-100">
@@ -473,6 +546,7 @@ const ProductDetails = () => {
                                     </div>
                                 </div>
                             </div>
+
                             {tags.length > 0 && (
                                 <div className="flex flex-wrap gap-2">
                                     {tags.map((tag, index) => (
@@ -586,62 +660,56 @@ const ProductDetails = () => {
                                     <p className="text-gray-700 leading-relaxed">
                                         {product.description || "This high-quality product is designed to deliver exceptional performance and reliability. Crafted with precision and attention to detail, it offers outstanding value and meets the highest standards of quality and durability."}
                                     </p>
-
-                                    {product.youtube_video_id && (
-                                        <div className="mt-6">
-                                            <h4 className="text-lg font-semibold text-gray-900 mb-3">Product Video</h4>
-                                            <div className="aspect-video max-w-2xl">
-                                                <iframe
-                                                    width="100%"
-                                                    height="100%"
-                                                    src={`https://www.youtube.com/embed/${product.youtube_video_id}`}
-                                                    title={`${product.name} - Product Video`}
-                                                    frameBorder="0"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                    allowFullScreen
-                                                    className="rounded-lg"
-                                                ></iframe>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {product.specification_pdf_id && (
-                                        <div className="mt-6">
-                                            <h4 className="text-lg font-semibold text-gray-900 mb-3">Product Specifications</h4>
-                                            <a
-                                                href={`/api/documents/${product.specification_pdf_id}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                            >
-                                                <FileText size={16} />
-                                                Download Specification PDF
-                                            </a>
-                                        </div>
-                                    )}
                                 </div>
                             )}
 
                             {activeTab === 'specifications' && (
                                 <div className="space-y-6">
-                                    <h3 className="text-xl font-semibold text-gray-900">Product Specifications</h3>
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-xl font-bold text-gray-900">Product Specifications</h3>
+                                        <div className="text-xs text-gray-500">
+                                            {specifications ? `${Object.keys(specifications).length} specifications` : 'No specifications'}
+                                        </div>
+                                    </div>
 
                                     {specifications ? (
-                                        <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
-                                            {Object.entries(specifications).map(([key, value]) => (
-                                                <div key={key} className="flex border-b border-gray-200 last:border-b-0">
-                                                    <div className="w-1/3 bg-gray-100 px-4 py-3 font-medium text-gray-900 border-r border-gray-200">
-                                                        {key}
+                                        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+                                            {Object.entries(groupSpecifications(specifications)).map(([category, specs]) => (
+                                                <div key={category} className="border-b border-gray-100 last:border-b-0">
+                                                    <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
+                                                        <h4 className="font-semibold text-gray-900 text-lg capitalize">
+                                                            {category.replace(/([A-Z])/g, ' $1').trim()}
+                                                        </h4>
                                                     </div>
-                                                    <div className="w-2/3 px-4 py-3 text-gray-700">
-                                                        {String(value)}
+
+                                                    <div className="divide-y divide-gray-100">
+                                                        {Object.entries(specs).map(([key, value]) => (
+                                                            <div key={key} className="flex flex-col sm:flex-row hover:bg-gray-50 transition-colors duration-150">
+                                                                <div className="w-full sm:w-1/3 px-6 py-4 font-medium text-gray-700 border-r-0 sm:border-r border-gray-200 bg-white sm:bg-gray-50">
+                                                                    <span className="text-xs sm:text-base">
+                                                                        {formatSpecificationKey(key)}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="w-full sm:w-2/3 px-6 py-4 text-gray-800">
+                                                                    {renderSpecificationValue(value)}
+                                                                </div>
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                     ) : (
-                                        <p className="text-gray-500 italic">No specifications available for this product.</p>
+                                        <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+                                            <div className="text-gray-400 mb-3">
+                                                <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </div>
+                                            <p className="text-gray-500 text-lg font-medium">No specifications available</p>
+                                            <p className="text-gray-400 text-sm mt-1">Specifications for this product will be added soon</p>
+                                        </div>
                                     )}
-
                                 </div>
                             )}
 
@@ -704,6 +772,7 @@ const ProductDetails = () => {
                     </div>
                 </div>
             </div>
+
             {showZoomModal && (
                 <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => setShowZoomModal(false)}>
                     <div className="relative max-w-4xl w-full max-h-[90vh]">
@@ -757,7 +826,6 @@ const ProductDetails = () => {
                     </div>
                 </div>
             )}
-
             {showReviewForm && (
                 <ReviewForm
                     product={product}
