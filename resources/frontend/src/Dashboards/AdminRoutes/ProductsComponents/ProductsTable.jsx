@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProductRow from './ProductRow';
 import { Search, Filter, Eye, X } from 'lucide-react';
+import useToast from "../../../UserInterFaceComponents/Common/useToast.jsx";
 
 const ProductsTable = ({ refreshTrigger }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const { success, error: showError } = useToast();
     const [filters, setFilters] = useState({
         search: '',
         status: 'all',
@@ -22,7 +24,6 @@ const ProductsTable = ({ refreshTrigger }) => {
             });
 
             if (response.data.success) {
-                // Update the local state
                 setProducts(prevProducts =>
                     prevProducts.map(product =>
                         product.id === productId
@@ -31,12 +32,11 @@ const ProductsTable = ({ refreshTrigger }) => {
                     )
                 );
 
-                // Show success message
-                alert(`Product ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`);
+                success(`Product ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`);
             }
         } catch (error) {
-            console.error('Failed to toggle product status:', error);
-            alert('Failed to update product status. Please try again.');
+            console.error('Failed to toggle status:', error);
+            showError('Failed to update product status. Please try again.');
             throw error;
         }
     };
