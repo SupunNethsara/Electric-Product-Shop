@@ -107,7 +107,7 @@ const Products = () => {
                                 }}
                                 className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                             >
-                                Under $50
+                                Under Rs:50
                             </button>
                             <button
                                 onClick={() => {
@@ -116,7 +116,7 @@ const Products = () => {
                                 }}
                                 className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                             >
-                                $50 - $200
+                                Rs:50 - Rs:200
                             </button>
                         </div>
                     </div>

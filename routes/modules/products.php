@@ -9,3 +9,4 @@ Route::get('/products/home', [ProductController::class, 'homeProducts']);
 Route::post('/products/validate', [ProductController::class, 'validateFiles']);
 Route::post('/products/upload', [ProductController::class, 'uploadProducts']);
 Route::post('/products/upload-images', [ProductController::class, 'uploadImages']);
+Route::patch('/products/{id}/status', [ProductController::class, 'updateStatus']);

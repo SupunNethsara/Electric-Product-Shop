@@ -17,8 +17,48 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $products = Product::all();
-        return response()->json($products);
+        $perPage = $request->get('per_page', 15);
+        $page = $request->get('page', 1);
+
+        $products = Product::paginate($perPage);
+
+        return response()->json([
+            'data' => $products->items(),
+            'page' => $page,
+            'total' => $products->count(),
+            'pagination' => [
+                'current_page' => $products->currentPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
+                'last_page' => $products->lastPage(),
+                'from' => $products->firstItem(),
+                'to' => $products->lastItem(),
+            ]
+        ]);
+    }
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:active,disabled'
+        ]);
+
+        $product = Product::find($id);
+
+        if (!$product) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product not found'
+            ], 404);
+        }
+
+        $product->status = $request->status;
+        $product->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Product status updated successfully',
+            'data' => $product
+        ]);
     }
     public function getActiveProducts(Request $request)
     {

@@ -690,9 +690,9 @@ const ProductDetails = () => {
                                                                         {formatSpecificationKey(key)}
                                                                     </span>
                                                                 </div>
-                                                                <div className="w-full sm:w-2/3 px-6 py-4 text-gray-800">
+                                                                <pre className="w-full sm:w-2/3 px-6 py-4 text-gray-800">
                                                                     {renderSpecificationValue(value)}
-                                                                </div>
+                                                                </pre>
                                                             </div>
                                                         ))}
                                                     </div>
