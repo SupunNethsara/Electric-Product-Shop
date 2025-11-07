@@ -36,6 +36,30 @@ class ProductController extends Controller
             ]
         ]);
     }
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:active,disabled'
+        ]);
+
+        $product = Product::find($id);
+
+        if (!$product) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product not found'
+            ], 404);
+        }
+
+        $product->status = $request->status;
+        $product->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Product status updated successfully',
+            'data' => $product
+        ]);
+    }
     public function getActiveProducts(Request $request)
     {
         $perPage = $request->get('per_page', 20);

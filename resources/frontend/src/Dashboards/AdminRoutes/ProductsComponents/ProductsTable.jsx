@@ -15,7 +15,31 @@ const ProductsTable = ({ refreshTrigger }) => {
         maxPrice: '',
         inStock: false
     });
+    const handleStatusToggle = async (productId, newStatus) => {
+        try {
+            const response = await axios.patch(`http://127.0.0.1:8000/api/products/${productId}/status`, {
+                status: newStatus
+            });
 
+            if (response.data.success) {
+                // Update the local state
+                setProducts(prevProducts =>
+                    prevProducts.map(product =>
+                        product.id === productId
+                            ? { ...product, status: newStatus }
+                            : product
+                    )
+                );
+
+                // Show success message
+                alert(`Product ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`);
+            }
+        } catch (error) {
+            console.error('Failed to toggle product status:', error);
+            alert('Failed to update product status. Please try again.');
+            throw error;
+        }
+    };
     const fetchProducts = async () => {
         setLoading(true);
         try {
@@ -293,6 +317,9 @@ const ProductsTable = ({ refreshTrigger }) => {
                                 Actions
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 View Details
                             </th>
                         </tr>
@@ -305,6 +332,7 @@ const ProductsTable = ({ refreshTrigger }) => {
                                     product={product}
                                     onImagesUpload={handleImagesUpload}
                                     onViewDetails={handleViewDetails}
+                                    onStatusToggle={handleStatusToggle}
                                 />
                             ))
                         ) : (

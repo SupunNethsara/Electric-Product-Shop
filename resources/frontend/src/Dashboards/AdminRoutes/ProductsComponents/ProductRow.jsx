@@ -1,14 +1,27 @@
 import React, { useState } from 'react';
-import { Camera, X,Eye, Upload, AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { Camera, X,Eye,ToggleRight ,ToggleLeft, Upload, AlertCircle, CheckCircle, Info } from 'lucide-react';
 
-const ProductRow = ({ product, onImagesUpload ,  onViewDetails }) => {
+const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) => {
     const [showImageModal, setShowImageModal] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [mainImageIndex, setMainImageIndex] = useState(0);
     const [uploading, setUploading] = useState(false);
     const [showInstructions, setShowInstructions] = useState(false);
     const [showProductDetails, setShowProductDetails] = useState(false);
+    const [isToggling, setIsToggling] = useState(false);
 
+    const handleStatusToggle = async () => {
+        if (isToggling) return;
+
+        setIsToggling(true);
+        try {
+            await onStatusToggle(product.id, product.status === 'active' ? 'disabled' : 'active');
+        } catch (error) {
+            console.error('Failed to toggle status:', error);
+        } finally {
+            setIsToggling(false);
+        }
+    };
     const handleFileSelect = (event) => {
         const files = Array.from(event.target.files);
         if (files.length > 4) {
@@ -132,6 +145,29 @@ const ProductRow = ({ product, onImagesUpload ,  onViewDetails }) => {
                             onChange={handleFileSelect}
                         />
                     </label>
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                    <button
+                        onClick={handleStatusToggle}
+                        disabled={isToggling}
+                        className={`inline-flex items-center px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
+                            product.status === 'active'
+                                ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        } ${isToggling ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        title={product.status === 'active' ? 'Deactivate Product' : 'Activate Product'}
+                    >
+                        {isToggling ? (
+                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-1"></div>
+                        ) : product.status === 'active' ? (
+                            <ToggleRight className="w-4 h-4 mr-1" />
+                        ) : (
+                            <ToggleLeft className="w-4 h-4 mr-1" />
+                        )}
+                        <span className="hidden sm:inline">
+                            {product.status === 'active' ? 'Active' : 'Inactive'}
+                        </span>
+                    </button>
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                     <button
