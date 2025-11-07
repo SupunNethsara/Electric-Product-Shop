@@ -284,7 +284,7 @@ const Navbar = () => {
                                                             Manage Products
                                                         </Link>
                                                         <Link
-                                                            to="/admin/users"
+                                                            to="/admin/user-manage"
                                                             className="flex items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
                                                             onClick={() => setIsUserDropdownOpen(false)}
                                                         >

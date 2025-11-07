@@ -79,7 +79,16 @@ function Header() {
                                         <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                                         <p className="text-sm text-gray-500 capitalize">{user?.role}</p>
                                     </div>
-
+                                    {(role === "admin" || role === "super_admin") && (
+                                        <Link
+                                            to={'/'}
+                                            className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                                            onClick={() => setIsUserDropdownOpen(false)}
+                                        >
+                                            <User size={16} className="mr-3 text-gray-400" />
+                                           User Dashboard
+                                        </Link>
+                                    )}
                                     {(role !== "admin" && role !== "super_admin") && (
                                         <>
                                             <button
