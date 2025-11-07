@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Star } from 'lucide-react';
+import { Star, Eye } from 'lucide-react';
 
 const ProductCard = ({ product }) => {
     const navigate = useNavigate();
@@ -8,37 +8,91 @@ const ProductCard = ({ product }) => {
         average_rating: 0,
         total_reviews: 0
     });
+    const [viewCount, setViewCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    const handleBuyClick = () => {
+    const handleBuyClick = async () => {
+        await trackProductView();
         navigate('/productDetails', { state: { product } });
     };
 
-    useEffect(() => {
-        const fetchRatingData = async () => {
-            try {
-                setLoading(true);
-                const response = await fetch(`http://127.0.0.1:8000/api/products/${product.id}/rating-summary`);
+    const trackProductView = async () => {
+        try {
+            const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
 
-                if (response.ok) {
-                    const data = await response.json();
-                    setRatingData({
-                        average_rating: data.average_rating || 0,
-                        total_reviews: data.total_reviews || 0
-                    });
-                }
-            } catch (error) {
-                console.error('Failed to fetch rating data:', error);
-                setRatingData({
-                    average_rating: product.average_rating || 0,
-                    total_reviews: product.reviews_count || 0
-                });
-            } finally {
-                setLoading(false);
+            console.log('Token from localStorage:', token ? 'Present (' + token.substring(0, 20) + '...)' : 'Missing');
+
+            const headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            };
+
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+                console.log('Adding Authorization header with Bearer token');
             }
-        };
 
+            const response = await fetch(`http://127.0.0.1:8000/api/products/${product.id}/track-view`, {
+                method: 'POST',
+                headers: headers,
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                console.log('✅ View tracked successfully:', data);
+                if (data.debug) {
+                    console.log('🔍 Debug info:', data.debug);
+                }
+            } else {
+                console.error(' Failed to track view:', data);
+            }
+
+        } catch (error) {
+            console.error(' Network error tracking view:', error);
+        }
+    };
+    const fetchRatingData = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`http://127.0.0.1:8000/api/products/${product.id}/rating-summary`);
+
+            if (response.ok) {
+                const data = await response.json();
+                setRatingData({
+                    average_rating: data.average_rating || 0,
+                    total_reviews: data.total_reviews || 0
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch rating data:', error);
+            setRatingData({
+                average_rating: product.average_rating || 0,
+                total_reviews: product.reviews_count || 0
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchViewStats = async () => {
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/api/products/${product.id}/view-stats`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    setViewCount(data.data.total_views || 0);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch view stats:', error);
+        }
+    };
+
+    useEffect(() => {
         fetchRatingData();
+        fetchViewStats();
     }, [product.id]);
 
     const originalPrice = parseFloat(product.price) * 1.3;
@@ -59,10 +113,15 @@ const ProductCard = ({ product }) => {
                     <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 text-xs font-bold rounded">
                         {discountPercent}% OFF
                     </div>
+
+                    <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 text-xs font-bold rounded flex items-center gap-1">
+                        <Eye size={12} />
+                        {viewCount}
+                    </div>
                 </div>
 
                 {isOutOfStock && (
-                    <div className="absolute top-2 right-2 bg-gray-600 text-white px-2 py-1 text-xs font-bold rounded">
+                    <div className="absolute top-10 right-2 bg-gray-600 text-white px-2 py-1 text-xs font-bold rounded">
                         Out of Stock
                     </div>
                 )}
