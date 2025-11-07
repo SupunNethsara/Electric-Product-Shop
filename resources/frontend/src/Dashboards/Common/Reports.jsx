@@ -2,64 +2,58 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
     Download,
-    Filter,
     Calendar,
     Eye,
     ShoppingCart,
-    Users,
-    TrendingUp,
     BarChart3,
     FileText,
     RefreshCw,
-    Search,
+    DollarSign,
+    Users,
+    TrendingUp
 } from "lucide-react";
 import useToast from "../../UserInterFaceComponents/Common/useToast.jsx";
 
 const Reports = () => {
-    const [loading, setLoading] = useState(false);
-    const [reports, setReports] = useState({
-        orders: [],
-        productViews: [],
-        quotations: [],
-    });
     const [dateRange, setDateRange] = useState({
         start: new Date(new Date().setDate(new Date().getDate() - 30))
             .toISOString()
             .split("T")[0],
         end: new Date().toISOString().split("T")[0],
     });
-    const [stats, setStats] = useState({
-        totalOrders: 0,
-        pendingOrders: 0,
-        completedOrders: 0,
-        totalQuotations: 0,
-        convertedQuotations: 0,
-        totalProductViews: 0,
-        mostViewedProduct: null,
-    });
     const [activeTab, setActiveTab] = useState("overview");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [loading, setLoading] = useState(false);
+    const [orders, setOrders] = useState([]);
+    const [stats, setStats] = useState({});
     const { success, error: showError } = useToast();
 
+    // Fetch data when component mounts or filters change
     useEffect(() => {
-        fetchReports();
-        fetchStats();
-    }, [dateRange]);
+        if (activeTab === "orders" || activeTab === "overview") {
+            fetchOrders();
+            fetchStats();
+        }
+    }, [dateRange, statusFilter, activeTab]);
 
-    const fetchReports = async () => {
+    const fetchOrders = async () => {
         setLoading(true);
         try {
             const params = new URLSearchParams({
                 start_date: dateRange.start,
                 end_date: dateRange.end,
+                ...(statusFilter !== 'all' && { status: statusFilter })
             });
 
-            const response = await axios.get(
-                `http://127.0.0.1:8000/api/reports?${params}`,
-            );
-            setReports(response.data);
+            const response = await axios.get(`http://127.0.0.1:8000/api/reports/orders?${params}`);
+            if (response.data.success) {
+                setOrders(response.data.orders || []);
+            } else {
+                showError(response.data.message || "Failed to load orders");
+            }
         } catch (error) {
-            console.error("Error fetching reports:", error);
-            showError("Failed to load reports");
+            console.error("Error fetching orders:", error);
+            showError("Failed to load orders");
         } finally {
             setLoading(false);
         }
@@ -69,53 +63,44 @@ const Reports = () => {
         try {
             const params = new URLSearchParams({
                 start_date: dateRange.start,
-                end_date: dateRange.end,
+                end_date: dateRange.end
             });
 
-            const response = await axios.get(
-                `http://127.0.0.1:8000/api/reports/stats?${params}`,
-            );
-            setStats(response.data);
+            const response = await axios.get(`http://127.0.0.1:8000/api/reports/stats?${params}`);
+            if (response.data.success) {
+                setStats(response.data.stats || {});
+            }
         } catch (error) {
             console.error("Error fetching stats:", error);
+            showError("Failed to load statistics");
         }
     };
 
-    const exportReport = async (type, format) => {
+    const exportOrders = async () => {
         try {
             const params = new URLSearchParams({
                 start_date: dateRange.start,
                 end_date: dateRange.end,
-                format: format,
+                format: 'excel',
+                ...(statusFilter !== 'all' && { status: statusFilter })
             });
 
-            const response = await axios.get(
-                `http://127.0.0.1:8000/api/reports/export/${type}?${params}`,
-                {
-                    responseType: "blob",
-                },
-            );
+            const response = await axios.get(`http://127.0.0.1:8000/api/reports/export/orders?${params}`);
 
-            // Create download link
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement("a");
-            link.href = url;
-            link.setAttribute(
-                "download",
-                `${type}_report_${dateRange.start}_to_${dateRange.end}.${format}`,
-            );
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-
-            success(
-                `${type.charAt(0).toUpperCase() + type.slice(1)} report exported successfully!`,
-            );
+            if (response.data.success) {
+                success('Orders export prepared successfully!');
+                // For now, we'll show a success message since Excel export needs additional setup
+                console.log('Export data:', response.data);
+            }
         } catch (error) {
-            console.error("Error exporting report:", error);
-            showError("Failed to export report");
+            console.error("Error exporting orders:", error);
+            showError("Failed to export orders");
         }
+    };
+
+    const handleRefresh = () => {
+        fetchOrders();
+        fetchStats();
     };
 
     const quickDateRanges = {
@@ -147,44 +132,50 @@ const Reports = () => {
         setDateRange(quickDateRanges[range]);
     };
 
-    const StatCard = ({
-        title,
-        value,
-        icon: Icon,
-        change,
-        changeType = "neutral",
-    }) => (
+    const getStatusColor = (status) => {
+        const colors = {
+            'pending': 'bg-yellow-100 text-yellow-800',
+            'contacted': 'bg-blue-100 text-blue-800',
+            'completed': 'bg-green-100 text-green-800',
+            'cancelled': 'bg-red-100 text-red-800'
+        };
+        return colors[status] || 'bg-gray-100 text-gray-800';
+    };
+
+    const StatCard = ({ title, value, icon: Icon, description, color = "blue" }) => (
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
             <div className="flex items-center justify-between">
                 <div>
                     <p className="text-sm font-medium text-gray-600">{title}</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">
-                        {value}
-                    </p>
-                    {change && (
-                        <p
-                            className={`text-sm mt-1 ${
-                                changeType === "positive"
-                                    ? "text-green-600"
-                                    : changeType === "negative"
-                                      ? "text-red-600"
-                                      : "text-gray-600"
-                            }`}
-                        >
-                            {change}
-                        </p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+                    {description && (
+                        <p className="text-sm text-gray-500 mt-1">{description}</p>
                     )}
                 </div>
-                <div className="p-3 bg-blue-50 rounded-lg">
-                    <Icon className="w-6 h-6 text-blue-600" />
+                <div className={`p-3 rounded-lg ${
+                    color === 'blue' ? 'bg-blue-50' :
+                        color === 'green' ? 'bg-green-50' :
+                            color === 'yellow' ? 'bg-yellow-50' :
+                                color === 'red' ? 'bg-red-50' : 'bg-gray-50'
+                }`}>
+                    <Icon className={`w-6 h-6 ${
+                        color === 'blue' ? 'text-blue-600' :
+                            color === 'green' ? 'text-green-600' :
+                                color === 'yellow' ? 'text-yellow-600' :
+                                    color === 'red' ? 'text-red-600' : 'text-gray-600'
+                    }`} />
                 </div>
             </div>
         </div>
     );
 
+    const totalRevenue = orders.reduce((sum, order) => sum + parseFloat(order.total_amount || 0), 0);
+    const averageOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
+
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
+                {/* Header */}
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>
@@ -192,20 +183,17 @@ const Reports = () => {
                                 Reports & Analytics
                             </h1>
                             <p className="text-gray-600 mt-2">
-                                Comprehensive insights into your ecommerce
-                                performance
+                                Comprehensive insights into your ecommerce performance
                             </p>
                         </div>
                         <div className="flex items-center gap-3">
                             <button
-                                onClick={fetchReports}
+                                onClick={handleRefresh}
                                 disabled={loading}
                                 className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
                             >
-                                <RefreshCw
-                                    className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
-                                />
-                                Refresh
+                                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                                {loading ? 'Loading...' : 'Refresh'}
                             </button>
                         </div>
                     </div>
@@ -214,23 +202,30 @@ const Reports = () => {
                 <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900">
-                                Date Range
-                            </h3>
-                            <p className="text-gray-600 text-sm">
-                                Select the period for your reports
-                            </p>
+                            <h3 className="text-lg font-semibold text-gray-900">Report Filters</h3>
+                            <p className="text-gray-600 text-sm">Filter data by date range and status</p>
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-4">
-                            {/* Quick Date Range Buttons */}
+                            <div className="flex items-center gap-2">
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                                >
+                                    <option value="all">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="contacted">Contacted</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+
                             <div className="flex flex-wrap gap-2">
                                 {Object.keys(quickDateRanges).map((range) => (
                                     <button
                                         key={range}
-                                        onClick={() =>
-                                            handleQuickDateRange(range)
-                                        }
+                                        onClick={() => handleQuickDateRange(range)}
                                         className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                                     >
                                         {range}
@@ -244,12 +239,7 @@ const Reports = () => {
                                     <input
                                         type="date"
                                         value={dateRange.start}
-                                        onChange={(e) =>
-                                            setDateRange((prev) => ({
-                                                ...prev,
-                                                start: e.target.value,
-                                            }))
-                                        }
+                                        onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
                                         className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
                                     />
                                 </div>
@@ -259,12 +249,7 @@ const Reports = () => {
                                     <input
                                         type="date"
                                         value={dateRange.end}
-                                        onChange={(e) =>
-                                            setDateRange((prev) => ({
-                                                ...prev,
-                                                end: e.target.value,
-                                            }))
-                                        }
+                                        onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
                                         className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
                                     />
                                 </div>
@@ -277,26 +262,10 @@ const Reports = () => {
                     <div className="border-b border-gray-200">
                         <nav className="flex space-x-8 px-6">
                             {[
-                                {
-                                    id: "overview",
-                                    label: "Overview",
-                                    icon: BarChart3,
-                                },
-                                {
-                                    id: "orders",
-                                    label: "Orders",
-                                    icon: ShoppingCart,
-                                },
-                                {
-                                    id: "quotations",
-                                    label: "Quotations",
-                                    icon: FileText,
-                                },
-                                {
-                                    id: "product-views",
-                                    label: "Product Views",
-                                    icon: Eye,
-                                },
+                                { id: "overview", label: "Overview", icon: BarChart3 },
+                                { id: "orders", label: "Orders", icon: ShoppingCart },
+                                { id: "quotations", label: "Quotations", icon: FileText },
+                                { id: "product-views", label: "Product Views", icon: Eye },
                             ].map((tab) => {
                                 const Icon = tab.icon;
                                 return (
@@ -323,133 +292,101 @@ const Reports = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             <StatCard
                                 title="Total Orders"
-                                value={stats.totalOrders}
+                                value={stats.total_orders || 0}
                                 icon={ShoppingCart}
-                                change="+12% from last period"
-                                changeType="positive"
+                                description={`${dateRange.start} to ${dateRange.end}`}
+                                color="blue"
                             />
                             <StatCard
                                 title="Pending Orders"
-                                value={stats.pendingOrders}
+                                value={stats.pending_orders || 0}
                                 icon={ShoppingCart}
-                                change="5 need attention"
-                                changeType="negative"
+                                description="Awaiting action"
+                                color="yellow"
                             />
                             <StatCard
-                                title="Total Quotations"
-                                value={stats.totalQuotations}
-                                icon={FileText}
-                                change="+8% from last period"
-                                changeType="positive"
+                                title="Completed Orders"
+                                value={stats.completed_orders || 0}
+                                icon={ShoppingCart}
+                                description="Successfully delivered"
+                                color="green"
                             />
                             <StatCard
-                                title="Product Views"
-                                value={stats.totalProductViews}
-                                icon={Eye}
-                                change="+15% from last period"
-                                changeType="positive"
+                                title="Total Revenue"
+                                value={`Rs. ${stats.total_revenue ? stats.total_revenue.toLocaleString() : '0'}`}
+                                icon={DollarSign}
+                                description="From completed orders"
+                                color="green"
                             />
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <div className="bg-white rounded-xl border border-gray-200 p-6">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                                    Quotation Conversion
+                                    Order Analytics
                                 </h3>
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-2xl font-bold text-gray-900">
-                                            {stats.convertedQuotations} /{" "}
-                                            {stats.totalQuotations}
-                                        </p>
-                                        <p className="text-gray-600">
-                                            Quotations converted to orders
-                                        </p>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600">Average Order Value:</span>
+                                        <span className="font-semibold">Rs. {stats.average_order_value ? stats.average_order_value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</span>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-2xl font-bold text-green-600">
-                                            {stats.totalQuotations > 0
-                                                ? Math.round(
-                                                      (stats.convertedQuotations /
-                                                          stats.totalQuotations) *
-                                                          100,
-                                                  )
-                                                : 0}
-                                            %
-                                        </p>
-                                        <p className="text-gray-600">
-                                            Conversion rate
-                                        </p>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600">Completion Rate:</span>
+                                        <span className="font-semibold text-green-600">
+                                            {stats.completion_rate ? stats.completion_rate.toFixed(1) : 0}%
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600">Contacted Orders:</span>
+                                        <span className="font-semibold">{stats.contacted_orders || 0}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600">Cancelled Orders:</span>
+                                        <span className="font-semibold text-red-600">{stats.cancelled_orders || 0}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {stats.mostViewedProduct && (
-                                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                                        Most Viewed Product
-                                    </h3>
-                                    <div className="flex items-center gap-4">
-                                        <img
-                                            src={
-                                                stats.mostViewedProduct.image ||
-                                                "/placeholder-image.jpg"
-                                            }
-                                            alt={stats.mostViewedProduct.name}
-                                            className="w-16 h-16 object-cover rounded-lg border border-gray-200"
-                                        />
-                                        <div className="flex-1">
-                                            <h4 className="font-medium text-gray-900">
-                                                {stats.mostViewedProduct.name}
-                                            </h4>
-                                            <p className="text-gray-600 text-sm">
-                                                {
-                                                    stats.mostViewedProduct
-                                                        .item_code
-                                                }
-                                            </p>
-                                            <p className="text-blue-600 font-semibold">
-                                                {
-                                                    stats.mostViewedProduct
-                                                        .view_count
-                                                }{" "}
-                                                views
-                                            </p>
-                                        </div>
+                            <div className="bg-white rounded-xl border border-gray-200 p-6">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                    Quick Summary
+                                </h3>
+                                <div className="space-y-3">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Date Range:</span>
+                                        <span className="font-medium">{dateRange.start} to {dateRange.end}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Status Filter:</span>
+                                        <span className="font-medium capitalize">{statusFilter}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Total Records:</span>
+                                        <span className="font-medium">{orders.length} orders</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Last Updated:</span>
+                                        <span className="font-medium">{new Date().toLocaleTimeString()}</span>
                                     </div>
                                 </div>
-                            )}
+                            </div>
                         </div>
 
                         <div className="bg-white rounded-xl border border-gray-200 p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                                Export Reports
-                            </h3>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Export Reports</h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <button
-                                    onClick={() =>
-                                        exportReport("orders", "excel")
-                                    }
+                                    onClick={exportOrders}
                                     className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                                 >
                                     <Download className="w-5 h-5 text-green-600" />
                                     <span>Export Orders (Excel)</span>
                                 </button>
-                                <button
-                                    onClick={() =>
-                                        exportReport("quotations", "pdf")
-                                    }
-                                    className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
+                                <button className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors opacity-50 cursor-not-allowed">
                                     <Download className="w-5 h-5 text-red-600" />
                                     <span>Export Quotations (PDF)</span>
                                 </button>
-                                <button
-                                    onClick={() =>
-                                        exportReport("product-views", "excel")
-                                    }
-                                    className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
+                                <button className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors opacity-50 cursor-not-allowed">
                                     <Download className="w-5 h-5 text-blue-600" />
                                     <span>Export Product Views (Excel)</span>
                                 </button>
@@ -460,22 +397,34 @@ const Reports = () => {
                 {activeTab === "orders" && (
                     <div className="space-y-6">
                         <div className="flex justify-between items-center">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                                Order Reports
-                            </h3>
-                            <button
-                                onClick={() => exportReport("orders", "excel")}
-                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                            >
-                                <Download className="w-4 h-4" />
-                                Export Excel
-                            </button>
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900">Order Reports</h3>
+                                <p className="text-gray-600 text-sm">
+                                    Showing {orders.length} orders from {dateRange.start} to {dateRange.end}
+                                    {statusFilter !== 'all' && ` (Filtered by: ${statusFilter})`}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={exportOrders}
+                                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    Export Excel
+                                </button>
+                            </div>
                         </div>
 
-                        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
+                        {loading ? (
+                            <div className="flex justify-center items-center py-12">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                <span className="ml-3 text-gray-600">Loading orders...</span>
+                            </div>
+                        ) : orders.length > 0 ? (
+                            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
                                         <tr>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Order ID
@@ -484,151 +433,108 @@ const Reports = () => {
                                                 Customer
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Contact
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Date
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Amount
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Items
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Status
                                             </th>
                                         </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {reports.orders.map((order) => (
-                                            <tr
-                                                key={order.id}
-                                                className="hover:bg-gray-50"
-                                            >
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                        {orders.map((order) => (
+                                            <tr key={order.id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                    #{order.id}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {order.customer_name}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {new Date(
-                                                        order.created_at,
-                                                    ).toLocaleDateString()}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    Rs. {order.total_amount}
+                                                    {order.order_code}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span
-                                                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                            order.status ===
-                                                            "completed"
-                                                                ? "bg-green-100 text-green-800"
-                                                                : order.status ===
-                                                                    "pending"
-                                                                  ? "bg-yellow-100 text-yellow-800"
-                                                                  : order.status ===
-                                                                      "cancelled"
-                                                                    ? "bg-red-100 text-red-800"
-                                                                    : "bg-blue-100 text-blue-800"
-                                                        }`}
-                                                    >
-                                                        {order.status}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {activeTab === "product-views" && (
-                    <div className="space-y-6">
-                        <div className="flex justify-between items-center">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                                Product View Analytics
-                            </h3>
-                            <button
-                                onClick={() =>
-                                    exportReport("product-views", "excel")
-                                }
-                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                                <Download className="w-4 h-4" />
-                                Export Excel
-                            </button>
-                        </div>
-
-                        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Product
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Item Code
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Views
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Last Viewed
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {reports.productViews.map((product) => (
-                                            <tr
-                                                key={product.id}
-                                                className="hover:bg-gray-50"
-                                            >
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center gap-3">
-                                                        <img
-                                                            src={
-                                                                product.image ||
-                                                                "/placeholder-image.jpg"
-                                                            }
-                                                            alt={product.name}
-                                                            className="w-10 h-10 object-cover rounded-lg border border-gray-200"
-                                                        />
-                                                        <div>
-                                                            <div className="text-sm font-medium text-gray-900">
-                                                                {product.name}
-                                                            </div>
-                                                            <div className="text-sm text-gray-500">
-                                                                {product.model}
-                                                            </div>
+                                                    <div>
+                                                        <div className="text-sm font-medium text-gray-900">
+                                                            {order.customer_name}
+                                                        </div>
+                                                        <div className="text-sm text-gray-500">
+                                                            {order.customer_email}
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {product.item_code}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    <span className="font-semibold">
-                                                        {product.view_count}
-                                                    </span>
+                                                    {order.customer_phone || 'N/A'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {product.last_viewed
-                                                        ? new Date(
-                                                              product.last_viewed,
-                                                          ).toLocaleDateString()
-                                                        : "Never"}
+                                                    {new Date(order.created_at).toLocaleDateString()}
+                                                    <div className="text-xs text-gray-400">
+                                                        {new Date(order.created_at).toLocaleTimeString()}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                    Rs. {parseFloat(order.total_amount || 0).toLocaleString()}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {order.items_count || 1} item(s)
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                                                        {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Unknown'}
+                                                    </span>
                                                 </td>
                                             </tr>
                                         ))}
-                                    </tbody>
-                                </table>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
+                        ) : (
+                            <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+                                <ShoppingCart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">No orders found</h3>
+                                <p className="text-gray-500 mb-4">
+                                    {statusFilter !== 'all'
+                                        ? `No ${statusFilter} orders found in the selected date range.`
+                                        : 'No orders found in the selected date range.'
+                                    }
+                                </p>
+                                <button
+                                    onClick={() => setStatusFilter('all')}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                    Clear Filters
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === "product-views" && (
+                    <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
+                        <Eye className="mx-auto h-16 w-16 text-gray-300 mb-4" />
+                        <h3 className="text-2xl font-semibold text-gray-600 mb-3">Product View Analytics</h3>
+                        <p className="text-gray-500 max-w-md mx-auto mb-6">
+                            Product view tracking will be available once the analytics system is implemented.
+                        </p>
+                        <div className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                            Coming Soon
                         </div>
                     </div>
                 )}
-                {loading && (
-                    <div className="flex justify-center items-center py-12">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+
+                {activeTab === "quotations" && (
+                    <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
+                        <FileText className="mx-auto h-16 w-16 text-gray-300 mb-4" />
+                        <h3 className="text-2xl font-semibold text-gray-600 mb-3">Quotation Reports</h3>
+                        <p className="text-gray-500 max-w-md mx-auto mb-6">
+                            Quotation tracking and analytics will be available once the quotation system is implemented.
+                        </p>
+                        <div className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                            Coming Soon
+                        </div>
                     </div>
                 )}
             </div>
