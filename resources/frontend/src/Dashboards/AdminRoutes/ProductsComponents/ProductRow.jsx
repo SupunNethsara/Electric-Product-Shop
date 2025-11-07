@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Camera, X, Upload, AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { Camera, X,Eye, Upload, AlertCircle, CheckCircle, Info } from 'lucide-react';
 
-const ProductRow = ({ product, onImagesUpload }) => {
+const ProductRow = ({ product, onImagesUpload ,  onViewDetails }) => {
     const [showImageModal, setShowImageModal] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [mainImageIndex, setMainImageIndex] = useState(0);
@@ -106,9 +106,7 @@ const ProductRow = ({ product, onImagesUpload }) => {
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
                     {product.model}
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-500 max-w-xs truncate hidden lg:table-cell">
-                    {product.description}
-                </td>
+
                 <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-green-600">
                     ${product.price}
                 </td>
@@ -134,6 +132,16 @@ const ProductRow = ({ product, onImagesUpload }) => {
                             onChange={handleFileSelect}
                         />
                     </label>
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                    <button
+                        onClick={() => onViewDetails(product)}
+                        className="cursor-pointer bg-blue-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm hover:bg-blue-700 transition-all duration-200 inline-flex items-center gap-1 sm:gap-2 shadow-md hover:shadow-lg"
+                    >
+                        <Eye size={14} className="sm:w-4 sm:h-4" />
+                        <span className="hidden xs:inline">View Details</span>
+                        <span className="xs:hidden">Details</span>
+                    </button>
                 </td>
             </tr>
 
