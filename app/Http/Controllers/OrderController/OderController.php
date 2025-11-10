@@ -16,8 +16,11 @@ class OderController extends Controller
 {
     public function getAllOrder()
     {
+
         return response()->json([
-           'orders'=>Order::with('user')->get()
+            'orders' => Order::with('user')
+                ->orderBy('created_at', 'desc')
+                ->get()
         ]);
     }
 
