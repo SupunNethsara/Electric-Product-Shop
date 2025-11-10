@@ -15,7 +15,9 @@ import {
     ArrowUp,
     ExternalLink
 } from "lucide-react";
-import useToast from "../../UserInterFaceComponents/Common/useToast.jsx";
+
+import 'jspdf-autotable';
+import useToast from "../../../UserInterFaceComponents/Common/useToast.jsx";
 
 const Reports = () => {
     const [dateRange, setDateRange] = useState({
@@ -29,12 +31,11 @@ const Reports = () => {
     const [loading, setLoading] = useState(false);
     const [orders, setOrders] = useState([]);
     const [stats, setStats] = useState({});
-    const [mostViewedProducts, setMostViewedProducts] = useState({});
+    const [mostViewedProducts, setMostViewedProducts] = useState([]);
 
     const [productsLoading, setProductsLoading] = useState(false);
     const { success, error: showError } = useToast();
 
-    // Fetch data when component mounts or filters change
     useEffect(() => {
         if (activeTab === "orders" || activeTab === "overview") {
             fetchOrders();
@@ -90,7 +91,6 @@ const Reports = () => {
         try {
             const response = await axios.get("http://127.0.0.1:8000/api/products/most-viewed");
             if (response.data.success) {
-                // Handle both response formats for backward compatibility
                 const products = response.data.products !== undefined
                     ? response.data.products
                     : (response.data.product ? [response.data.product] : []);
@@ -109,24 +109,161 @@ const Reports = () => {
         }
     };
 
-    const exportOrders = async () => {
+    const exportOrdersPDF = async () => {
         try {
-            const params = new URLSearchParams({
-                start_date: dateRange.start,
-                end_date: dateRange.end,
-                format: 'excel',
-                ...(statusFilter !== 'all' && { status: statusFilter })
+            setLoading(true);
+
+            const totalRevenue = orders.reduce((sum, order) => sum + parseFloat(order.total_amount || 0), 0);
+            const averageOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
+
+            const pdfData = {
+                title: 'Order Report',
+                dateRange: `${dateRange.start} to ${dateRange.end}`,
+                filters: statusFilter !== 'all' ? `Status: ${statusFilter}` : 'All Status',
+                totalOrders: orders.length,
+                totalRevenue: totalRevenue,
+                averageOrderValue: averageOrderValue,
+                orders: orders.map(order => ({
+                    orderCode: order.order_code,
+                    customerName: order.customer_name,
+                    customerEmail: order.customer_email,
+                    customerPhone: order.customer_phone || 'N/A',
+                    date: new Date(order.created_at).toLocaleDateString(),
+                    time: new Date(order.created_at).toLocaleTimeString(),
+                    amount: `Rs. ${parseFloat(order.total_amount || 0).toLocaleString()}`,
+                    items: order.items_count || 1,
+                    status: order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Unknown'
+                }))
+            };
+
+            const { jsPDF } = await import('jspdf');
+            const autoTable = (await import('jspdf-autotable')).default;
+            const doc = new jsPDF();
+
+            doc.setFontSize(20);
+            doc.setTextColor(40, 40, 40);
+            doc.text('ORDER REPORT', 105, 15, { align: 'center' });
+
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Date Range: ${pdfData.dateRange}`, 105, 22, { align: 'center' });
+            doc.text(`Filters: ${pdfData.filters}`, 105, 27, { align: 'center' });
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 32, { align: 'center' });
+
+            doc.setFontSize(12);
+            doc.setTextColor(40, 40, 40);
+            doc.text('SUMMARY', 14, 45);
+
+            doc.setFontSize(10);
+            doc.text(`Total Orders: ${pdfData.totalOrders}`, 14, 55);
+            doc.text(`Total Revenue: Rs. ${pdfData.totalRevenue.toLocaleString()}`, 14, 60);
+            doc.text(`Average Order Value: Rs. ${pdfData.averageOrderValue.toFixed(2)}`, 14, 65);
+
+            const tableHeaders = [
+                ['Order Code', 'Customer', 'Contact', 'Date', 'Amount', 'Items', 'Status']
+            ];
+
+            const tableData = pdfData.orders.map(order => [
+                order.orderCode,
+                order.customerName,
+                order.customerPhone,
+                order.date,
+                order.amount,
+                order.items.toString(),
+                order.status
+            ]);
+
+            autoTable(doc, {
+                startY: 75,
+                head: tableHeaders,
+                body: tableData,
+                theme: 'grid',
+                styles: {
+                    fontSize: 8,
+                    cellPadding: 2,
+                },
+                headStyles: {
+                    fillColor: [59, 130, 246],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 245, 245]
+                },
+                columnStyles: {
+                    0: { cellWidth: 25 },
+                    1: { cellWidth: 25 },
+                    2: { cellWidth: 20 },
+                    3: { cellWidth: 20 },
+                    4: { cellWidth: 20 },
+                    5: { cellWidth: 15 },
+                    6: { cellWidth: 20 }
+                },
+                margin: { top: 75 }
             });
 
-            const response = await axios.get(`http://127.0.0.1:8000/api/reports/export/orders?${params}`);
-
-            if (response.data.success) {
-                success('Orders export prepared successfully!');
-                console.log('Export data:', response.data);
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(150, 150, 150);
+                doc.text(`Page ${i} of ${pageCount}`, 105, doc.internal.pageSize.height - 10, { align: 'center' });
+                doc.text(`Generated by Ecommerce System`, 105, doc.internal.pageSize.height - 5, { align: 'center' });
             }
+
+            const fileName = `order-report-${dateRange.start}-to-${dateRange.end}.pdf`;
+            doc.save(fileName);
+
+            success('PDF report downloaded successfully!');
+
         } catch (error) {
-            console.error("Error exporting orders:", error);
-            showError("Failed to export orders");
+            console.error('Error generating PDF:', error);
+            showError('Failed to generate PDF report');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const exportOrdersExcel = async () => {
+        try {
+            setLoading(true);
+
+            const headers = ['Order Code', 'Customer Name', 'Email', 'Phone', 'Date', 'Time', 'Amount', 'Items', 'Status'];
+            const csvContent = [
+                headers.join(','),
+                ...orders.map(order => [
+                    order.order_code,
+                    `"${order.customer_name}"`,
+                    order.customer_email,
+                    order.customer_phone || 'N/A',
+                    new Date(order.created_at).toLocaleDateString(),
+                    new Date(order.created_at).toLocaleTimeString(),
+                    parseFloat(order.total_amount || 0),
+                    order.items_count || 1,
+                    order.status
+                ].join(','))
+            ].join('\n');
+
+            // Create and download CSV file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', `order-report-${dateRange.start}-to-${dateRange.end}.csv`);
+            link.style.visibility = 'hidden';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            success('Excel report downloaded successfully!');
+
+        } catch (error) {
+            console.error('Error generating Excel:', error);
+            showError('Failed to generate Excel report');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -221,7 +358,6 @@ const Reports = () => {
         return (
             <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all duration-200 group">
                 <div className="flex items-start gap-4">
-                    {/* Rank Badge */}
                     <div className="flex-shrink-0">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
                             rank === 1 ? 'bg-yellow-500' :
@@ -358,7 +494,6 @@ const Reports = () => {
     );
 
     const totalRevenue = orders.reduce((sum, order) => sum + parseFloat(order.total_amount || 0), 0);
-    const averageOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">
@@ -543,19 +678,19 @@ const Reports = () => {
                                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Export Reports</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <button
-                                            onClick={exportOrders}
-                                            className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                            onClick={exportOrdersPDF}
+                                            disabled={loading || orders.length === 0}
+                                            className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             <Download className="w-5 h-5 text-green-600" />
-                                            <span>Export Orders (Excel)</span>
+                                            <span>Export Orders (PDF)</span>
                                         </button>
-                                        <button className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors opacity-50 cursor-not-allowed">
+                                        <button
+                                            className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            disabled
+                                        >
                                             <Download className="w-5 h-5 text-red-600" />
                                             <span>Export Quotations (PDF)</span>
-                                        </button>
-                                        <button className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors opacity-50 cursor-not-allowed">
-                                            <Download className="w-5 h-5 text-blue-600" />
-                                            <span>Export Product Views (Excel)</span>
                                         </button>
                                     </div>
                                 </div>
@@ -580,8 +715,9 @@ const Reports = () => {
                             </div>
                             <div className="flex items-center gap-3">
                                 <button
-                                    onClick={exportOrders}
-                                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                    onClick={exportOrdersExcel}
+                                    disabled={loading || orders.length === 0}
+                                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Download className="w-4 h-4" />
                                     Export Excel

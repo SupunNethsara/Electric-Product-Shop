@@ -4,7 +4,7 @@ import SaStatics from "./SuperAdminRoutes/SaStatics.jsx";
 import AdminManagement from "./SuperAdminRoutes/AdminManagement.jsx";
 import UserManage from "./SuperAdminRoutes/UserManage.jsx";
 import SystemSettings from "./SuperAdminRoutes/SystemSettings.jsx";
-import Reports from "./Common/Reports.jsx";
+import Reports from "./Common/Reports/Reports.jsx";
 
 
 const SuperAdminDashboard = () => {

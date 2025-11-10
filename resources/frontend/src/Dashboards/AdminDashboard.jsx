@@ -6,7 +6,7 @@ import Categories from "./AdminRoutes/Categories.jsx";
 import Orders from "./AdminRoutes/Orders.jsx";
 import Quotations from "./AdminRoutes/Quotations.jsx";
 import UserManage from "./AdminRoutes/UserManage.jsx";
-import Reports from "./Common/Reports.jsx";
+import Reports from "./Common/Reports/Reports.jsx";
 
 const AdminDashboard = () => {
     return (
