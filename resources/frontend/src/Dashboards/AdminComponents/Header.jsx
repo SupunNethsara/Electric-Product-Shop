@@ -42,7 +42,7 @@ function Header() {
     const fetchNotifications = async () => {
         try {
             const response = await axios.get(
-                "http://127.0.0.1:8000/api/orders/getAllOrder",
+                "http://127.0.0.1:8000/api/orders/getAllOrderNotification",
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,

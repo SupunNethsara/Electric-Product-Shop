@@ -17,12 +17,19 @@ class OderController extends Controller
     public function getAllOrder()
     {
         return response()->json([
+            'orders' => Order::with('user')
+                ->orderBy('created_at', 'desc')
+                ->get()
+        ]);
+    }
+    public function getAllOrderNotification()
+    {
+        return response()->json([
             'orders' => Order::with('user')->where('read' , false)
                 ->orderBy('created_at', 'desc')
                 ->get()
         ]);
     }
-
 
     public function getUserOrder(Request $request)
     {
