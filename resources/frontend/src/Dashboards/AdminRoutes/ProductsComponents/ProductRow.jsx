@@ -121,7 +121,7 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
                 </td>
 
                 <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                    ${product.price}
+                    Rs:{product.price}
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

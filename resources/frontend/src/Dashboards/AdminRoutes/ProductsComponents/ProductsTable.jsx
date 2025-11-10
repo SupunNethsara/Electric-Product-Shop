@@ -11,7 +11,6 @@ const ProductsTable = ({ refreshTrigger }) => {
     const [showModal, setShowModal] = useState(false);
     const { success, error: showError } = useToast();
 
-    // Pagination state
     const [pagination, setPagination] = useState({
         current_page: 1,
         per_page: 15,
@@ -186,7 +185,6 @@ const ProductsTable = ({ refreshTrigger }) => {
         });
     };
 
-    // Pagination handlers
     const handlePageChange = (page) => {
         if (page >= 1 && page <= pagination.last_page) {
             fetchProducts(page);
@@ -195,7 +193,6 @@ const ProductsTable = ({ refreshTrigger }) => {
 
     const handlePerPageChange = (perPage) => {
         setPagination(prev => ({ ...prev, per_page: parseInt(perPage) }));
-        // Reset to page 1 when changing items per page
         setTimeout(() => fetchProducts(1), 100);
     };
 
@@ -234,7 +231,6 @@ const ProductsTable = ({ refreshTrigger }) => {
 
     return (
         <div className="space-y-6">
-            {/* Header and Filters */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h2 className="text-xl font-bold text-gray-900">Product Catalog</h2>
@@ -303,7 +299,6 @@ const ProductsTable = ({ refreshTrigger }) => {
                 </div>
             </div>
 
-            {/* Active Filters Display */}
             {(filters.search || filters.status !== 'all' || filters.minPrice || filters.maxPrice || filters.inStock) && (
                 <div className="flex flex-wrap gap-2">
                     {filters.search && (
@@ -334,7 +329,6 @@ const ProductsTable = ({ refreshTrigger }) => {
                 </div>
             )}
 
-            {/* Products Table */}
             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
