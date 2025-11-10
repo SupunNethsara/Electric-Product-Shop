@@ -401,21 +401,24 @@ class ProductController extends Controller
 
     public function getMostViewedProducts()
     {
-        $product = Product::with('category')
+        $products = Product::with('category')
+            ->where('total_views', '>', 0)
             ->orderBy('total_views', 'desc')
-            ->first();
+            ->limit(1)
+            ->get();
 
-        if (!$product) {
+        if ($products->isEmpty()) {
             return response()->json([
-                'success' => false,
-                'message' => 'No products found'
-            ], 404);
+                'success' => true,
+                'products' => [],
+                'message' => 'No viewed products found'
+            ]);
         }
 
         return response()->json([
             'success' => true,
-            'product' => $product,
-            'total_views' => $product->total_views,
+            'products' => $products,
+            'total_views' => $products->sum('total_views')
         ]);
     }
 

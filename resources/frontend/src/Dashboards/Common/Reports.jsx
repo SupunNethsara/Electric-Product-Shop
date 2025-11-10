@@ -10,7 +10,10 @@ import {
     RefreshCw,
     DollarSign,
     Users,
-    TrendingUp
+    TrendingUp,
+    Star,
+    ArrowUp,
+    ExternalLink
 } from "lucide-react";
 import useToast from "../../UserInterFaceComponents/Common/useToast.jsx";
 
@@ -26,6 +29,9 @@ const Reports = () => {
     const [loading, setLoading] = useState(false);
     const [orders, setOrders] = useState([]);
     const [stats, setStats] = useState({});
+    const [mostViewedProducts, setMostViewedProducts] = useState({});
+
+    const [productsLoading, setProductsLoading] = useState(false);
     const { success, error: showError } = useToast();
 
     // Fetch data when component mounts or filters change
@@ -33,6 +39,9 @@ const Reports = () => {
         if (activeTab === "orders" || activeTab === "overview") {
             fetchOrders();
             fetchStats();
+        }
+        if (activeTab === "overview" || activeTab === "product-views") {
+            fetchMostViewedProducts();
         }
     }, [dateRange, statusFilter, activeTab]);
 
@@ -76,6 +85,30 @@ const Reports = () => {
         }
     };
 
+    const fetchMostViewedProducts = async () => {
+        setProductsLoading(true);
+        try {
+            const response = await axios.get("http://127.0.0.1:8000/api/products/most-viewed");
+            if (response.data.success) {
+                // Handle both response formats for backward compatibility
+                const products = response.data.products !== undefined
+                    ? response.data.products
+                    : (response.data.product ? [response.data.product] : []);
+
+                setMostViewedProducts(products);
+            } else {
+                showError(response.data.message || "Failed to load most viewed products");
+                setMostViewedProducts([]);
+            }
+        } catch (error) {
+            console.error("Error fetching most viewed products:", error);
+            showError("Failed to load most viewed products");
+            setMostViewedProducts([]);
+        } finally {
+            setProductsLoading(false);
+        }
+    };
+
     const exportOrders = async () => {
         try {
             const params = new URLSearchParams({
@@ -89,7 +122,6 @@ const Reports = () => {
 
             if (response.data.success) {
                 success('Orders export prepared successfully!');
-                // For now, we'll show a success message since Excel export needs additional setup
                 console.log('Export data:', response.data);
             }
         } catch (error) {
@@ -101,6 +133,9 @@ const Reports = () => {
     const handleRefresh = () => {
         fetchOrders();
         fetchStats();
+        if (activeTab === "overview" || activeTab === "product-views") {
+            fetchMostViewedProducts();
+        }
     };
 
     const quickDateRanges = {
@@ -142,17 +177,27 @@ const Reports = () => {
         return colors[status] || 'bg-gray-100 text-gray-800';
     };
 
-    const StatCard = ({ title, value, icon: Icon, description, color = "blue" }) => (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+    const StatCard = ({ title, value, icon: Icon, description, color = "blue", trend }) => (
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-sm font-medium text-gray-600">{title}</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+                <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
+                    <div className="flex items-baseline gap-2">
+                        <p className="text-2xl font-bold text-gray-900">{value}</p>
+                        {trend && (
+                            <span className={`flex items-center text-xs font-medium ${
+                                trend > 0 ? 'text-green-600' : trend < 0 ? 'text-red-600' : 'text-gray-500'
+                            }`}>
+                                <ArrowUp className={`w-3 h-3 mr-1 ${trend < 0 ? 'rotate-180' : ''}`} />
+                                {Math.abs(trend)}%
+                            </span>
+                        )}
+                    </div>
                     {description && (
-                        <p className="text-sm text-gray-500 mt-1">{description}</p>
+                        <p className="text-sm text-gray-500 mt-2">{description}</p>
                     )}
                 </div>
-                <div className={`p-3 rounded-lg ${
+                <div className={`p-3 rounded-xl ${
                     color === 'blue' ? 'bg-blue-50' :
                         color === 'green' ? 'bg-green-50' :
                             color === 'yellow' ? 'bg-yellow-50' :
@@ -169,13 +214,155 @@ const Reports = () => {
         </div>
     );
 
+    const ProductCard = ({ product, rank }) => {
+        const images = product.images ? JSON.parse(product.images) : [];
+        const mainImage = images[0] || product.image;
+
+        return (
+            <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all duration-200 group">
+                <div className="flex items-start gap-4">
+                    {/* Rank Badge */}
+                    <div className="flex-shrink-0">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                            rank === 1 ? 'bg-yellow-500' :
+                                rank === 2 ? 'bg-gray-400' :
+                                    rank === 3 ? 'bg-orange-500' : 'bg-blue-500'
+                        }`}>
+                            {rank}
+                        </div>
+                    </div>
+
+                    <div className="flex-shrink-0">
+                        <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden">
+                            {mainImage ? (
+                                <img
+                                    src={mainImage}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                    <ShoppingCart className="w-6 h-6" />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1">
+                                <h4 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors">
+                                    {product.name}
+                                </h4>
+                                <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+                                    {product.category?.name}
+                                </p>
+                                <div className="flex items-center gap-3 mt-2">
+                                    <div className="flex items-center gap-1">
+                                        <Eye className="w-3 h-3 text-gray-400" />
+                                        <span className="text-xs font-medium text-gray-700">
+                                            {product.total_views?.toLocaleString()} views
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Star className="w-3 h-3 text-yellow-400" />
+                                        <span className="text-xs text-gray-600">
+                                            {product.average_rating || 0}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-gray-100 rounded">
+                                <ExternalLink className="w-4 h-4 text-gray-400" />
+                            </button>
+                        </div>
+
+                        <div className="flex items-center justify-between mt-3">
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-sm font-bold text-green-600">
+                                    Rs. {parseFloat(product.price).toLocaleString()}
+                                </span>
+                            </div>
+                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                product.availability > 10 ? 'bg-green-100 text-green-800' :
+                                    product.availability > 0 ? 'bg-yellow-100 text-yellow-800' :
+                                        'bg-red-100 text-red-800'
+                            }`}>
+                                {product.availability > 0 ? `${product.availability} in stock` : 'Out of stock'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const TrendingProductsSection = () => (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-blue-600" />
+                        Most Viewed Products
+                    </h3>
+                    <p className="text-gray-600 text-sm mt-1">
+                        Top performing products by view count
+                    </p>
+                </div>
+                <button
+                    onClick={fetchMostViewedProducts}
+                    disabled={productsLoading}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                    <RefreshCw className={`w-4 h-4 ${productsLoading ? 'animate-spin' : ''}`} />
+                    Refresh
+                </button>
+            </div>
+
+            {productsLoading ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="animate-pulse">
+                            <div className="bg-gray-200 rounded-xl p-4 h-24"></div>
+                        </div>
+                    ))}
+                </div>
+            ) : mostViewedProducts.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+                    {mostViewedProducts.slice(0, 6).map((product, index) => (
+                        <ProductCard
+                            key={product.id}
+                            product={product}
+                            rank={index + 1}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-8">
+                    <Eye className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+                    <h4 className="text-gray-500 font-medium">No product views data available</h4>
+                    <p className="text-gray-400 text-sm mt-1">
+                        Product views will appear here once customers start browsing
+                    </p>
+                </div>
+            )}
+
+            {mostViewedProducts.length > 6 && (
+                <div className="mt-6 text-center">
+                    <button className="px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium">
+                        View All Products
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+
     const totalRevenue = orders.reduce((sum, order) => sum + parseFloat(order.total_amount || 0), 0);
     const averageOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
-                {/* Header */}
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>
@@ -211,7 +398,7 @@ const Reports = () => {
                                 <select
                                     value={statusFilter}
                                     onChange={(e) => setStatusFilter(e.target.value)}
-                                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 >
                                     <option value="all">All Status</option>
                                     <option value="pending">Pending</option>
@@ -240,7 +427,7 @@ const Reports = () => {
                                         type="date"
                                         value={dateRange.start}
                                         onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     />
                                 </div>
                                 <span className="text-gray-400">to</span>
@@ -250,7 +437,7 @@ const Reports = () => {
                                         type="date"
                                         value={dateRange.end}
                                         onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     />
                                 </div>
                             </div>
@@ -272,7 +459,7 @@ const Reports = () => {
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                                        className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                                             activeTab === tab.id
                                                 ? "border-blue-500 text-blue-600"
                                                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -296,6 +483,7 @@ const Reports = () => {
                                 icon={ShoppingCart}
                                 description={`${dateRange.start} to ${dateRange.end}`}
                                 color="blue"
+                                trend={12.5}
                             />
                             <StatCard
                                 title="Pending Orders"
@@ -303,6 +491,7 @@ const Reports = () => {
                                 icon={ShoppingCart}
                                 description="Awaiting action"
                                 color="yellow"
+                                trend={-2.3}
                             />
                             <StatCard
                                 title="Completed Orders"
@@ -310,6 +499,7 @@ const Reports = () => {
                                 icon={ShoppingCart}
                                 description="Successfully delivered"
                                 color="green"
+                                trend={8.7}
                             />
                             <StatCard
                                 title="Total Revenue"
@@ -317,83 +507,67 @@ const Reports = () => {
                                 icon={DollarSign}
                                 description="From completed orders"
                                 color="green"
+                                trend={15.2}
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div className="bg-white rounded-xl border border-gray-200 p-6">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                                    Order Analytics
-                                </h3>
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-gray-600">Average Order Value:</span>
-                                        <span className="font-semibold">Rs. {stats.average_order_value ? stats.average_order_value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</span>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2 space-y-6">
+                                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                        Order Analytics
+                                    </h3>
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-600">Average Order Value:</span>
+                                            <span className="font-semibold">Rs. {stats.average_order_value ? stats.average_order_value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-600">Completion Rate:</span>
+                                            <span className="font-semibold text-green-600">
+                                                {stats.completion_rate ? stats.completion_rate.toFixed(1) : 0}%
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-600">Contacted Orders:</span>
+                                            <span className="font-semibold">{stats.contacted_orders || 0}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-600">Cancelled Orders:</span>
+                                            <span className="font-semibold text-red-600">{stats.cancelled_orders || 0}</span>
+                                        </div>
                                     </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-gray-600">Completion Rate:</span>
-                                        <span className="font-semibold text-green-600">
-                                            {stats.completion_rate ? stats.completion_rate.toFixed(1) : 0}%
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-gray-600">Contacted Orders:</span>
-                                        <span className="font-semibold">{stats.contacted_orders || 0}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-gray-600">Cancelled Orders:</span>
-                                        <span className="font-semibold text-red-600">{stats.cancelled_orders || 0}</span>
+                                </div>
+
+                                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Export Reports</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <button
+                                            onClick={exportOrders}
+                                            className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                        >
+                                            <Download className="w-5 h-5 text-green-600" />
+                                            <span>Export Orders (Excel)</span>
+                                        </button>
+                                        <button className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors opacity-50 cursor-not-allowed">
+                                            <Download className="w-5 h-5 text-red-600" />
+                                            <span>Export Quotations (PDF)</span>
+                                        </button>
+                                        <button className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors opacity-50 cursor-not-allowed">
+                                            <Download className="w-5 h-5 text-blue-600" />
+                                            <span>Export Product Views (Excel)</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-white rounded-xl border border-gray-200 p-6">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                                    Quick Summary
-                                </h3>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-600">Date Range:</span>
-                                        <span className="font-medium">{dateRange.start} to {dateRange.end}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-600">Status Filter:</span>
-                                        <span className="font-medium capitalize">{statusFilter}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-600">Total Records:</span>
-                                        <span className="font-medium">{orders.length} orders</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-600">Last Updated:</span>
-                                        <span className="font-medium">{new Date().toLocaleTimeString()}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl border border-gray-200 p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Export Reports</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <button
-                                    onClick={exportOrders}
-                                    className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                >
-                                    <Download className="w-5 h-5 text-green-600" />
-                                    <span>Export Orders (Excel)</span>
-                                </button>
-                                <button className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors opacity-50 cursor-not-allowed">
-                                    <Download className="w-5 h-5 text-red-600" />
-                                    <span>Export Quotations (PDF)</span>
-                                </button>
-                                <button className="flex items-center justify-center gap-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors opacity-50 cursor-not-allowed">
-                                    <Download className="w-5 h-5 text-blue-600" />
-                                    <span>Export Product Views (Excel)</span>
-                                </button>
+                            <div className="lg:col-span-1">
+                                <TrendingProductsSection />
                             </div>
                         </div>
                     </div>
                 )}
+
                 {activeTab === "orders" && (
                     <div className="space-y-6">
                         <div className="flex justify-between items-center">
@@ -513,14 +687,51 @@ const Reports = () => {
                 )}
 
                 {activeTab === "product-views" && (
-                    <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
-                        <Eye className="mx-auto h-16 w-16 text-gray-300 mb-4" />
-                        <h3 className="text-2xl font-semibold text-gray-600 mb-3">Product View Analytics</h3>
-                        <p className="text-gray-500 max-w-md mx-auto mb-6">
-                            Product view tracking will be available once the analytics system is implemented.
-                        </p>
-                        <div className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                            Coming Soon
+                    <div className="space-y-6">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900">Product View Analytics</h3>
+                                <p className="text-gray-600 text-sm">
+                                    Track product performance and customer engagement
+                                </p>
+                            </div>
+                            <button
+                                onClick={fetchMostViewedProducts}
+                                disabled={productsLoading}
+                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                            >
+                                <RefreshCw className={`w-4 h-4 ${productsLoading ? 'animate-spin' : ''}`} />
+                                Refresh
+                            </button>
+                        </div>
+
+                        <TrendingProductsSection />
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <StatCard
+                                title="Total Product Views"
+                                value={mostViewedProducts.reduce((sum, product) => sum + (product.total_views || 0), 0).toLocaleString()}
+                                icon={Eye}
+                                description="Across all products"
+                                color="blue"
+                            />
+                            <StatCard
+                                title="Average Views"
+                                value={mostViewedProducts.length > 0 ?
+                                    Math.round(mostViewedProducts.reduce((sum, product) => sum + (product.total_views || 0), 0) / mostViewedProducts.length).toLocaleString() :
+                                    '0'
+                                }
+                                icon={TrendingUp}
+                                description="Per product"
+                                color="green"
+                            />
+                            <StatCard
+                                title="Top Product Views"
+                                value={mostViewedProducts.length > 0 ? mostViewedProducts[0]?.total_views?.toLocaleString() || '0' : '0'}
+                                icon={Star}
+                                description="Most viewed product"
+                                color="yellow"
+                            />
                         </div>
                     </div>
                 )}
