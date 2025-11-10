@@ -339,7 +339,8 @@ class ProductController extends Controller
                 if ($user) {
                     $viewData['user_id'] = $user->id;
                 }
-
+                $product->total_views++;
+                $product->save();
                 ProductView::create($viewData);
             }
 
@@ -396,6 +397,26 @@ class ProductController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function getMostViewedProducts()
+    {
+        $product = Product::with('category')
+            ->orderBy('total_views', 'desc')
+            ->first();
+
+        if (!$product) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No products found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'product' => $product,
+            'total_views' => $product->total_views,
+        ]);
     }
 
 }
