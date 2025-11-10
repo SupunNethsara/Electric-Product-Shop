@@ -80,7 +80,6 @@ function Header() {
 
     const markAsRead = async (orderId) => {
         try {
-            // Update local state first for immediate UI feedback
             setNotifications(prev =>
                 prev.map(n =>
                     n.id === orderId ? { ...n, read: true } : n
@@ -88,7 +87,6 @@ function Header() {
             );
             setUnreadCount(prev => Math.max(0, prev - 1));
 
-            // API call to mark as read
             await axios.patch(
                 `http://127.0.0.1:8000/api/orders/${orderId}/mark-read`,
                 {},
@@ -100,7 +98,6 @@ function Header() {
             );
         } catch (error) {
             console.error("Error marking notification as read:", error);
-            // Revert on error
             setNotifications(prev =>
                 prev.map(n =>
                     n.id === orderId ? { ...n, read: false } : n
@@ -112,11 +109,9 @@ function Header() {
 
     const markAllAsRead = async () => {
         try {
-            // Update local state
             setNotifications(prev => prev.map(n => ({ ...n, read: true })));
             setUnreadCount(0);
 
-            // API call to mark all as read
             await axios.patch(
                 "http://127.0.0.1:8000/api/orders/mark-all-read",
                 {},
@@ -126,6 +121,8 @@ function Header() {
                     },
                 }
             );
+            setIsNotificationDropdownOpen(false);
+            setNotifications([]);
         } catch (error) {
             console.error("Error marking all notifications as read:", error);
         }

@@ -14,4 +14,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/orders/{order}/mark-read', [App\Http\Controllers\OrderController\OderController::class, 'markAsRead']);
     Route::patch('/orders/mark-all-read', [App\Http\Controllers\OrderController\OderController::class, 'markAllAsRead']);
     Route::get('/orders/unread/count', [App\Http\Controllers\OrderController\OderController::class, 'getUnreadCount']);
+    Route::get('/orders/unread/notifications', [App\Http\Controllers\OrderController\OderController::class, 'getUnreadNotifications']);
 });

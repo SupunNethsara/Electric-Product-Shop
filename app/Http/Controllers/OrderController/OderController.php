@@ -17,7 +17,7 @@ class OderController extends Controller
     public function getAllOrder()
     {
         return response()->json([
-            'orders' => Order::with('user')
+            'orders' => Order::with('user')->where('read' , false)
                 ->orderBy('created_at', 'desc')
                 ->get()
         ]);
@@ -196,7 +196,36 @@ class OderController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-    // Mark all notifications as read
+    public function markAsRead($orderId)
+    {
+        try {
+            $order = Order::find($orderId);
+
+            if (!$order) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order not found'
+                ], 404);
+            }
+
+            $order->read = true;
+            $order->read_at = now();
+            $order->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order marked as read',
+                'order' => $order
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to mark as read',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
     public function markAllAsRead(Request $request)
     {
         try {
@@ -222,7 +251,6 @@ class OderController extends Controller
         }
     }
 
-    // Get unread notifications count
     public function getUnreadCount()
     {
         try {
