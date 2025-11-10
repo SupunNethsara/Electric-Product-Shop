@@ -8,4 +8,4 @@ require __DIR__.'/modules/order.php';
 require __DIR__.'/modules/statics.php';
 require __DIR__.'/modules/user.php';
 require __DIR__.'/modules/review.php';
-
+require __DIR__.'/modules/report.php';

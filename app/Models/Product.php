@@ -23,7 +23,8 @@ class Product extends Model
     protected $appends = [
         'average_rating',
         'reviews_count',
-        'rating_distribution'
+        'rating_distribution',
+        'total_views'
     ];
 
     public function category()
@@ -36,6 +37,11 @@ class Product extends Model
         return $this->hasMany(Review::class);
     }
 
+    public function views()
+    {
+        return $this->hasMany(ProductView::class);
+    }
+
     public function getAverageRatingAttribute()
     {
         return $this->reviews()->avg('rating') ?: 0;
@@ -44,6 +50,11 @@ class Product extends Model
     public function getReviewsCountAttribute()
     {
         return $this->reviews()->count();
+    }
+
+    public function getTotalViewsAttribute()
+    {
+        return $this->views()->count();
     }
 
     public function getRatingDistributionAttribute()

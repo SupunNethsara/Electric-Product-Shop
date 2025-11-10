@@ -9,6 +9,7 @@ use App\Http\Requests\ValidateFilesRequest;
 use App\Imports\ProductDetailsImport;
 use App\Imports\ProductPricingImport;
 use App\Models\Product;
+use App\Models\ProductView;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
@@ -20,12 +21,50 @@ class ProductController extends Controller
         $perPage = $request->get('per_page', 15);
         $page = $request->get('page', 1);
 
-        $products = Product::paginate($perPage);
+        $query = Product::query();
+
+        // Search filter
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('item_code', 'like', "%{$search}%")
+                    ->orWhere('model', 'like', "%{$search}%");
+            });
+        }
+
+        // Status filter
+        if ($request->has('status') && $request->status != 'all') {
+            $query->where('status', $request->status);
+        }
+
+        // Price filters
+        if ($request->has('min_price') && $request->min_price != '') {
+            $query->where(function($q) use ($request) {
+                $q->where('buy_now_price', '>=', $request->min_price)
+                    ->orWhere('price', '>=', $request->min_price);
+            });
+        }
+
+        if ($request->has('max_price') && $request->max_price != '') {
+            $query->where(function($q) use ($request) {
+                $q->where('buy_now_price', '<=', $request->max_price)
+                    ->orWhere('price', '<=', $request->max_price);
+            });
+        }
+
+        // Stock filter
+        if ($request->has('in_stock') && $request->in_stock) {
+            $query->where('availability', '>', 0);
+        }
+
+        // Order by latest first
+        $query->orderBy('created_at', 'desc');
+
+        $products = $query->paginate($perPage, ['*'], 'page', $page);
 
         return response()->json([
             'data' => $products->items(),
-            'page' => $page,
-            'total' => $products->count(),
             'pagination' => [
                 'current_page' => $products->currentPage(),
                 'per_page' => $products->perPage(),
@@ -256,6 +295,107 @@ class ProductController extends Controller
             ], 500);
         }
     }
+    /**
+     * Track product view
+     */
+    public function trackView(Request $request, $id)
+    {
+        try {
+            $product = Product::find($id);
 
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product not found'
+                ], 404);
+            }
+
+            $user = null;
+            if (auth('sanctum')->check()) {
+                $user = auth('sanctum')->user();
+            }
+            $ipAddress = $request->ip();
+            $userAgent = $request->userAgent();
+
+            $recentView = ProductView::where('product_id', $id)
+                ->where(function($query) use ($user, $ipAddress) {
+                    if ($user) {
+                        $query->where('user_id', $user->id);
+                    } else {
+                        $query->where('ip_address', $ipAddress);
+                    }
+                })
+                ->where('created_at', '>=', now()->subHour())
+                ->first();
+
+            if (!$recentView) {
+                $viewData = [
+                    'product_id' => $id,
+                    'ip_address' => $ipAddress,
+                    'user_agent' => $userAgent,
+                    'viewed_at' => now()
+                ];
+
+                if ($user) {
+                    $viewData['user_id'] = $user->id;
+                }
+
+                ProductView::create($viewData);
+            }
+
+            $product->refresh();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'View tracked successfully',
+                'total_views' => $product->total_views,
+                'user_authenticated' => !is_null($user)
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to track product view: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to track view',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    /**
+     * Get product view statistics
+     */
+    public function getViewStats($id)
+    {
+        try {
+            $product = Product::find($id);
+
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product not found'
+                ], 404);
+            }
+
+            $totalViews = $product->total_views;
+            $todayViews = $product->views()->whereDate('viewed_at', today())->count();
+            $last7DaysViews = $product->views()->where('viewed_at', '>=', now()->subDays(7))->count();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'total_views' => $totalViews,
+                    'today_views' => $todayViews,
+                    'last_7_days_views' => $last7DaysViews
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch view statistics',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProductRow from './ProductRow';
-import { Search, Filter, Eye, X } from 'lucide-react';
+import { Search, Filter, Eye, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import useToast from "../../../UserInterFaceComponents/Common/useToast.jsx";
 
 const ProductsTable = ({ refreshTrigger }) => {
@@ -10,6 +10,17 @@ const ProductsTable = ({ refreshTrigger }) => {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const { success, error: showError } = useToast();
+
+    // Pagination state
+    const [pagination, setPagination] = useState({
+        current_page: 1,
+        per_page: 15,
+        total: 0,
+        last_page: 1,
+        from: 0,
+        to: 0
+    });
+
     const [filters, setFilters] = useState({
         search: '',
         status: 'all',
@@ -17,6 +28,7 @@ const ProductsTable = ({ refreshTrigger }) => {
         maxPrice: '',
         inStock: false
     });
+
     const handleStatusToggle = async (productId, newStatus) => {
         try {
             const response = await axios.patch(`http://127.0.0.1:8000/api/products/${productId}/status`, {
@@ -40,33 +52,66 @@ const ProductsTable = ({ refreshTrigger }) => {
             throw error;
         }
     };
-    const fetchProducts = async () => {
+
+    const fetchProducts = async (page = 1) => {
         setLoading(true);
         try {
-            const response = await axios.get('http://127.0.0.1:8000/api/products');
+            const params = new URLSearchParams({
+                page: page,
+                per_page: pagination.per_page,
+                ...(filters.search && { search: filters.search }),
+                ...(filters.status !== 'all' && { status: filters.status }),
+                ...(filters.minPrice && { min_price: filters.minPrice }),
+                ...(filters.maxPrice && { max_price: filters.maxPrice }),
+                ...(filters.inStock && { in_stock: true })
+            });
+
+            const response = await axios.get(`http://127.0.0.1:8000/api/products?${params}`);
+
             if (response.data && response.data.data) {
                 setProducts(response.data.data);
+                setPagination(response.data.pagination || {
+                    current_page: response.data.page || 1,
+                    per_page: response.data.per_page || 15,
+                    total: response.data.total || 0,
+                    last_page: response.data.last_page || 1,
+                    from: response.data.from || 0,
+                    to: response.data.to || 0
+                });
             } else if (Array.isArray(response.data)) {
                 setProducts(response.data);
+                setPagination(prev => ({ ...prev, total: response.data.length }));
             } else {
                 console.warn('Unexpected API response structure:', response.data);
                 setProducts([]);
+                setPagination(prev => ({ ...prev, total: 0 }));
             }
         } catch (error) {
             console.error('Failed to fetch products:', error);
             setProducts([]);
+            setPagination(prev => ({ ...prev, total: 0 }));
+            showError('Failed to load products');
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchProducts();
+        fetchProducts(1);
     }, [refreshTrigger]);
+
+    // Debounced filter effect
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            fetchProducts(1);
+        }, 500);
+
+        return () => clearTimeout(timeoutId);
+    }, [filters]);
 
     const handleImagesUpload = async (productId, itemCode, files, mainImageIndex = 0) => {
         if (files.length > 4) {
-            alert('Maximum 4 images allowed!');
+            showError('Maximum 4 images allowed!');
             return;
         }
 
@@ -92,8 +137,8 @@ const ProductsTable = ({ refreshTrigger }) => {
                 main_image_index: mainImageIndex
             });
 
-            alert(`Successfully uploaded ${imageUrls.length} image(s)!`);
-            fetchProducts();
+            success(`Successfully uploaded ${imageUrls.length} image(s)!`);
+            fetchProducts(pagination.current_page);
             return response.data;
         } catch (error) {
             console.error('Upload failed:', error);
@@ -117,7 +162,7 @@ const ProductsTable = ({ refreshTrigger }) => {
                 errorMessage += error.message;
             }
 
-            alert(errorMessage);
+            showError(errorMessage);
             throw error;
         }
     };
@@ -141,48 +186,45 @@ const ProductsTable = ({ refreshTrigger }) => {
         });
     };
 
-    const filteredProducts = Array.isArray(products) ? products.filter(product => {
-        if (!product || typeof product !== 'object') return false;
+    // Pagination handlers
+    const handlePageChange = (page) => {
+        if (page >= 1 && page <= pagination.last_page) {
+            fetchProducts(page);
+        }
+    };
 
-        if (filters.search && filters.search.trim() !== '') {
-            const searchTerm = filters.search.toLowerCase().trim();
-            const searchFields = [
-                product.name || '',
-                product.item_code || '',
-                product.model || ''
-            ];
+    const handlePerPageChange = (perPage) => {
+        setPagination(prev => ({ ...prev, per_page: parseInt(perPage) }));
+        // Reset to page 1 when changing items per page
+        setTimeout(() => fetchProducts(1), 100);
+    };
 
-            const matchesSearch = searchFields.some(field =>
-                field.toString().toLowerCase().includes(searchTerm)
-            );
+    const generatePageNumbers = () => {
+        const pages = [];
+        const current = pagination.current_page;
+        const last = pagination.last_page;
+        const delta = 2; // Number of pages to show on each side of current page
 
-            if (!matchesSearch) return false;
+        for (let i = Math.max(2, current - delta); i <= Math.min(last - 1, current + delta); i++) {
+            pages.push(i);
         }
 
-        if (filters.status !== 'all' && product.status !== filters.status) {
-            return false;
+        if (current - delta > 2) {
+            pages.unshift('...');
+        }
+        if (current + delta < last - 1) {
+            pages.push('...');
         }
 
-        if (filters.minPrice) {
-            const productPrice = parseFloat(product.buy_now_price || product.price || 0);
-            if (productPrice < parseFloat(filters.minPrice)) {
-                return false;
-            }
-        }
-        if (filters.maxPrice) {
-            const productPrice = parseFloat(product.buy_now_price || product.price || 0);
-            if (productPrice > parseFloat(filters.maxPrice)) {
-                return false;
-            }
-        }
-        if (filters.inStock && (!product.availability || product.availability <= 0)) {
-            return false;
-        }
+        pages.unshift(1);
+        if (last > 1) pages.push(last);
 
-        return true;
-    }) : [];
+        return pages;
+    };
 
-    if (loading) {
+    const filteredProducts = Array.isArray(products) ? products : [];
+
+    if (loading && products.length === 0) {
         return (
             <div className="flex justify-center items-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -192,11 +234,12 @@ const ProductsTable = ({ refreshTrigger }) => {
 
     return (
         <div className="space-y-6">
+            {/* Header and Filters */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h2 className="text-xl font-bold text-gray-900">Product Catalog</h2>
                     <div className="text-sm text-gray-600 mt-1">
-                        {filteredProducts.length} of {products.length} products
+                        Showing {pagination.from} to {pagination.to} of {pagination.total} products
                     </div>
                 </div>
 
@@ -205,7 +248,7 @@ const ProductsTable = ({ refreshTrigger }) => {
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <input
                             type="text"
-                            placeholder="Search..."
+                            placeholder="Search products..."
                             value={filters.search}
                             onChange={(e) => handleFilterChange('search', e.target.value)}
                             className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-48"
@@ -238,6 +281,7 @@ const ProductsTable = ({ refreshTrigger }) => {
                             className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                         />
                     </div>
+
                     <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
                         <input
                             type="checkbox"
@@ -247,6 +291,7 @@ const ProductsTable = ({ refreshTrigger }) => {
                         />
                         <span className="text-sm text-gray-700">In Stock</span>
                     </label>
+
                     {(filters.search || filters.status !== 'all' || filters.minPrice || filters.maxPrice || filters.inStock) && (
                         <button
                             onClick={clearFilters}
@@ -257,6 +302,8 @@ const ProductsTable = ({ refreshTrigger }) => {
                     )}
                 </div>
             </div>
+
+            {/* Active Filters Display */}
             {(filters.search || filters.status !== 'all' || filters.minPrice || filters.maxPrice || filters.inStock) && (
                 <div className="flex flex-wrap gap-2">
                     {filters.search && (
@@ -287,6 +334,7 @@ const ProductsTable = ({ refreshTrigger }) => {
                 </div>
             )}
 
+            {/* Products Table */}
             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
@@ -337,163 +385,261 @@ const ProductsTable = ({ refreshTrigger }) => {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
-                                    {products.length > 0 ? 'No matching products found' : 'No products available'}
+                                <td colSpan="10" className="px-6 py-8 text-center text-gray-500">
+                                    <div className="flex flex-col items-center justify-center">
+                                        <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                        </svg>
+                                        <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+                                        <p className="text-gray-500">
+                                            {pagination.total > 0
+                                                ? 'No products match your current filters.'
+                                                : 'No products available in the system.'
+                                            }
+                                        </p>
+                                        {(filters.search || filters.status !== 'all' || filters.minPrice || filters.maxPrice || filters.inStock) && (
+                                            <button
+                                                onClick={clearFilters}
+                                                className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                                            >
+                                                Clear all filters
+                                            </button>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         )}
                         </tbody>
                     </table>
                 </div>
-            </div>
 
-            {filteredProducts.length === 0 && !loading && (
-                <EmptyState />
-            )}
-
-            {showModal && selectedProduct && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                                Product Details - {selectedProduct.name}
-                            </h3>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                                <X className="w-6 h-6" />
-                            </button>
-                        </div>
-
-                        <div className="p-6 space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <h4 className="font-medium text-gray-900 mb-3">Basic Information</h4>
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Item Code:</span>
-                                            <span className="font-medium">{selectedProduct.item_code}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Model:</span>
-                                            <span className="font-medium">{selectedProduct.model}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Status:</span>
-                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                selectedProduct.status === 'active'
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : 'bg-red-100 text-red-800'
-                                            }`}>
-                                                {selectedProduct.status}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Warranty:</span>
-                                            <span className="font-medium">{selectedProduct.warranty}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <h4 className="font-medium text-gray-900 mb-3">Pricing & Stock</h4>
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Regular Price:</span>
-                                            <span className="font-medium">Rs. {selectedProduct.price}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Buy Now Price:</span>
-                                            <span className="font-medium text-green-600">Rs. {selectedProduct.buy_now_price}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Availability:</span>
-                                            <span className="font-medium">{selectedProduct.availability} units</span>
-                                        </div>
-                                        {selectedProduct.tags && (
-                                            <div className="flex justify-between">
-                                                <span className="text-gray-600">Tags:</span>
-                                                <span className="font-medium text-right">{selectedProduct.tags}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                {/* Pagination */}
+                {pagination.total > 0 && (
+                    <div className="border-t border-gray-200 px-4 py-3 sm:px-6">
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                            {/* Items per page selector */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-700">Show</span>
+                                <select
+                                    value={pagination.per_page}
+                                    onChange={(e) => handlePerPageChange(e.target.value)}
+                                    className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    <option value={10}>10</option>
+                                    <option value={15}>15</option>
+                                    <option value={25}>25</option>
+                                    <option value={50}>50</option>
+                                    <option value={100}>100</option>
+                                </select>
+                                <span className="text-sm text-gray-700">per page</span>
                             </div>
 
-                            {selectedProduct.hedding && (
-                                <div>
-                                    <h4 className="font-medium text-gray-900 mb-3">Product Heading</h4>
-                                    <p className="text-sm text-gray-700">{selectedProduct.hedding}</p>
-                                </div>
-                            )}
-
-                            {selectedProduct.specification && (
-                                <div>
-                                    <h4 className="font-medium text-gray-900 mb-3">Specifications</h4>
-                                    <pre className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap font-sans">
-                                        {selectedProduct.specification}
-                                    </pre>
-                                </div>
-                            )}
-
-                            <div>
-                                <h4 className="font-medium text-gray-900 mb-3">Ratings & Reviews</h4>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                                        <div className="font-semibold text-gray-900">{selectedProduct.average_rating || 0}</div>
-                                        <div className="text-gray-600">Average Rating</div>
-                                    </div>
-                                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                                        <div className="font-semibold text-gray-900">{selectedProduct.reviews_count || 0}</div>
-                                        <div className="text-gray-600">Total Reviews</div>
-                                    </div>
-                                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                                        <div className="font-semibold text-gray-900">
-                                            {selectedProduct.rating_distribution?.['5'] || 0}
-                                        </div>
-                                        <div className="text-gray-600">5 Star Reviews</div>
-                                    </div>
-                                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                                        <div className="font-semibold text-gray-900">
-                                            {selectedProduct.rating_distribution?.['1'] || 0}
-                                        </div>
-                                        <div className="text-gray-600">1 Star Reviews</div>
-                                    </div>
-                                </div>
+                            {/* Page info */}
+                            <div className="text-sm text-gray-700">
+                                Showing <span className="font-medium">{pagination.from}</span> to{' '}
+                                <span className="font-medium">{pagination.to}</span> of{' '}
+                                <span className="font-medium">{pagination.total}</span> results
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                <div>
-                                    <span className="text-gray-600">Created:</span>
-                                    <span className="ml-2 font-medium">
-                                        {new Date(selectedProduct.created_at).toLocaleDateString()}
-                                    </span>
-                                </div>
-                                <div>
-                                    <span className="text-gray-600">Last Updated:</span>
-                                    <span className="ml-2 font-medium">
-                                        {new Date(selectedProduct.updated_at).toLocaleDateString()}
-                                    </span>
-                                </div>
+                            {/* Pagination controls */}
+                            <div className="flex items-center space-x-1">
+                                {/* First page */}
+                                <button
+                                    onClick={() => handlePageChange(1)}
+                                    disabled={pagination.current_page === 1}
+                                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <ChevronsLeft className="h-4 w-4" />
+                                </button>
+
+                                {/* Previous page */}
+                                <button
+                                    onClick={() => handlePageChange(pagination.current_page - 1)}
+                                    disabled={pagination.current_page === 1}
+                                    className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </button>
+
+                                {/* Page numbers */}
+                                {generatePageNumbers().map((page, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => typeof page === 'number' && handlePageChange(page)}
+                                        disabled={page === '...'}
+                                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                            page === pagination.current_page
+                                                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                                        } ${page === '...' ? 'cursor-default' : 'cursor-pointer'}`}
+                                    >
+                                        {page}
+                                    </button>
+                                ))}
+
+                                {/* Next page */}
+                                <button
+                                    onClick={() => handlePageChange(pagination.current_page + 1)}
+                                    disabled={pagination.current_page === pagination.last_page}
+                                    className="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </button>
+
+                                {/* Last page */}
+                                <button
+                                    onClick={() => handlePageChange(pagination.last_page)}
+                                    disabled={pagination.current_page === pagination.last_page}
+                                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <ChevronsRight className="h-4 w-4" />
+                                </button>
                             </div>
                         </div>
                     </div>
-                </div>
+                )}
+            </div>
+
+            {/* Product Details Modal */}
+            {showModal && selectedProduct && (
+                <ProductDetailsModal
+                    product={selectedProduct}
+                    onClose={() => setShowModal(false)}
+                />
             )}
         </div>
     );
 };
 
-const EmptyState = () => (
-    <div className="text-center py-12">
-        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-        </svg>
-        <h3 className="mt-2 text-sm font-medium text-gray-900">No products found</h3>
-        <p className="mt-1 text-sm text-gray-500">
-            Try adjusting your search or filter criteria.
-        </p>
+// Separate Modal Component for better organization
+const ProductDetailsModal = ({ product, onClose }) => (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900">
+                    Product Details - {product.name}
+                </h3>
+                <button
+                    onClick={onClose}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                    <X className="w-6 h-6" />
+                </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 className="font-medium text-gray-900 mb-3">Basic Information</h4>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Item Code:</span>
+                                <span className="font-medium">{product.item_code}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Model:</span>
+                                <span className="font-medium">{product.model}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Status:</span>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    product.status === 'active'
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-red-100 text-red-800'
+                                }`}>
+                                    {product.status}
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Warranty:</span>
+                                <span className="font-medium">{product.warranty}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 className="font-medium text-gray-900 mb-3">Pricing & Stock</h4>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Regular Price:</span>
+                                <span className="font-medium">Rs. {product.price}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Buy Now Price:</span>
+                                <span className="font-medium text-green-600">Rs. {product.buy_now_price}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Availability:</span>
+                                <span className="font-medium">{product.availability} units</span>
+                            </div>
+                            {product.tags && (
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Tags:</span>
+                                    <span className="font-medium text-right">{product.tags}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {product.hedding && (
+                    <div>
+                        <h4 className="font-medium text-gray-900 mb-3">Product Heading</h4>
+                        <p className="text-sm text-gray-700">{product.hedding}</p>
+                    </div>
+                )}
+
+                {product.specification && (
+                    <div>
+                        <h4 className="font-medium text-gray-900 mb-3">Specifications</h4>
+                        <pre className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap font-sans">
+                            {product.specification}
+                        </pre>
+                    </div>
+                )}
+
+                <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Ratings & Reviews</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div className="text-center p-3 bg-gray-50 rounded-lg">
+                            <div className="font-semibold text-gray-900">{product.average_rating || 0}</div>
+                            <div className="text-gray-600">Average Rating</div>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 rounded-lg">
+                            <div className="font-semibold text-gray-900">{product.reviews_count || 0}</div>
+                            <div className="text-gray-600">Total Reviews</div>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 rounded-lg">
+                            <div className="font-semibold text-gray-900">
+                                {product.rating_distribution?.['5'] || 0}
+                            </div>
+                            <div className="text-gray-600">5 Star Reviews</div>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 rounded-lg">
+                            <div className="font-semibold text-gray-900">
+                                {product.rating_distribution?.['1'] || 0}
+                            </div>
+                            <div className="text-gray-600">1 Star Reviews</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span className="text-gray-600">Created:</span>
+                        <span className="ml-2 font-medium">
+                            {new Date(product.created_at).toLocaleDateString()}
+                        </span>
+                    </div>
+                    <div>
+                        <span className="text-gray-600">Last Updated:</span>
+                        <span className="ml-2 font-medium">
+                            {new Date(product.updated_at).toLocaleDateString()}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 );
 

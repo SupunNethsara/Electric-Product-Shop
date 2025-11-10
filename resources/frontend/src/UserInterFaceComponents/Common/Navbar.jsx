@@ -271,7 +271,7 @@ const Navbar = () => {
                                                 </Link>
 
 
-                                                {(role === "admin" ) && (
+                                                {(role === "admin" || role === "super_admin" ) && (
                                                     <>
                                                         <Link
                                                             to="/admin/products"

@@ -4,6 +4,7 @@ import SaStatics from "./SuperAdminRoutes/SaStatics.jsx";
 import AdminManagement from "./SuperAdminRoutes/AdminManagement.jsx";
 import UserManage from "./SuperAdminRoutes/UserManage.jsx";
 import SystemSettings from "./SuperAdminRoutes/SystemSettings.jsx";
+import Reports from "./Common/Reports.jsx";
 
 
 const SuperAdminDashboard = () => {
@@ -16,6 +17,7 @@ const SuperAdminDashboard = () => {
                 <Route path="adminManage" element={<AdminManagement />} />
                 <Route path="userManage" element={<UserManage />} />
                 <Route path="settings" element={<SystemSettings />} />
+                <Route path="reports" element={<Reports />} />
             </Routes>
         </div>
     );

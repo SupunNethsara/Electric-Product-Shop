@@ -17,7 +17,17 @@ class OderController extends Controller
     public function getAllOrder()
     {
         return response()->json([
-           'orders'=>Order::with('user')->get()
+            'orders' => Order::with('user')
+                ->orderBy('created_at', 'desc')
+                ->get()
+        ]);
+    }
+    public function getAllOrderNotification()
+    {
+        return response()->json([
+            'orders' => Order::with('user')->where('read' , false)
+                ->orderBy('created_at', 'desc')
+                ->get()
         ]);
     }
 
@@ -191,6 +201,79 @@ class OderController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+    public function markAsRead($orderId)
+    {
+        try {
+            $order = Order::find($orderId);
+
+            if (!$order) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order not found'
+                ], 404);
+            }
+
+            $order->read = true;
+            $order->read_at = now();
+            $order->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order marked as read',
+                'order' => $order
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to mark as read',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function markAllAsRead(Request $request)
+    {
+        try {
+            $unreadOrders = Order::where('read', false)->get();
+
+            Order::where('read', false)->update([
+                'read' => true,
+                'read_at' => now()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'All orders marked as read',
+                'marked_count' => $unreadOrders->count()
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to mark all orders as read',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getUnreadCount()
+    {
+        try {
+            $unreadCount = Order::where('read', false)->count();
+
+            return response()->json([
+                'success' => true,
+                'unread_count' => $unreadCount
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get unread count',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
