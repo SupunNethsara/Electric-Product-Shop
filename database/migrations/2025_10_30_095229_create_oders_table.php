@@ -17,6 +17,8 @@ return new class extends Migration {
             $table->decimal('delivery_fee', 8, 2)->default(0);
             $table->enum('delivery_option', ['standard', 'express'])->default('standard');
             $table->enum('payment_method', ['cash_on_delivery', 'online'])->default('cash_on_delivery');
+            $table->boolean('read')->default(false);
+            $table->timestamp('read_at')->nullable();
             $table->enum('status', ['pending', 'contacted', 'processing', 'shipped', 'completed', 'cancelled'])->default('pending');
             $table->timestamps();
         });

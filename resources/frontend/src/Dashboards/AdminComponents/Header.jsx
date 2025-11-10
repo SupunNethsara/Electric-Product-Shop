@@ -39,25 +39,26 @@ function Header() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    const fetchNotifications = async () => {
+        try {
+            const response = await axios.get(
+                "http://127.0.0.1:8000/api/orders/getAllOrder",
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            const orders = response.data.orders || [];
+            setNotifications(orders);
+            const unread = orders.filter((n) => !n.read).length;
+            setUnreadCount(unread);
+        } catch (error) {
+            console.error("Error fetching notifications:", error);
+        }
+    };
+
     useEffect(() => {
-        const fetchNotifications = async () => {
-            try {
-                const response = await axios.get(
-                    "http://127.0.0.1:8000/api/orders/getAllOrder",
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-                const orders = response.data.orders || [];
-                setNotifications(orders);
-                const unread = orders.filter((n) => !n.read).length;
-                setUnreadCount(unread);
-            } catch (error) {
-                console.error("Error fetching notifications:", error);
-            }
-        };
         fetchNotifications();
         const interval = setInterval(fetchNotifications, 30000);
         return () => clearInterval(interval);
@@ -77,17 +78,19 @@ function Header() {
         setIsNotificationDropdownOpen(!isNotificationDropdownOpen);
     };
 
-    const markAsRead = async (notificationId) => {
+    const markAsRead = async (orderId) => {
         try {
+            // Update local state first for immediate UI feedback
             setNotifications(prev =>
                 prev.map(n =>
-                    n.id === notificationId ? { ...n, read: true } : n
+                    n.id === orderId ? { ...n, read: true } : n
                 )
             );
             setUnreadCount(prev => Math.max(0, prev - 1));
 
+            // API call to mark as read
             await axios.patch(
-                `http://127.0.0.1:8000/api/orders/${notificationId}/mark-read`,
+                `http://127.0.0.1:8000/api/orders/${orderId}/mark-read`,
                 {},
                 {
                     headers: {
@@ -97,9 +100,10 @@ function Header() {
             );
         } catch (error) {
             console.error("Error marking notification as read:", error);
+            // Revert on error
             setNotifications(prev =>
                 prev.map(n =>
-                    n.id === notificationId ? { ...n, read: false } : n
+                    n.id === orderId ? { ...n, read: false } : n
                 )
             );
             setUnreadCount(prev => prev + 1);
@@ -108,9 +112,11 @@ function Header() {
 
     const markAllAsRead = async () => {
         try {
+            // Update local state
             setNotifications(prev => prev.map(n => ({ ...n, read: true })));
             setUnreadCount(0);
 
+            // API call to mark all as read
             await axios.patch(
                 "http://127.0.0.1:8000/api/orders/mark-all-read",
                 {},
@@ -125,24 +131,41 @@ function Header() {
         }
     };
 
-    const getNotificationIcon = (type) => {
+    const getNotificationIcon = (status) => {
         const icons = {
-            order: "🛒",
-            payment: "💳",
-            system: "⚙️",
-            user: "👤",
-            default: "🔔"
+            pending: "⏳",
+            contacted: "💬",
+            processing: "🔄",
+            shipped: "🚚",
+            completed: "✅",
+            cancelled: "❌",
+            default: "🛒"
         };
-        return icons[type] || icons.default;
+        return icons[status] || icons.default;
     };
 
     const getNotificationMessage = (order) => {
-        if (order.status === 'pending') return `New order #${order.id} received`;
-        if (order.status === 'confirmed') return `Order #${order.id} confirmed`;
-        if (order.status === 'shipped') return `Order #${order.id} shipped`;
-        if (order.status === 'delivered') return `Order #${order.id} delivered`;
-        if (order.status === 'cancelled') return `Order #${order.id} cancelled`;
-        return `Order #${order.id} updated`;
+        const messages = {
+            pending: `New order #${order.order_code} received`,
+            contacted: `Order #${order.order_code} has been contacted`,
+            processing: `Order #${order.order_code} is being processed`,
+            shipped: `Order #${order.order_code} has been shipped`,
+            completed: `Order #${order.order_code} has been completed`,
+            cancelled: `Order #${order.order_code} has been cancelled`
+        };
+        return messages[order.status] || `Order #${order.order_code} updated`;
+    };
+
+    const getStatusColor = (status) => {
+        const colors = {
+            pending: "text-yellow-600 bg-yellow-50",
+            contacted: "text-blue-600 bg-blue-50",
+            processing: "text-purple-600 bg-purple-50",
+            shipped: "text-orange-600 bg-orange-50",
+            completed: "text-green-600 bg-green-50",
+            cancelled: "text-red-600 bg-red-50"
+        };
+        return colors[status] || "text-gray-600 bg-gray-50";
     };
 
     const formatTime = (dateString) => {
@@ -235,27 +258,30 @@ function Header() {
                                             <div className="divide-y divide-gray-100">
                                                 {notifications.map((notification) => (
                                                     <div
-                                                        key={notification.order_code}
+                                                        key={notification.id}
                                                         className={`p-4 hover:bg-gray-50 transition-colors duration-200 ${
                                                             !notification.read ? 'bg-blue-50 hover:bg-blue-100' : ''
                                                         }`}
                                                     >
                                                         <div className="flex items-start space-x-3">
                                                             <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                                                                {getNotificationIcon(notification.type)}
+                                                                {getNotificationIcon(notification.status)}
                                                             </div>
                                                             <div className="flex-1 min-w-0">
                                                                 <p className="text-sm font-medium text-gray-900">
                                                                     {getNotificationMessage(notification)}
                                                                 </p>
-                                                                <p className="text-xs text-gray-500 mt-1">
-                                                                    {formatTime(notification.created_at || notification.date)}
+                                                                <div className="flex items-center space-x-2 mt-1">
+                                                                    <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(notification.status)}`}>
+                                                                        {notification.status}
+                                                                    </span>
+                                                                    <span className="text-xs text-gray-500">
+                                                                        {formatTime(notification.created_at)}
+                                                                    </span>
+                                                                </div>
+                                                                <p className="text-xs font-medium text-green-600 mt-1">
+                                                                    ${parseFloat(notification.total_amount).toFixed(2)}
                                                                 </p>
-                                                                {notification.total && (
-                                                                    <p className="text-xs font-medium text-green-600 mt-1">
-                                                                        ${parseFloat(notification.total).toFixed(2)}
-                                                                    </p>
-                                                                )}
                                                             </div>
                                                             <div className="flex items-center space-x-1">
                                                                 {!notification.read && (
@@ -267,9 +293,6 @@ function Header() {
                                                                         <CheckCheck size={14} />
                                                                     </button>
                                                                 )}
-                                                                <button className="p-1 text-gray-400 hover:text-red-600 transition-colors duration-200">
-                                                                    <X size={14} />
-                                                                </button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -287,7 +310,7 @@ function Header() {
                                                 }}
                                                 className="w-full text-center text-sm font-medium text-green-600 hover:text-green-700 py-2 rounded-lg hover:bg-green-50 transition-colors duration-200"
                                             >
-                                                View all Orders
+                                                View all orders
                                             </button>
                                         </div>
                                     )}

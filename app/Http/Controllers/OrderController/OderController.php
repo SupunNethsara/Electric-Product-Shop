@@ -16,13 +16,13 @@ class OderController extends Controller
 {
     public function getAllOrder()
     {
-
         return response()->json([
             'orders' => Order::with('user')
                 ->orderBy('created_at', 'desc')
                 ->get()
         ]);
     }
+
 
     public function getUserOrder(Request $request)
     {
@@ -194,6 +194,51 @@ class OderController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+    // Mark all notifications as read
+    public function markAllAsRead(Request $request)
+    {
+        try {
+            $unreadOrders = Order::where('read', false)->get();
+
+            Order::where('read', false)->update([
+                'read' => true,
+                'read_at' => now()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'All orders marked as read',
+                'marked_count' => $unreadOrders->count()
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to mark all orders as read',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Get unread notifications count
+    public function getUnreadCount()
+    {
+        try {
+            $unreadCount = Order::where('read', false)->count();
+
+            return response()->json([
+                'success' => true,
+                'unread_count' => $unreadCount
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get unread count',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 

@@ -11,4 +11,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders/checkout', [App\Http\Controllers\OrderController\OderController::class, 'cartCheckout']);
     Route::get('/orders/getUserOrder', [App\Http\Controllers\OrderController\OderController::class, 'getUserOrder']);
     Route::get('/orders/getUserOrders', [App\Http\Controllers\OrderController\OderController::class, 'getUserOrders']);
+    Route::patch('/orders/{order}/mark-read', [App\Http\Controllers\OrderController\OderController::class, 'markAsRead']);
+    Route::patch('/orders/mark-all-read', [App\Http\Controllers\OrderController\OderController::class, 'markAllAsRead']);
+    Route::get('/orders/unread/count', [App\Http\Controllers\OrderController\OderController::class, 'getUnreadCount']);
 });
