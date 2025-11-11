@@ -77,6 +77,40 @@ export const removeFromCart = createAsyncThunk(
     }
 );
 
+export const clearServerCart = createAsyncThunk(
+    'cart/clearServerCart',
+    async (_, { rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const response = await axios.delete('http://127.0.0.1:8000/api/cart/clear', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.data && (response.data.success || response.data.deleted_count >= 0)) {
+                return response.data;
+            }
+
+            throw new Error(response.data.message || 'Failed to clear cart');
+        } catch (error) {
+            console.error('Error clearing cart:', error);
+            if (error.response?.status === 404 ||
+                error.response?.data?.message?.includes('Item not found') ||
+                error.response?.data?.message?.includes('already empty')) {
+                return { success: true, message: 'Cart is empty' };
+            }
+            return rejectWithValue(error.response?.data?.message || error.message || 'Failed to clear cart');
+        }
+    }
+);
+
 const cartSlice = createSlice({
     name: 'cart',
     initialState: {
@@ -91,6 +125,7 @@ const cartSlice = createSlice({
             state.items = [];
             state.totalItems = 0;
             state.totalPrice = 0;
+            state.error = null;
         },
         clearError: (state) => {
             state.error = null;
@@ -186,6 +221,29 @@ const cartSlice = createSlice({
             .addCase(removeFromCart.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+            })
+            // Clear server cart
+            .addCase(clearServerCart.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(clearServerCart.fulfilled, (state) => {
+                state.loading = false;
+                state.items = [];
+                state.totalItems = 0;
+                state.totalPrice = 0;
+                state.error = null;
+            })
+            .addCase(clearServerCart.rejected, (state, action) => {
+                state.loading = false;
+                // Don't set error for "Item not found" - cart is already empty
+                if (!action.payload?.includes('Item not found')) {
+                    state.error = action.payload;
+                }
+                // Clear local state anyway since server cart is empty
+                state.items = [];
+                state.totalItems = 0;
+                state.totalPrice = 0;
             });
     },
 });

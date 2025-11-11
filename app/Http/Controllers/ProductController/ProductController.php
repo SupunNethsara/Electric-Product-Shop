@@ -23,7 +23,6 @@ class ProductController extends Controller
 
         $query = Product::query();
 
-        // Search filter
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -33,12 +32,10 @@ class ProductController extends Controller
             });
         }
 
-        // Status filter
         if ($request->has('status') && $request->status != 'all') {
             $query->where('status', $request->status);
         }
 
-        // Price filters
         if ($request->has('min_price') && $request->min_price != '') {
             $query->where(function($q) use ($request) {
                 $q->where('buy_now_price', '>=', $request->min_price)
@@ -52,13 +49,9 @@ class ProductController extends Controller
                     ->orWhere('price', '<=', $request->max_price);
             });
         }
-
-        // Stock filter
         if ($request->has('in_stock') && $request->in_stock) {
             $query->where('availability', '>', 0);
         }
-
-        // Order by latest first
         $query->orderBy('created_at', 'desc');
 
         $products = $query->paginate($perPage, ['*'], 'page', $page);

@@ -22,8 +22,8 @@
     <div class="order-details">
         <h2>Order Information</h2>
         <p><strong>Order Code:</strong> {{ $order->order_code }}</p>
-        <p><strong>Total Amount:</strong> ${{ number_format($order->total_amount, 2) }}</p>
-        <p><strong>Delivery Fee:</strong> ${{ number_format($order->delivery_fee, 2) }}</p>
+        <p><strong>Total Amount:</strong> Rs:{{ number_format($order->total_amount, 2) }}</p>
+        <p><strong>Delivery Fee:</strong> Rs:{{ number_format($order->delivery_fee, 2) }}</p>
         <p><strong>Delivery Option:</strong> {{ $order->delivery_option }}</p>
         <p><strong>Order Date:</strong> {{ $order->created_at->format('F j, Y g:i A') }}</p>
         <p><strong>Status:</strong> <span style="color: #007bff;">{{ ucfirst($order->status) }}</span></p>
@@ -45,15 +45,15 @@
                 <tr>
                     <td>{{ $item->product->name ?? 'Product' }}</td>
                     <td>{{ $item->quantity }}</td>
-                    <td>${{ number_format($item->price, 2) }}</td>
-                    <td>${{ number_format($item->quantity * $item->price, 2) }}</td>
+                    <td>Rs:{{ number_format($item->price, 2) }}</td>
+                    <td>Rs:{{ number_format($item->quantity * $item->price, 2) }}</td>
                 </tr>
             @endforeach
             </tbody>
         </table>
 
         <div style="text-align: right; margin-top: 20px;">
-            <p class="total">Total: ${{ number_format($order->total_amount, 2) }}</p>
+            <p class="total">Total: Rs:{{ number_format($order->total_amount, 2) }}</p>
         </div>
     </div>
 

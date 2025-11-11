@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import { clearCart, fetchCartItems } from "../../../Store/slices/cartSlice";
+import {clearCart, clearServerCart, fetchCartItems} from "../../../Store/slices/cartSlice";
 import axios from "axios";
 import CompleteProfileModal from "../../Common/CompleteProfileModal.jsx";
 
@@ -167,8 +167,12 @@ function CheckOutUser() {
         }
     };
 
+    // Update the processCartCheckout function in CheckOutUser.jsx
+
     const processCartCheckout = async () => {
         try {
+            setIsProcessing(true);
+
             const token = localStorage.getItem('token');
             const orderData = {
                 items: cartItems.map(item => ({
@@ -182,10 +186,25 @@ function CheckOutUser() {
             };
 
             const response = await axios.post('http://127.0.0.1:8000/api/orders/checkout', orderData, {
-                headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
             });
 
-            console.log("✅ Cart checkout successful:", response.data);
+            if (response.data.success) {
+                // Clear local cart immediately - this is the important change
+                dispatch(clearCart());
+
+                // Then try to clear server cart, but don't worry if it fails
+                try {
+                    await dispatch(clearServerCart()).unwrap();
+                    console.log('✅ Server cart cleared successfully');
+                } catch (clearError) {
+                    console.warn("⚠️ Server cart clear warning (order still placed):", clearError);
+                    // Don't show alert since order was successful and local cart is cleared
+                }
+            }
 
             const confirmationData = {
                 order: response.data.order,
@@ -200,9 +219,10 @@ function CheckOutUser() {
         } catch (error) {
             console.error('Error processing cart checkout:', error);
             alert('Failed to process checkout. Please try again.');
+        } finally {
+            setIsProcessing(false);
         }
     };
-
     const handleProceedToPay = async () => {
         if (displayItems.length === 0) {
             alert("No items to order!");
