@@ -126,7 +126,6 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onSwitchToForgotPassw
         };
     }, [isOpen, onClose]);
 
-    // Clear messages when modal opens/closes
     useEffect(() => {
         if (isOpen) {
             setForgotPasswordMessage('');
