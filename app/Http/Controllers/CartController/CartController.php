@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class CartController extends Controller
-{public function index(Request $request)
+{
+    public function index(Request $request)
     {
         $cartItems = Cart::with('product')
             ->where('user_id', $request->user()->id)
@@ -29,6 +31,7 @@ class CartController extends Controller
         if ($product->availability < $data['quantity']) {
             return response()->json(['message' => 'Not enough stock'], 422);
         }
+
         $cartItem = Cart::updateOrCreate(
             [
                 'user_id' => $request->user()->id,
@@ -48,6 +51,7 @@ class CartController extends Controller
     public function update(Request $request, $id)
     {
         $data = $request->validate(['quantity' => 'required|integer|min:1']);
+
         $cartItem = Cart::where('id', $id)
             ->where('user_id', $request->user()->id)
             ->firstOrFail();
@@ -58,9 +62,41 @@ class CartController extends Controller
         }
 
         $cartItem->update(['quantity' => $data['quantity']]);
-        return response()->json(['message' => 'Cart updated', 'item' => $cartItem]);
+        return response()->json([
+            'message' => 'Cart updated',
+            'item' => $cartItem->load('product')
+        ]);
     }
 
+    public function clear(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated'
+                ], 401);
+            }
+             Cart::where('user_id', $user->id)->count();
+            $deletedCount = Cart::where('user_id', $user->id)->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => $deletedCount > 0 ? 'Cart cleared successfully' : 'Cart was already empty',
+                'deleted_count' => $deletedCount
+            ], 200);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to clear cart',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
     public function destroy(Request $request, $id)
     {
@@ -73,6 +109,9 @@ class CartController extends Controller
         }
 
         $cartItem->delete();
-        return response()->json(['message' => 'Item removed from cart']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Item removed from cart'
+        ]);
     }
 }
