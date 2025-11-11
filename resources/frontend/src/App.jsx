@@ -20,7 +20,7 @@ import AuthCallback from "./pages/AuthCallback";
 import UserProfile from "./UserInterFaceComponents/Common/UserProfileRoutes/UserProfile.jsx";
 import Toast from "./UserInterFaceComponents/Common/Toast.jsx";
 import OrderConfirmation from "./UserInterFaceComponents/Common/OrderConfirmation.jsx";
-import GlobalModals from "./UserInterFaceComponents/Common/GlobalModals.jsx";
+import GlobalModals from "./GlobalModels/GlobalModals.jsx";
 import ResetPasswordPage from "./Modals/ResetPasswordPage.jsx";
 
 function App() {

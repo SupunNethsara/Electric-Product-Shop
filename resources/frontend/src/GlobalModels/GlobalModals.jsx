@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import LoginModal from "../../Modals/Login.jsx";
-import RegisterModal from "../../Modals/Register.jsx";
-import { closeModals, switchToRegister, switchToLogin } from "../../Store/slices/modalSlice.js";
-import ForgotPasswordModal from "../../Modals/ForgotPasswordModal.jsx";
+import LoginModal from "../Modals/Login.jsx";
+import RegisterModal from "../Modals/Register.jsx";
+import { closeModals, switchToRegister, switchToLogin } from "../Store/slices/modalSlice.js";
+import ForgotPasswordModal from "../Modals/ForgotPasswordModal.jsx";
 
 const GlobalModals = () => {
     const dispatch = useDispatch();
