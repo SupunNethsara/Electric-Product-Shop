@@ -97,7 +97,7 @@ const ResetPasswordPage = () => {
             if (data.status) {
                 setSuccess('Password reset successfully! Redirecting to login...');
                 setTimeout(() => {
-                    navigate('/login');
+                    navigate('/');
                 }, 3000);
             } else {
                 setError(data.message || 'Failed to reset password. Please try again.');
@@ -118,7 +118,7 @@ const ResetPasswordPage = () => {
     };
 
     const handleRequestNewLink = () => {
-        navigate('/forgot-password');
+        navigate('/');
     };
 
     if (isTokenValid === null) {
@@ -151,7 +151,7 @@ const ResetPasswordPage = () => {
                                 Get New Reset Link
                             </button>
                             <button
-                                onClick={() => navigate('/login')}
+                                onClick={() => navigate('/')}
                                 className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-xl font-semibold hover:bg-gray-50 transition-colors duration-200"
                             >
                                 Back to Login

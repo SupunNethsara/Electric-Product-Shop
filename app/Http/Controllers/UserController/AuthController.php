@@ -5,6 +5,7 @@ namespace App\Http\Controllers\UserController;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRegisterRequest;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -174,7 +175,6 @@ class AuthController extends Controller
             'email' => 'required|email',
         ]);
 
-        // Check if token exists and is valid
         $tokenData = DB::table('password_reset_tokens')
             ->where('email', $request->email)
             ->first();
@@ -186,7 +186,6 @@ class AuthController extends Controller
             ], 400);
         }
 
-        // Check if token matches
         if (!Hash::check($request->token, $tokenData->token)) {
             return response()->json([
                 'message' => 'Invalid reset token',
@@ -194,10 +193,8 @@ class AuthController extends Controller
             ], 400);
         }
 
-        // Check if token is expired (60 minutes)
         $createdAt = Carbon::parse($tokenData->created_at);
         if ($createdAt->diffInMinutes(Carbon::now()) > 60) {
-            // Clean up expired token
             DB::table('password_reset_tokens')
                 ->where('email', $request->email)
                 ->delete();
@@ -226,7 +223,6 @@ class AuthController extends Controller
         try {
             \Log::info('Google OAuth Callback Started');
 
-            // Disable SSL verification for local development
             $httpClient = new \GuzzleHttp\Client([
                 'verify' => false,
             ]);
@@ -256,11 +252,8 @@ class AuthController extends Controller
             \Log::info('User processed:', ['user_id' => $user->id]);
 
             $token = $user->createToken('auth_token')->plainTextToken;
-
-            // Get the frontend URL from config
             $frontendUrl = rtrim(config('services.frontend_url'), '/');
 
-            // Redirect to the React route that actually exists
             $redirectUrl = $frontendUrl . '/auth/google/callback' .
                 '?token=' . $token .
                 '&user=' . urlencode(json_encode($user));
