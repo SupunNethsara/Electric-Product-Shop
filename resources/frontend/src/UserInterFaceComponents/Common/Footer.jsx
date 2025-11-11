@@ -57,27 +57,26 @@ const Footer = () => {
                 { name: "New Arrivals", href: "/shop?filter=new" },
                 { name: "Best Sellers", href: "/shop?filter=bestsellers" },
                 { name: "Sale Items", href: "/shop?filter=sale" },
-                { name: "Gift Cards", href: "/gift-cards" }
             ]
         },
         {
             title: "Support",
             links: [
                 { name: "Contact Us", href: "/contact" },
-                { name: "Shipping Info", href: "/shipping" },
-                { name: "Returns & Exchanges", href: "/returns" },
-                { name: "Size Guide", href: "/size-guide" },
-                { name: "FAQs", href: "/faqs" }
+                { name: "Shipping Info", href: "" },
+                { name: "Returns & Exchanges", href: "" },
+                { name: "Size Guide", href: "" },
+                { name: "FAQs", href: "" }
             ]
         },
         {
             title: "Company",
             links: [
                 { name: "About Us", href: "/about" },
-                { name: "Careers", href: "/careers" },
-                { name: "Privacy Policy", href: "/privacy" },
-                { name: "Terms of Service", href: "/terms" },
-                { name: "Blog", href: "/blog" }
+                { name: "Careers", href: "" },
+                { name: "Privacy Policy", href: "" },
+                { name: "Terms of Service", href: "" },
+                { name: "Blog", href: "" }
             ]
         }
     ];

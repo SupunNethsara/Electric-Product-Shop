@@ -4,6 +4,7 @@ namespace App\Http\Controllers\OrderController;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderRequest;
+use App\Mail\NewOrderNotification;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Exception;
@@ -11,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class OderController extends Controller
 {
@@ -117,6 +119,19 @@ class OderController extends Controller
         }
     }
 
+    private function sendOrderNotification(Order $order, $orderItems)
+    {
+        try {
+            $ownerEmail = env('MAIL_FROM_ADDRESS', 'supunmax663@gmail.com');
+
+            Mail::to($ownerEmail)->send(new NewOrderNotification($order, $orderItems));
+
+            Log::info('Order notification email sent successfully for order: ' . $order->order_code);
+
+        } catch (Exception $e) {
+            Log::error('Failed to send order notification email: ' . $e->getMessage());
+        }
+    }
 
     public function directOrder(OrderRequest $request)
     {
@@ -134,6 +149,7 @@ class OderController extends Controller
                 'status' => 'pending',
             ]);
 
+            $orderItems = [];
             foreach ($request->items as $item) {
                 $product = \App\Models\Product::find($item['product_id']);
 
@@ -145,18 +161,22 @@ class OderController extends Controller
                     throw new Exception("Not enough stock for product: {$product->name}");
                 }
 
-                OrderItem::create([
+                $orderItem = OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                 ]);
 
+                $orderItems[] = $orderItem;
+
                 $product->availability -= $item['quantity'];
                 $product->save();
             }
 
             DB::commit();
+
+            $this->sendOrderNotification($order, $orderItems);
 
             return response()->json([
                 'success' => true,
@@ -169,6 +189,7 @@ class OderController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
 
     public function cartCheckout(OrderRequest $request)
     {
@@ -186,16 +207,22 @@ class OderController extends Controller
                 'status' => 'pending',
             ]);
 
+            $orderItems = [];
             foreach ($request->items as $item) {
-                OrderItem::create([
+                $orderItem = OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                 ]);
+                $orderItems[] = $orderItem;
             }
 
             DB::commit();
+
+            // Send email notification after successful order creation
+            $this->sendOrderNotification($order, $orderItems);
+
             return response()->json(['success' => true, 'order' => $order->load('items')], 201);
 
         } catch (Exception $e) {
