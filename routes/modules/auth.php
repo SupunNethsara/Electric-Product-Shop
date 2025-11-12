@@ -5,15 +5,15 @@ use App\Http\Controllers\UserController\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 
-Route::post('/auth/register/', [AuthController::class, 'register']);
+Route::post('/register/', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::post('/verify-reset-token', [AuthController::class, 'verifyResetToken']);
-Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp']);
-Route::post('/auth/resend-otp', [AuthController::class, 'resendOtp']);
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

@@ -97,10 +97,18 @@ const OtpVerificationModal = ({
             return;
         }
 
+        if (!email) {
+            setLocalError('Email is required for verification');
+            return;
+        }
+
         dispatch(clearOtpState());
         setLocalError('');
-
-        const result = await dispatch(verifyOtp({ email, otp: otpString }));
+        
+        const result = await dispatch(verifyOtp({ 
+            email: email, 
+            otp: otpString 
+        }));
 
         if (verifyOtp.fulfilled.match(result)) {
             if (onVerificationSuccess) {

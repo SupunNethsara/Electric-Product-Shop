@@ -54,6 +54,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'message' => 'OTP sent to your email. Please verify to complete registration.',
+                'otp'=>$otpRecord->otp,
                 'user_id' => $user->id,
                 'email' => $user->email,
                 'requires_verification' => true,
