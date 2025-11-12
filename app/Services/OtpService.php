@@ -45,6 +45,13 @@ class OtpService
 
     public function verifyOtp($email, $otp, $type = 'registration')
     {
+
+        Log::info('Verifying OTP', [
+            'email' => $email,
+            'otp' => $otp,
+            'type' => $type
+        ]);
+
         $otpRecord = OtpVerification::where('email', $email)
             ->where('otp', $otp)
             ->where('type', $type)
@@ -52,6 +59,22 @@ class OtpService
             ->first();
 
         if (!$otpRecord) {
+            $existingRecord = OtpVerification::where('email', $email)
+                ->where('type', $type)
+                ->first();
+
+            Log::error('OTP verification failed - No matching record found', [
+                'email' => $email,
+                'otp' => $otp,
+                'type' => $type,
+                'existing_record' => $existingRecord ? [
+                    'otp' => $existingRecord->otp,
+                    'is_used' => $existingRecord->is_used,
+                    'expires_at' => $existingRecord->expires_at,
+                    'created_at' => $existingRecord->created_at
+                ] : 'No existing record'
+            ]);
+
             return [
                 'success' => false,
                 'message' => 'Invalid OTP code'

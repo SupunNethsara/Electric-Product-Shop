@@ -25,6 +25,11 @@ class VerifyOtpNotification extends Notification implements ShouldQueue
 
     public function toMail($notifiable)
     {
+        \Log::info('Building OTP email', [
+            'email' => $notifiable->email,
+            'otp' => $this->otp
+        ]);
+
         return (new MailMessage)
             ->subject('Verify Your Email Address - OTP Code')
             ->greeting('Hello ' . $notifiable->name . '!')

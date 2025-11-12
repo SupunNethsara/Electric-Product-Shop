@@ -1,3 +1,4 @@
+
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
@@ -23,22 +24,56 @@ api.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             localStorage.removeItem('token');
-            window.location.href = '/';
+            localStorage.removeItem('user');
+            window.location.href = '/login';
         }
         return Promise.reject(error);
     }
 );
 
+// Async Thunks
 export const registerUser = createAsyncThunk(
     'auth/register',
     async (userData, { rejectWithValue }) => {
         try {
             const response = await api.post('/register', userData);
-            localStorage.setItem('token', response.data.token);
             return response.data;
         } catch (error) {
             return rejectWithValue(
                 error.response?.data?.message || 'Registration failed'
+            );
+        }
+    }
+);
+
+export const verifyOtp = createAsyncThunk(
+    'auth/verifyOtp',
+    async (otpData, { rejectWithValue }) => {
+        try {
+            const response = await api.post('/verify-otp', otpData);
+            // Store token and user data after successful verification
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+            }
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || 'OTP verification failed'
+            );
+        }
+    }
+);
+
+export const resendOtp = createAsyncThunk(
+    'auth/resendOtp',
+    async (email, { rejectWithValue }) => {
+        try {
+            const response = await api.post('/resend-otp', { email });
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || 'Failed to resend OTP'
             );
         }
     }
@@ -49,7 +84,10 @@ export const loginUser = createAsyncThunk(
     async (credentials, { rejectWithValue }) => {
         try {
             const response = await api.post('/login', credentials);
-            localStorage.setItem('token', response.data.token);
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+            }
             return response.data;
         } catch (error) {
             return rejectWithValue(
@@ -67,6 +105,7 @@ export const fetchUser = createAsyncThunk(
             return response.data;
         } catch (error) {
             localStorage.removeItem('token');
+            localStorage.removeItem('user');
             return rejectWithValue(
                 error.response?.data?.message || 'Failed to fetch user'
             );
@@ -78,11 +117,13 @@ export const logoutUser = createAsyncThunk(
     'auth/logout',
     async (_, { rejectWithValue }) => {
         try {
-            await api.post('/logout');
+            await api.post('/auth/logout');
             localStorage.removeItem('token');
+            localStorage.removeItem('user');
             return;
         } catch (error) {
             localStorage.removeItem('token');
+            localStorage.removeItem('user');
             return rejectWithValue(
                 error.response?.data?.message || 'Logout failed'
             );
@@ -93,14 +134,23 @@ export const logoutUser = createAsyncThunk(
 const authSlice = createSlice({
     name: 'auth',
     initialState: {
-        isAuthenticated: false,
-        user: null,
-        role: null,
+        isAuthenticated: !!localStorage.getItem('token'),
+        user: JSON.parse(localStorage.getItem('user')) || null,
+        role: JSON.parse(localStorage.getItem('user'))?.role || null,
         isLoading: false,
         error: null,
         appLoaded: false,
+        // OTP specific state
+        requiresVerification: false,
+        pendingEmail: null,
+        otpLoading: false,
+        otpError: null,
     },
     reducers: {
+        clearError: (state) => {
+            state.error = null;
+            state.otpError = null;
+        },
         setCredentials: (state, action) => {
             const { user, token, role } = action.payload;
             state.user = user;
@@ -110,11 +160,21 @@ const authSlice = createSlice({
             state.error = null;
             state.appLoaded = true;
         },
-        clearError: (state) => {
-            state.error = null;
-        },
         setAppLoaded: (state) => {
             state.appLoaded = true;
+        },
+        setRequiresVerification: (state, action) => {
+            state.requiresVerification = true;
+            state.pendingEmail = action.payload.email;
+        },
+        clearOtpState: (state) => {
+            state.requiresVerification = false;
+            state.pendingEmail = null;
+            state.otpError = null;
+        },
+        clearPendingVerification: (state) => {
+            state.requiresVerification = false;
+            state.pendingEmail = null;
         }
     },
     extraReducers: (builder) => {
@@ -126,15 +186,51 @@ const authSlice = createSlice({
             })
             .addCase(registerUser.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.isAuthenticated = true;
-                state.user = action.payload.user;
-                state.role = action.payload.user.role || 'user';
+                // Check if OTP verification is required
+                if (action.payload.requires_verification) {
+                    state.requiresVerification = true;
+                    state.pendingEmail = action.payload.email;
+                    state.isAuthenticated = false;
+                } else {
+                    state.isAuthenticated = true;
+                    state.user = action.payload.user;
+                    state.role = action.payload.user?.role || 'user';
+                }
                 state.appLoaded = true;
             })
             .addCase(registerUser.rejected, (state, action) => {
                 state.isLoading = false;
                 state.error = action.payload;
                 state.appLoaded = true;
+            })
+            // Verify OTP
+            .addCase(verifyOtp.pending, (state) => {
+                state.otpLoading = true;
+                state.otpError = null;
+            })
+            .addCase(verifyOtp.fulfilled, (state, action) => {
+                state.otpLoading = false;
+                state.requiresVerification = false;
+                state.pendingEmail = null;
+                state.isAuthenticated = true;
+                state.user = action.payload.user;
+                state.role = action.payload.user?.role || 'user';
+            })
+            .addCase(verifyOtp.rejected, (state, action) => {
+                state.otpLoading = false;
+                state.otpError = action.payload;
+            })
+            // Resend OTP
+            .addCase(resendOtp.pending, (state) => {
+                state.otpLoading = true;
+                state.otpError = null;
+            })
+            .addCase(resendOtp.fulfilled, (state) => {
+                state.otpLoading = false;
+            })
+            .addCase(resendOtp.rejected, (state, action) => {
+                state.otpLoading = false;
+                state.otpError = action.payload;
             })
             // Login
             .addCase(loginUser.pending, (state) => {
@@ -145,7 +241,7 @@ const authSlice = createSlice({
                 state.isLoading = false;
                 state.isAuthenticated = true;
                 state.user = action.payload.user;
-                state.role = action.payload.user.role || 'user';
+                state.role = action.payload.user?.role || 'user';
                 state.appLoaded = true;
             })
             .addCase(loginUser.rejected, (state, action) => {
@@ -179,10 +275,20 @@ const authSlice = createSlice({
                 state.user = null;
                 state.role = null;
                 state.error = null;
+                state.requiresVerification = false;
+                state.pendingEmail = null;
                 state.appLoaded = true;
             });
     },
 });
 
-export const { setCredentials, clearError, setAppLoaded } = authSlice.actions;
+export const {
+    setCredentials,
+    clearError,
+    setAppLoaded,
+    setRequiresVerification,
+    clearOtpState,
+    clearPendingVerification
+} = authSlice.actions;
+
 export default authSlice.reducer;

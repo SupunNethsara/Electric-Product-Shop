@@ -10,15 +10,18 @@ return new class extends Migration
     {
         Schema::create('otp_verifications', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('email');
+            $table->string('email', 191);
             $table->string('otp', 6);
-            $table->string('type');
+            $table->string('type', 50);
             $table->timestamp('expires_at');
             $table->boolean('is_used')->default(false);
             $table->integer('attempts')->default(0);
             $table->timestamps();
+        });
 
-            $table->index(['email', 'type']);
+
+        Schema::table('otp_verifications', function (Blueprint $table) {
+            $table->index(['email', 'type'], 'otp_verifications_email_type_index');
         });
     }
 
