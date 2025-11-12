@@ -21,8 +21,8 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $keyType = 'string';
-    public $incrementing = false;
+    protected $keyType = 'string'; // UUID is string
+    public $incrementing = false;  // Disable auto-incrementing id
 
     protected $primaryKey = 'id';
     protected $fillable = [
@@ -30,7 +30,6 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'email_verified_at'
     ];
 
     /**
