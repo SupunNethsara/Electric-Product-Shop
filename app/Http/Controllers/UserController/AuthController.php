@@ -5,6 +5,7 @@ namespace App\Http\Controllers\UserController;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRegisterRequest;
 use App\Models\User;
+use App\Services\OtpService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,26 +19,116 @@ use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
+    protected $otpService;
+
+    public function __construct(OtpService $otpService)
+    {
+        $this->otpService = $otpService;
+    }
     public function register(UserRegisterRequest $request)
     {
         $request->validated();
+
+        $existingUser = User::where('email', $request->email)->first();
+
+        if ($existingUser && !$existingUser->isVerified()) {
+            $existingUser->delete();
+        }
+
+        if ($existingUser && $existingUser->isVerified()) {
+            return response()->json([
+                'message' => 'User already exists with this email',
+            ], 409);
+        }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role ?? 'user',
+            'email_verified_at' => null,
+        ]);
+        try {
+            $otpRecord = $this->otpService->generateOtp($user->email, 'registration');
+            $user->sendOtpVerificationNotification($otpRecord->otp);
+
+            return response()->json([
+                'message' => 'OTP sent to your email. Please verify to complete registration.',
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'requires_verification' => true,
+            ], 201);
+
+        } catch (\Exception $e) {
+            $user->delete();
+
+            \Log::error('OTP Send Error: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Failed to send OTP. Please try again.',
+            ], 500);
+        }
+    }
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'otp' => 'required|string|size:6',
         ]);
 
+        $verificationResult = $this->otpService->verifyOtp($request->email, $request->otp, 'registration');
+
+        if (!$verificationResult['success']) {
+            return response()->json([
+                'message' => $verificationResult['message'],
+            ], 400);
+        }
+        $user = User::where('email', $request->email)->firstOrFail();
+
+        if ($user->isVerified()) {
+            return response()->json([
+                'message' => 'User already verified',
+            ], 400);
+        }
+
+        $user->markEmailAsVerified();
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'User registered successfully',
+            'message' => 'Email verified successfully',
             'user' => $user,
             'token' => $token,
-        ], 201);
+            'verified' => true,
+        ]);
     }
+    public function resendOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
 
+        $user = User::where('email', $request->email)->firstOrFail();
+
+        if ($user->isVerified()) {
+            return response()->json([
+                'message' => 'User already verified',
+            ], 400);
+        }
+
+        $result = $this->otpService->resendOtp($user->email, 'registration');
+
+        if (!$result['success']) {
+            return response()->json([
+                'message' => $result['message'],
+            ], 400);
+        }
+
+        $user->sendOtpVerificationNotification($result->otp);
+
+        return response()->json([
+            'message' => 'OTP resent successfully',
+        ]);
+    }
     public function login(Request $request)
     {
         $request->validate([
@@ -52,11 +143,22 @@ class AuthController extends Controller
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
+
+        // Check if email is verified
+        if (!$user->isVerified()) {
+            return response()->json([
+                'message' => 'Please verify your email address before logging in.',
+                'requires_verification' => true,
+                'email' => $user->email,
+            ], 403);
+        }
+
         if ($user->status !== 'active') {
             return response()->json([
                 'message' => 'Your account is inactive. Please contact an administrator.',
             ], 403);
         }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
