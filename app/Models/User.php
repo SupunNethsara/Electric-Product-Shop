@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\CustomResetPassword;
+use App\Notifications\VerifyOtpNotification;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -20,8 +21,8 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $keyType = 'string'; // UUID is string
-    public $incrementing = false;  // Disable auto-incrementing id
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     protected $primaryKey = 'id';
     protected $fillable = [
@@ -29,6 +30,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'email_verified_at'
     ];
 
     /**
@@ -71,5 +73,21 @@ class User extends Authenticatable
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new CustomResetPassword($token));
+    }
+    public function sendOtpVerificationNotification($otp)
+    {
+        $this->notify(new VerifyOtpNotification($otp));
+    }
+
+    public function isVerified()
+    {
+        return !is_null($this->email_verified_at);
+    }
+
+    public function markEmailAsVerified()
+    {
+        return $this->forceFill([
+            'email_verified_at' => $this->freshTimestamp(),
+        ])->save();
     }
 }
