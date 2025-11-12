@@ -7,12 +7,14 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { X, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 
-const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
+const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onSwitchToForgotPassword }) => {
     const [formData, setFormData] = useState({
         email: '',
         password: '',
     });
     const [showPassword, setShowPassword] = useState(false);
+    const [isForgotPasswordLoading, setIsForgotPasswordLoading] = useState(false);
+    const [forgotPasswordMessage, setForgotPasswordMessage] = useState('');
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -124,6 +126,12 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
         };
     }, [isOpen, onClose]);
 
+    useEffect(() => {
+        if (isOpen) {
+            setForgotPasswordMessage('');
+        }
+    }, [isOpen]);
+
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -141,6 +149,38 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
         window.location.href = 'http://localhost:8000/api/auth/google';
     };
 
+    const handleForgotPassword = async () => {
+        if (!formData.email) {
+            setForgotPasswordMessage('Please enter your email address first');
+            return;
+        }
+
+        setIsForgotPasswordLoading(true);
+        setForgotPasswordMessage('');
+
+        try {
+            const response = await fetch('http://localhost:8000/api/forgot-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: formData.email }),
+            });
+
+            const data = await response.json();
+
+            if (data.status) {
+                setForgotPasswordMessage('Password reset link sent! Check your email.');
+            } else {
+                setForgotPasswordMessage(data.message || 'Failed to send reset link');
+            }
+        } catch (err) {
+            setForgotPasswordMessage('Network error. Please try again.');
+        } finally {
+            setIsForgotPasswordLoading(false);
+        }
+    };
+
     const handleOverlayClick = (e) => {
         if (e.target === e.currentTarget) {
             onClose();
@@ -149,6 +189,13 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
+    };
+
+    const handleSwitchToForgotPassword = () => {
+        onClose();
+        if (onSwitchToForgotPassword) {
+            onSwitchToForgotPassword();
+        }
     };
 
     if (!isOpen) return null;
@@ -183,6 +230,19 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
                         </div>
                     )}
 
+                    {forgotPasswordMessage && (
+                        <div className={`px-4 py-3 rounded-xl text-sm flex items-center gap-2 ${
+                            forgotPasswordMessage.includes('sent')
+                                ? 'bg-green-50 border border-green-200 text-green-700'
+                                : 'bg-blue-50 border border-blue-200 text-blue-700'
+                        }`}>
+                            <div className={`w-2 h-2 rounded-full ${
+                                forgotPasswordMessage.includes('sent') ? 'bg-green-500' : 'bg-blue-500'
+                            }`}></div>
+                            {forgotPasswordMessage}
+                        </div>
+                    )}
+
                     <div className="space-y-4">
                         <div className="relative">
                             <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
@@ -207,9 +267,26 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
                         </div>
 
                         <div className="relative">
-                            <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
-                                Password
-                            </label>
+                            <div className="flex items-center justify-between mb-2">
+                                <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+                                    Password
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={handleForgotPassword}
+                                    disabled={isForgotPasswordLoading}
+                                    className="text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                                >
+                                    {isForgotPasswordLoading ? (
+                                        <div className="flex items-center gap-1">
+                                            <Loader2 size={14} className="animate-spin" />
+                                            Sending...
+                                        </div>
+                                    ) : (
+                                        'Forgot password?'
+                                    )}
+                                </button>
+                            </div>
                             <div className="relative">
                                 <Lock
                                     size={20}
@@ -282,8 +359,19 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister }) => {
                             </button>
                         </p>
                     </div>
+
+                    {/* Alternative Forgot Password Option */}
+                    <div className="text-center">
+                        <button
+                            type="button"
+                            onClick={handleSwitchToForgotPassword}
+                            className="text-sm text-slate-500 hover:text-slate-700 transition-colors duration-200"
+                        >
+                            Need help signing in?
+                        </button>
+                    </div>
                 </form>
-            </div>K
+            </div>
         </div>
     );
 };
