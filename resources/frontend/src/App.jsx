@@ -22,6 +22,7 @@ import Toast from "./UserInterFaceComponents/Common/Toast.jsx";
 import OrderConfirmation from "./UserInterFaceComponents/Common/OrderConfirmation.jsx";
 import GlobalModals from "./GlobalModels/GlobalModals.jsx";
 import ResetPasswordPage from "./Modals/ResetPasswordPage.jsx";
+import QuoteViewDetails from "./UserInterFaceComponents/Quotations/QuoteViewDetails.jsx";
 
 function App() {
     const dispatch = useDispatch();
@@ -103,6 +104,14 @@ function App() {
                         element={
                             <NormalLayout>
                                 <ProductDetails />
+                            </NormalLayout>
+                        }
+                    />
+                    <Route
+                        path="/quoteDetails/:id?"
+                        element={
+                            <NormalLayout>
+                                <QuoteViewDetails />
                             </NormalLayout>
                         }
                     />

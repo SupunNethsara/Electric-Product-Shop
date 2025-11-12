@@ -4,6 +4,7 @@ import ProductShop from "../Shop/ProductShop.jsx";
 import CartSection from "../Products/Cart/CartSection.jsx";
 import Contact from "../Contact/Contact.jsx";
 import About from "../About/About.jsx";
+import Quotation from "../Quotations/Quotation.jsx";
 
 function UserInterFace() {
     return (
@@ -14,6 +15,7 @@ function UserInterFace() {
                 <Route path="/shop" element={<ProductShop/>}/>
                 <Route path="/contact" element={<Contact/>}/>
                 <Route path="/about" element={<About/>}/>
+                <Route path="/quotations" element={<Quotation/>}/>
                 <Route path="/cart" element={<CartSection/>}/>
             </Routes>
         </div>

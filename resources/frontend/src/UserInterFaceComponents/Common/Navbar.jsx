@@ -92,6 +92,7 @@ const Navbar = () => {
         { path: "/shop", label: "Shop" },
         { path: "/about", label: "About" },
         { path: "/contact", label: "Contact" },
+        { path: "/quotations", label: "Quotation" },
     ];
 
     const getDashboardLink = () => {
