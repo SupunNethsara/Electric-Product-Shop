@@ -16,6 +16,7 @@ function UserInterFace() {
                 <Route path="/contact" element={<Contact/>}/>
                 <Route path="/about" element={<About/>}/>
                 <Route path="/quotations" element={<Quotation/>}/>
+
                 <Route path="/cart" element={<CartSection/>}/>
             </Routes>
         </div>
