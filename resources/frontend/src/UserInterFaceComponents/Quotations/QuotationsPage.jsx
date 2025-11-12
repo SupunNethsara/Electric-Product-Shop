@@ -155,7 +155,7 @@ const QuotationsPage = () => {
                         <p className="text-gray-600 mb-6">Add products to your quotation list to see them here</p>
                         <button
                             onClick={() => navigate('/')}
-                            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
+                            className="bg-gradient-to-r bg-[#e3251b] text-white px-6 py-3 rounded-lg hover:from-[#9f1811]  transition-all"
                         >
                             Browse Products
                         </button>
@@ -221,7 +221,6 @@ const QuotationsPage = () => {
                             </div>
                         </div>
 
-                        {/* Summary Sidebar */}
                         <div className="lg:col-span-1">
                             <div className="bg-white rounded-xl border border-gray-200 shadow-sm sticky top-6">
                                 <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
