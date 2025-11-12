@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { logoutUser } from "../../Store/slices/authSlice.js";
 import { openLoginModal, openRegisterModal } from "../../Store/slices/modalSlice.js";
 import { useState, useEffect, useRef } from "react";
-import { Search, ShoppingCart, Menu, X } from "lucide-react";
+import { ShoppingCart, Menu, X, FileText, Home, Store, Info, Phone, User } from "lucide-react";
 import axios from "axios";
 
 const Navbar = () => {
@@ -13,9 +13,9 @@ const Navbar = () => {
     const location = useLocation();
     const { isAuthenticated, user, role, isLoading } = useSelector((state) => state.auth);
     const cartCount = useSelector(state => state.cart?.totalItems || 0);
+    const quotationCount = useSelector(state => state.quotation?.totalItems || 0);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
     const [settings, setSettings] = useState({
         logoUrl: null
     });
@@ -57,14 +57,6 @@ const Navbar = () => {
         setIsUserDropdownOpen(false);
     };
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        if (searchQuery.trim()) {
-            navigate(`/shop?search=${encodeURIComponent(searchQuery)}`);
-            setSearchQuery("");
-        }
-    };
-
     const isActiveRoute = (path) => {
         return location.pathname === path;
     };
@@ -77,21 +69,12 @@ const Navbar = () => {
         dispatch(openRegisterModal());
     };
 
-    const handleAuthCheckout = () => {
-        if (!isAuthenticated) {
-            dispatch(openLoginModal('/checkout'));
-            setIsMobileMenuOpen(false);
-        } else {
-            navigate('/checkout');
-            setIsMobileMenuOpen(false);
-        }
-    };
-
     const navLinks = [
-        { path: "/", label: "Home" },
-        { path: "/shop", label: "Shop" },
-        { path: "/about", label: "About" },
-        { path: "/contact", label: "Contact" },
+        { path: "/", label: "Home",  },
+        { path: "/shop", label: "Shop",  },
+        { path: "/quotations", label: "Quotations",  },
+        { path: "/about", label: "About", },
+        { path: "/contact", label: "Contact",  },
     ];
 
     const getDashboardLink = () => {
@@ -133,6 +116,7 @@ const Navbar = () => {
             </div>
         );
     };
+
     const renderLogoWithBadge = () => {
         if (loading) {
             return (
@@ -151,7 +135,6 @@ const Navbar = () => {
                             e.target.style.display = 'none';
                         }}
                     />
-
                 </div>
             );
         }
@@ -192,152 +175,163 @@ const Navbar = () => {
                             {renderLogoWithBadge()}
                         </Link>
 
-                        <div className="hidden sm:flex items-center gap-4 lg:gap-8 text-slate-600">
-                            {navLinks.map((link) => (
+                        <div className="hidden lg:flex items-center gap-20">
+                            <div className="flex items-center gap-6 text-slate-600">
+                                {navLinks.map((link) => (
+                                    <Link
+                                        key={link.path}
+                                        to={link.path}
+                                        className={`flex items-center gap-1.5 font-medium transition-colors duration-200 hover:text-green-600 px-3 py-2 rounded-lg ${
+                                            isActiveRoute(link.path)
+                                                ? "text-green-600 bg-green-50"
+                                                : "text-slate-600 hover:bg-slate-50"
+                                        }`}
+                                    >
+                                        <span className="text-sm">{link.label}</span>
+                                    </Link>
+                                ))}
+                            </div>
+
+                            <div className="flex items-center gap-4">
                                 <Link
-                                    key={link.path}
-                                    to={link.path}
-                                    className={`font-medium transition-colors duration-200 hover:text-green-600 ${
-                                        isActiveRoute(link.path) ? "text-green-600" : "text-slate-600"
-                                    }`}
+                                    to="/cart"
+                                    className="relative flex items-center gap-1.5 text-slate-600 hover:text-green-600 transition-colors duration-200 p-2 rounded-lg hover:bg-slate-50"
                                 >
-                                    {link.label}
+                                    <ShoppingCart size={18} />
+                                    {cartCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 text-[10px] text-white bg-green-500 size-4 rounded-full flex items-center justify-center font-medium">
+                                            {cartCount}
+                                        </span>
+                                    )}
                                 </Link>
-                            ))}
 
-                            <form onSubmit={handleSearch} className="hidden xl:flex items-center w-xs text-sm gap-2 bg-slate-100 px-4 py-3 rounded-full">
-                                <Search size={18} className="text-slate-600" />
-                                <input
-                                    className="w-full bg-transparent outline-none placeholder-slate-600"
-                                    type="text"
-                                    placeholder="Search products"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    required
-                                />
-                            </form>
+                                <Link
+                                    to="/quotationsPage"
+                                    className="relative flex items-center gap-1.5 text-slate-600 hover:text-green-600 transition-colors duration-200 p-2 rounded-lg hover:bg-slate-50"
+                                >
+                                    <FileText size={18} />
+                                    <span className="text-sm">Quotes</span>
+                                    {quotationCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 text-[10px] text-white bg-blue-500 size-4 rounded-full flex items-center justify-center font-medium">
+                                            {quotationCount}
+                                        </span>
+                                    )}
+                                </Link>
 
+                                {isAuthenticated ? (
+                                    <div className="flex items-center" ref={dropdownRef}>
+                                        <div className="relative">
+                                            <button
+                                                onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+                                                className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-1.5 hover:border-slate-300 transition-all duration-300 min-w-0"
+                                            >
+                                                <div className="w-7 h-7 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <span className="text-white text-xs font-medium">
+                                                        {user?.name?.charAt(0)?.toUpperCase()}
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-col items-start max-w-32">
+                                                    <span className="text-slate-900 font-medium text-xs truncate w-full">
+                                                        {user?.name}
+                                                    </span>
+                                                    <span className="text-slate-500 text-xs capitalize truncate w-full">
+                                                        {role}
+                                                    </span>
+                                                </div>
+                                            </button>
+
+                                            {isUserDropdownOpen && (
+                                                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
+                                                    <div className="px-4 py-3 border-b border-slate-100">
+                                                        <p className="text-sm font-medium text-slate-900 truncate">{user?.name}</p>
+                                                        <p className="text-sm text-slate-500 capitalize">{role}</p>
+                                                    </div>
+
+                                                    <Link
+                                                        to={getDashboardLink()}
+                                                        className="flex items-center px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
+                                                        onClick={() => setIsUserDropdownOpen(false)}
+                                                    >
+                                                        <User size={16} className="mr-3 text-slate-400" />
+                                                        {getDashboardLabel()}
+                                                    </Link>
+
+                                                    {(role === "admin" || role === "super_admin") && (
+                                                        <>
+                                                            <Link
+                                                                to="/admin/products"
+                                                                className="flex items-center px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
+                                                                onClick={() => setIsUserDropdownOpen(false)}
+                                                            >
+                                                                <Store size={16} className="mr-3 text-slate-400" />
+                                                                Manage Products
+                                                            </Link>
+                                                            <Link
+                                                                to="/admin/user-manage"
+                                                                className="flex items-center px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
+                                                                onClick={() => setIsUserDropdownOpen(false)}
+                                                            >
+                                                                <User size={16} className="mr-3 text-slate-400" />
+                                                                Manage Users
+                                                            </Link>
+                                                        </>
+                                                    )}
+
+                                                    <div className="border-t border-slate-100 mt-2 pt-2">
+                                                        <button
+                                                            onClick={handleLogout}
+                                                            className="flex items-center w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
+                                                        >
+                                                            <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                                            </svg>
+                                                            Logout
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={handleOpenLoginModal}
+                                            className="px-4 py-1.5 text-slate-700 hover:text-green-600 text-sm font-medium transition-colors duration-200"
+                                        >
+                                            Sign In
+                                        </button>
+                                        <button
+                                            onClick={handleOpenRegisterModal}
+                                            className="px-4 py-1.5 bg-green-500 hover:bg-green-600 text-white text-sm rounded-full font-medium transition-colors duration-200"
+                                        >
+                                            Get Started
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="lg:hidden flex items-center gap-4">
                             <Link
                                 to="/cart"
-                                className="relative flex items-center gap-2 text-slate-600 hover:text-green-600 transition-colors duration-200"
+                                className="relative p-2 text-slate-600 hover:text-green-600 transition-colors"
                             >
-                                <ShoppingCart size={18} />
-                                Cart
+                                <ShoppingCart size={20} />
                                 {cartCount > 0 && (
-                                    <span className="absolute -top-1 left-3 text-[8px] text-white bg-slate-600 size-3.5 rounded-full flex items-center justify-center">
+                                    <span className="absolute -top-1 -right-1 text-[10px] text-white bg-green-500 size-4 rounded-full flex items-center justify-center font-medium">
                                         {cartCount}
                                     </span>
                                 )}
                             </Link>
 
-                            {isAuthenticated ? (
-                                <div className="flex items-center" ref={dropdownRef}>
-                                    <div className="relative">
-                                        <button
-                                            onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                                            className="flex items-center gap-3 bg-white border border-slate-200 rounded-lg px-4 py-2 hover:border-slate-300 transition-all duration-300"
-                                        >
-                                            <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                                                <span className="text-white text-sm font-medium">
-                                                    {user?.name?.charAt(0)?.toUpperCase()}
-                                                </span>
-                                            </div>
-                                            <div className="flex flex-col items-start">
-                                                <span className="text-slate-900 font-medium text-sm">
-                                                    {user?.name}
-                                                </span>
-                                                <span className="text-slate-500 text-xs capitalize">
-                                                    {role}
-                                                </span>
-                                            </div>
-                                        </button>
-
-                                        {isUserDropdownOpen && (
-                                            <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
-                                                <div className="px-4 py-3 border-b border-slate-100">
-                                                    <p className="text-sm font-medium text-slate-900">{user?.name}</p>
-                                                    <p className="text-sm text-slate-500 capitalize">{role}</p>
-                                                </div>
-
-                                                <Link
-                                                    to={getDashboardLink()}
-                                                    className="flex items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
-                                                    onClick={() => setIsUserDropdownOpen(false)}
-                                                >
-                                                    <svg className="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                    </svg>
-                                                    {getDashboardLabel()}
-                                                </Link>
-
-
-                                                {(role === "admin" || role === "super_admin" ) && (
-                                                    <>
-                                                        <Link
-                                                            to="/admin/products"
-                                                            className="flex items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
-                                                            onClick={() => setIsUserDropdownOpen(false)}
-                                                        >
-                                                            <svg className="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                                                            </svg>
-                                                            Manage Products
-                                                        </Link>
-                                                        <Link
-                                                            to="/admin/user-manage"
-                                                            className="flex items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-200"
-                                                            onClick={() => setIsUserDropdownOpen(false)}
-                                                        >
-                                                            <svg className="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                                                            </svg>
-                                                            Manage Users
-                                                        </Link>
-                                                    </>
-                                                )}
-
-                                                <div className="border-t border-slate-100 mt-2 pt-2">
-                                                    <button
-                                                        onClick={handleLogout}
-                                                        className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
-                                                    >
-                                                        <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                                        </svg>
-                                                        Logout
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="flex items-center gap-4">
-                                    <button
-                                        onClick={handleOpenLoginModal}
-                                        className="px-6 py-2 text-slate-700 hover:text-green-600 font-medium transition-colors duration-200"
-                                    >
-                                        Sign In
-                                    </button>
-                                    <button
-                                        onClick={handleOpenRegisterModal}
-                                        className="px-8 py-2 bg-green-500 hover:bg-green-600 transition text-white rounded-full font-medium"
-                                    >
-                                        Get Started
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="sm:hidden flex items-center gap-4">
                             <Link
-                                to="/cart"
-                                className="relative p-2 text-slate-600"
+                                to="/quotationsPage"
+                                className="relative p-2 text-slate-600 hover:text-green-600 transition-colors"
                             >
-                                <ShoppingCart size={20} />
-                                {cartCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 text-[8px] text-white bg-slate-600 size-3.5 rounded-full flex items-center justify-center">
-                                        {cartCount}
+                                <FileText size={20} />
+                                {quotationCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 text-[10px] text-white bg-blue-500 size-4 rounded-full flex items-center justify-center font-medium">
+                                        {quotationCount}
                                     </span>
                                 )}
                             </Link>
@@ -346,13 +340,13 @@ const Navbar = () => {
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={handleOpenLoginModal}
-                                        className="px-4 py-1.5 text-slate-700 hover:text-green-600 text-sm transition-colors duration-200 font-medium"
+                                        className="px-3 py-1.5 text-slate-700 hover:text-green-600 text-xs transition-colors duration-200 font-medium"
                                     >
                                         Sign In
                                     </button>
                                     <button
                                         onClick={handleOpenRegisterModal}
-                                        className="px-5 py-1.5 bg-green-500 hover:bg-green-600 text-sm transition text-white rounded-full font-medium"
+                                        className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-xs transition text-white rounded-full font-medium"
                                     >
                                         Get Started
                                     </button>
@@ -370,62 +364,68 @@ const Navbar = () => {
                 </div>
 
                 {isMobileMenuOpen && (
-                    <div className="sm:hidden border-t border-slate-200 bg-white">
+                    <div className="lg:hidden border-t border-slate-200 bg-white">
                         <div className="px-6 py-4">
-                            <form onSubmit={handleSearch} className="flex items-center w-full text-sm gap-2 bg-slate-100 px-4 py-3 rounded-full mb-4">
-                                <Search size={18} className="text-slate-600" />
-                                <input
-                                    className="w-full bg-transparent outline-none placeholder-slate-600"
-                                    type="text"
-                                    placeholder="Search products"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    required
-                                />
-                            </form>
-
-                            <div className="flex flex-col space-y-2">
+                            <div className="flex flex-col space-y-1">
                                 {navLinks.map((link) => (
                                     <Link
                                         key={link.path}
                                         to={link.path}
-                                        className={`py-3 px-4 font-medium transition-all duration-200 rounded-lg ${
+                                        className={`flex items-center gap-3 py-3 px-4 font-medium transition-all duration-200 rounded-lg ${
                                             isActiveRoute(link.path)
                                                 ? "text-green-600 bg-green-50"
                                                 : "text-slate-600 hover:text-green-600 hover:bg-slate-50"
                                         }`}
                                         onClick={() => setIsMobileMenuOpen(false)}
                                     >
+                                        <link.icon size={18} />
                                         {link.label}
                                     </Link>
                                 ))}
-
-                                {/* Checkout button in mobile menu */}
-                                <button
-                                    onClick={handleAuthCheckout}
-                                    className="w-full text-left py-3 px-4 font-medium text-green-600 hover:bg-green-50 transition-all duration-200 rounded-lg"
-                                >
-                                    Checkout
-                                </button>
 
                                 {isAuthenticated && (
                                     <>
                                         <div className="border-t border-slate-200 pt-3 mt-2">
                                             <Link
                                                 to={getDashboardLink()}
-                                                className="py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-slate-50 transition-all duration-200 block rounded-lg"
+                                                className="flex items-center gap-3 py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-slate-50 transition-all duration-200 rounded-lg"
                                                 onClick={() => setIsMobileMenuOpen(false)}
                                             >
+                                                <User size={18} />
                                                 {getDashboardLabel()}
                                             </Link>
+
+                                            {(role === "admin" || role === "super_admin") && (
+                                                <>
+                                                    <Link
+                                                        to="/admin/products"
+                                                        className="flex items-center gap-3 py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-slate-50 transition-all duration-200 rounded-lg"
+                                                        onClick={() => setIsMobileMenuOpen(false)}
+                                                    >
+                                                        <Store size={18} />
+                                                        Manage Products
+                                                    </Link>
+                                                    <Link
+                                                        to="/admin/user-manage"
+                                                        className="flex items-center gap-3 py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-slate-50 transition-all duration-200 rounded-lg"
+                                                        onClick={() => setIsMobileMenuOpen(false)}
+                                                    >
+                                                        <User size={18} />
+                                                        Manage Users
+                                                    </Link>
+                                                </>
+                                            )}
 
                                             <button
                                                 onClick={() => {
                                                     handleLogout();
                                                     setIsMobileMenuOpen(false);
                                                 }}
-                                                className="w-full text-left py-3 px-4 font-medium text-red-600 hover:bg-red-50 transition-all duration-200 rounded-lg"
+                                                className="flex items-center gap-3 w-full text-left py-3 px-4 font-medium text-red-600 hover:bg-red-50 transition-all duration-200 rounded-lg"
                                             >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                                </svg>
                                                 Logout
                                             </button>
                                         </div>
@@ -439,8 +439,9 @@ const Navbar = () => {
                                                 handleOpenLoginModal();
                                                 setIsMobileMenuOpen(false);
                                             }}
-                                            className="w-full text-left py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-slate-50 transition-all duration-200 rounded-lg"
+                                            className="flex items-center gap-3 w-full text-left py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-slate-50 transition-all duration-200 rounded-lg"
                                         >
+                                            <User size={18} />
                                             Sign In
                                         </button>
                                         <button
@@ -448,8 +449,9 @@ const Navbar = () => {
                                                 handleOpenRegisterModal();
                                                 setIsMobileMenuOpen(false);
                                             }}
-                                            className="w-full text-left py-3 px-4 font-medium text-green-600 hover:bg-green-50 transition-all duration-200 rounded-lg"
+                                            className="flex items-center gap-3 w-full text-left py-3 px-4 font-medium text-green-600 hover:bg-green-50 transition-all duration-200 rounded-lg"
                                         >
+                                            <User size={18} />
                                             Get Started
                                         </button>
                                     </div>
