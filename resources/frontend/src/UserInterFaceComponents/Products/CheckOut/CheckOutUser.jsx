@@ -22,13 +22,13 @@ function CheckOutUser() {
         {
             id: "standard",
             name: "Standard Delivery",
-            price: 300,
+            price: 0,
             deliveryTime: "3-5 business days"
         },
         {
             id: "express",
             name: "Express Delivery",
-            price: 600,
+            price: 0,
             deliveryTime: "1-2 business days"
         }
     ];
@@ -167,8 +167,6 @@ function CheckOutUser() {
         }
     };
 
-    // Update the processCartCheckout function in CheckOutUser.jsx
-
     const processCartCheckout = async () => {
         try {
             setIsProcessing(true);
@@ -193,16 +191,12 @@ function CheckOutUser() {
             });
 
             if (response.data.success) {
-                // Clear local cart immediately - this is the important change
                 dispatch(clearCart());
-
-                // Then try to clear server cart, but don't worry if it fails
                 try {
                     await dispatch(clearServerCart()).unwrap();
                     console.log('✅ Server cart cleared successfully');
                 } catch (clearError) {
                     console.warn("⚠️ Server cart clear warning (order still placed):", clearError);
-                    // Don't show alert since order was successful and local cart is cleared
                 }
             }
 

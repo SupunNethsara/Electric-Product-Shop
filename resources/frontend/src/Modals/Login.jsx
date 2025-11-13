@@ -44,15 +44,45 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onSwitchToForgotPassw
                         userData = JSON.parse(userParam);
                     }
 
-                    localStorage.setItem('token', token);
-                    localStorage.setItem('user', JSON.stringify(userData));
+                    const handleSubmit = async (e) => {
+                        e.preventDefault();
+                        setError('');
+                        try {
+                            const resultAction = await dispatch(loginUser(formData));
+                            if (loginUser.fulfilled.match(resultAction)) {
+                                const { user, token } = resultAction.payload;
+                                localStorage.setItem('token', token);
+                                localStorage.setItem('user', JSON.stringify(user));
 
-                    // Dispatch to Redux store
-                    await dispatch(setCredentials({
-                        user: userData,
-                        token: token,
-                        role: userData.role || 'user'
-                    }));
+                                // Check for pending checkout in localStorage
+                                const pendingCheckout = localStorage.getItem('pendingCheckout');
+                                const pendingCartCheckout = localStorage.getItem('pendingCartCheckout');
+
+                                // Clear any pending checkouts from localStorage
+                                localStorage.removeItem('pendingCheckout');
+                                localStorage.removeItem('pendingCartCheckout');
+
+                                // If there's a redirectAfterLogin from the modal state, use that
+                                if (redirectAfterLogin) {
+                                    navigate(redirectAfterLogin);
+                                    dispatch(clearRedirect());
+                                }
+                                // If there's a pending checkout, redirect to checkout
+                                else if (pendingCheckout || pendingCartCheckout) {
+                                    navigate('/checkout');
+                                }
+                                // Default redirect
+                                else {
+                                    navigate('/');
+                                }
+
+                                // Close the login modal
+                                if (onClose) onClose();
+                            }
+                        } catch (err) {
+                            setError(err.message || 'Login failed. Please try again.');
+                        }
+                    };
 
                     const cleanUrl = window.location.pathname;
                     window.history.replaceState({}, document.title, cleanUrl);
@@ -64,7 +94,6 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onSwitchToForgotPassw
                         dispatch(closeModals());
                     }
 
-                    // Navigate to the intended page
                     navigate(redirectTo, { replace: true });
 
                 } catch (error) {
@@ -105,7 +134,6 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onSwitchToForgotPassw
         }
     }, [isAuthenticated, isOpen, navigate, role, redirectAfterLogin, dispatch]);
 
-    // Escape key handler
     useEffect(() => {
         const handleEscape = (e) => {
             if (e.key === 'Escape') {

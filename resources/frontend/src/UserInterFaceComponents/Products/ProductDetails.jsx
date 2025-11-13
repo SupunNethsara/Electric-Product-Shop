@@ -223,7 +223,13 @@ const ProductDetails = () => {
 
     const handleBuyNow = () => {
         if (!isAuthenticated) {
-            dispatch(openLoginModal());
+            const buyNowState = {
+                directBuy: true,
+                product: product,
+                quantity: quantity
+            };
+            localStorage.setItem('pendingCheckout', JSON.stringify(buyNowState));
+            dispatch(openLoginModal('/checkout'));
             return;
         }
 
@@ -231,6 +237,8 @@ const ProductDetails = () => {
             showError('This product is out of stock', 'Out of Stock');
             return;
         }
+        // Clear any pending checkout from localStorage
+        localStorage.removeItem('pendingCheckout');
         navigate('/checkout', {
             state: {
                 directBuy: true,
