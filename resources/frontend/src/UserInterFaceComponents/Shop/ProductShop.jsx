@@ -20,6 +20,11 @@ function ProductShop() {
     const [totalProducts, setTotalProducts] = useState(0);
     const [loading, setLoading] = useState(false);
     const [searchInput, setSearchInput] = useState('');
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
     const fetchProducts = useCallback(async () => {
         try {
             setLoading(true);

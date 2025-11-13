@@ -137,6 +137,10 @@ const ProductDetails = () => {
     });
 
     useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
+    useEffect(() => {
         const fetchProductDetails = async () => {
             if (!location.state?.product && id) {
                 try {

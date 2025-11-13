@@ -37,6 +37,10 @@ function CheckOutUser() {
     const directBuyData = location.state?.directBuy ? location.state : null;
 
     useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
+    useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
