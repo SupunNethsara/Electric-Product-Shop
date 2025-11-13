@@ -117,7 +117,7 @@ export const logoutUser = createAsyncThunk(
     'auth/logout',
     async (_, { rejectWithValue }) => {
         try {
-            await api.post('/auth/logout');
+            await api.post('/logout');
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             return;
@@ -140,7 +140,6 @@ const authSlice = createSlice({
         isLoading: false,
         error: null,
         appLoaded: false,
-        // OTP specific state
         requiresVerification: false,
         pendingEmail: null,
         otpLoading: false,

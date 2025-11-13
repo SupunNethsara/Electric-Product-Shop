@@ -47,14 +47,24 @@ const Navbar = () => {
                 setIsUserDropdownOpen(false);
             }
         };
+
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
     }, []);
 
-    const handleLogout = () => {
-        dispatch(logoutUser());
-        navigate("/");
-        setIsUserDropdownOpen(false);
+    const handleLogout = async () => {
+        try {
+            await dispatch(logoutUser()).unwrap();
+            setIsUserDropdownOpen(false);
+            setIsMobileMenuOpen(false);
+            // Force a full page reload to ensure all components get fresh state
+            window.location.href = '/';
+        } catch (error) {
+            console.error('Logout failed:', error);
+        }
     };
 
     const isActiveRoute = (path) => {
