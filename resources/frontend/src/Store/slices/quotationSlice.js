@@ -54,6 +54,9 @@ export const removeFromQuotation = createAsyncThunk(
             await api.delete(`/quotations/${id}`);
             return id;
         } catch (error) {
+            if (error.response?.status === 404) {
+                return id;
+            }
             return rejectWithValue(error.response?.data?.message || 'Failed to remove from quotation');
         }
     }

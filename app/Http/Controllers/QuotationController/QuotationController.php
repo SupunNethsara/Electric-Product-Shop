@@ -25,7 +25,6 @@ class QuotationController extends Controller
             'quantity' => 'required|integer|min:1'
         ]);
 
-        // Check if product exists and is available
         $product = Product::findOrFail($request->product_id);
 
         if ($product->availability < $request->quantity) {
@@ -36,19 +35,16 @@ class QuotationController extends Controller
 
         DB::beginTransaction();
         try {
-            // Check if product already exists in user's quotations
             $existingQuotation = Quotation::where('user_id', auth()->id())
                 ->where('product_id', $request->product_id)
                 ->first();
 
             if ($existingQuotation) {
-                // Update quantity if already exists
                 $existingQuotation->update([
                     'quantity' => $request->quantity
                 ]);
                 $quotation = $existingQuotation;
             } else {
-                // Create new quotation item
                 $quotation = Quotation::create([
                     'user_id' => auth()->id(),
                     'product_id' => $request->product_id,
@@ -75,7 +71,13 @@ class QuotationController extends Controller
     {
         $quotation = Quotation::where('user_id', auth()->id())
             ->where('id', $id)
-            ->firstOrFail();
+            ->first();
+
+        if (!$quotation) {
+            return response()->json([
+                'message' => 'Quotation not found or already deleted'
+            ], 200);
+        }
 
         $quotation->delete();
 
@@ -86,10 +88,12 @@ class QuotationController extends Controller
 
     public function clear()
     {
-        Quotation::where('user_id', auth()->id())->delete();
+        $deleted = Quotation::where('user_id', auth()->id())->delete();
 
         return response()->json([
-            'message' => 'All quotations cleared successfully'
+            'message' => $deleted > 0
+                ? 'All quotations cleared successfully'
+                : 'No quotations to clear'
         ]);
     }
 }
