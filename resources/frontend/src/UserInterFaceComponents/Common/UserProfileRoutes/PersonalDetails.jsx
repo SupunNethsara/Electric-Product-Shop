@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { User, MapPin, Edit3, Phone, Calendar, MapPin as LocationIcon, Home, Mail } from 'lucide-react';
+import { User, MapPin, Edit3, Phone, Calendar, MapPin as LocationIcon, Home, Mail, ShoppingBag } from 'lucide-react';
 
 function PersonalDetails() {
     const [profile, setProfile] = useState(null);
@@ -86,6 +86,10 @@ function PersonalDetails() {
         }));
     };
 
+    const handleNavigateToPreviousPage = () => {
+        navigate(-1);
+    };
+
     if (isLoading && !profile) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -101,14 +105,23 @@ function PersonalDetails() {
                     <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
                     <p className="text-gray-600 mt-1">Manage your personal information</p>
                 </div>
-                <button
-                    onClick={isEditing ? handleSaveProfile : () => setIsEditing(true)}
-                    disabled={isLoading}
-                    className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                >
-                    <Edit3 size={16} />
-                    {isLoading ? 'Saving...' : isEditing ? 'Save Changes' : 'Edit Profile'}
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleNavigateToPreviousPage}
+                        className="flex items-center gap-2 bg-white border border-gray-300 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                        <ShoppingBag size={16} />
+                        Go to Previous Page
+                    </button>
+                    <button
+                        onClick={isEditing ? handleSaveProfile : () => setIsEditing(true)}
+                        disabled={isLoading}
+                        className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                    >
+                        <Edit3 size={16} />
+                        {isLoading ? 'Saving...' : isEditing ? 'Save Changes' : 'Edit Profile'}
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -57,6 +57,15 @@ function CheckOutUser() {
                     return;
                 }
 
+                const requiredFields = ['phone', 'address', 'city', 'postal_code', 'country'];
+                const profile = profileResponse.data.profile;
+                const hasMissingFields = requiredFields.some(field => !profile[field]);
+
+                if (hasMissingFields) {
+                    setCompleteModal(true);
+                    return;
+                }
+
                 setUser({
                     ...profileResponse.data.profile.user,
                     profile: {
