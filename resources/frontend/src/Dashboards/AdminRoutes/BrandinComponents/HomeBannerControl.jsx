@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { useRef } from 'react';
 import axios from 'axios';
+import SliderSectionPreview from "./SliderSectionPreview.jsx";
 
 const API_BASE_URL = 'http://localhost:8000/api';
 
+// Main Component
 function HomeBannerControl() {
     const [slides, setSlides] = useState([]);
     const [editingSlide, setEditingSlide] = useState(null);
@@ -244,7 +246,7 @@ function HomeBannerControl() {
 
                     <div className="bg-white rounded-lg shadow p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Live Preview</h3>
-                        <div className="rounded-lg p-4">
+                        <div className="rounded-lg">
                             <SliderSectionPreview slides={slides.filter(slide => slide.is_active)} />
                         </div>
                     </div>
@@ -269,7 +271,6 @@ function SlideEditor({ slide, onSave, onCancel, isNew }) {
         }));
     };
 
-    // Color presets for easy selection
     const colorPresets = {
         gradients: [
             { value: 'from-green-200 via-green-100 to-green-200', label: 'Green Gradient' },
@@ -301,7 +302,6 @@ function SlideEditor({ slide, onSave, onCancel, isNew }) {
             </h3>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Basic Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -369,7 +369,6 @@ function SlideEditor({ slide, onSave, onCancel, isNew }) {
                     </div>
                 </div>
 
-                {/* Background Customization */}
                 <div className="border-t pt-6">
                     <h4 className="text-lg font-medium text-gray-900 mb-4">Background Customization</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -428,7 +427,6 @@ function SlideEditor({ slide, onSave, onCancel, isNew }) {
                     </div>
                 </div>
 
-                {/* Content Customization */}
                 <div className="border-t pt-6">
                     <h4 className="text-lg font-medium text-gray-900 mb-4">Content Customization</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -524,208 +522,6 @@ function SlideEditor({ slide, onSave, onCancel, isNew }) {
     );
 }
 
-function SliderSectionPreview({ slides }) {
-    const [currentSlide, setCurrentSlide] = useState(0);
-    const slideRefs = useRef([]);
-
-    const calculateDiscount = (price, originalPrice) => {
-        const p = parseFloat(price.replace('$', ''));
-        const op = parseFloat(originalPrice.replace('$', ''));
-        if (op <= p) return 0;
-        const discount = ((op - p) / op) * 100;
-        return Math.round(discount);
-    };
-
-    const nextSlide = () => {
-        const nextIndex = (currentSlide + 1) % slides.length;
-        animateSlideChange(nextIndex);
-    };
-
-    const prevSlide = () => {
-        const prevIndex = (currentSlide - 1 + slides.length) % slides.length;
-        animateSlideChange(prevIndex);
-    };
-
-    const goToSlide = (index) => {
-        if (index === currentSlide) return;
-        animateSlideChange(index);
-    };
-
-    const animateSlideChange = (newIndex) => {
-        const currentSlideEl = slideRefs.current[currentSlide];
-        const nextSlideEl = slideRefs.current[newIndex];
-
-        if (currentSlideEl && nextSlideEl) {
-            gsap.to(currentSlideEl.querySelectorAll('.text-content, .image-content'), {
-                opacity: 0,
-                y: 20,
-                duration: 0.4,
-                ease: "power2.inOut"
-            });
-
-            setCurrentSlide(newIndex);
-
-            gsap.fromTo(nextSlideEl.querySelector('.text-content'),
-                { opacity: 0, y: 30 },
-                {
-                    opacity: 1,
-                    y: 0,
-                    duration: 0.6,
-                    ease: "power2.out",
-                    delay: 0.2
-                }
-            );
-
-            gsap.fromTo(nextSlideEl.querySelector('.image-content'),
-                { scale: 0.9, opacity: 0 },
-                {
-                    scale: 1,
-                    opacity: 1,
-                    duration: 0.8,
-                    ease: "power2.out",
-                    delay: 0.4
-                }
-            );
-        }
-    };
-
-    useEffect(() => {
-        if (slides.length > 1) {
-            const timer = setInterval(() => {
-                nextSlide();
-            }, 5000);
-            return () => clearInterval(timer);
-        }
-    }, [currentSlide, slides.length]);
-
-    if (slides.length === 0) {
-        return (
-            <div className="text-center py-8 text-gray-500">
-                No active slides to display
-            </div>
-        );
-    }
-
-    return (
-        <section className="flex justify-center items-center">
-            <div className="max-w-7xl h-[500px] sm:h-[450px] lg:h-[500px] mx-auto w-full">
-                {slides.map((slide, index) => {
-                    const discountPercent = calculateDiscount(slide.price, slide.original_price);
-                    const isActive = index === currentSlide;
-
-                    return (
-                        <div
-                            key={slide.id}
-                            ref={(el) => (slideRefs.current[index] = el)}
-                            className={`absolute inset-0 transition-opacity duration-500 ${
-                                isActive ? 'opacity-100' : 'opacity-0'
-                            }`}
-                        >
-                            {/* Dynamic background with custom gradient */}
-                            <div
-                                className={`relative bg-gradient-to-br ${slide.background_gradient} rounded-3xl overflow-hidden shadow-xl h-full`}
-                                style={{
-                                    background: slide.background_gradient.includes('custom')
-                                        ? `linear-gradient(135deg, ${slide.gradient_from}, ${slide.gradient_via}, ${slide.gradient_to})`
-                                        : undefined
-                                }}
-                            >
-                                <div className="relative h-full">
-                                    <div className="w-full h-full p-5 sm:p-16 grid md:grid-cols-2 items-center">
-                                        <div className="text-content space-y-3 sm:space-y-4 text-center md:text-left">
-                                            {/* Dynamic badge */}
-                                            <div className="inline-flex items-center gap-3 bg-green-300 text-green-600 pr-4 p-1 rounded-full text-xs sm:text-sm">
-                                                <span className={`${slide.badge_color} px-3 py-1 max-sm:ml-1 rounded-full text-white text-xs`}>
-                                                    {slide.badge_text}
-                                                </span>
-                                                {slide.promotion_text}
-                                            </div>
-
-                                            <h1 className="text-3xl sm:text-4xl leading-[1.2] font-medium bg-gradient-to-r from-slate-600 to-[#A0FF74] bg-clip-text text-transparent max-w-xs sm:max-w-md">
-                                                {slide.title}
-                                            </h1>
-
-                                            <p className="text-slate-600 leading-relaxed max-w-md mx-auto md:mx-0 text-sm sm:text-sm">
-                                                {slide.description}
-                                            </p>
-
-                                            <div className="text-slate-800 text-sm font-medium mt-1 sm:mt-3">
-                                                <p>Starts from</p>
-                                                <div className="flex items-center gap-3 flex-wrap mt-1">
-                                                    <span className="text-xl sm:text-2xl font-bold text-slate-800">
-                                                        {slide.price}
-                                                    </span>
-                                                    <span className="text-base sm:text-lg text-slate-400 line-through">
-                                                        {slide.original_price}
-                                                    </span>
-                                                    <span className="px-3 py-1 bg-green-600 text-white text-sm font-semibold rounded-full">
-                                                        Save {discountPercent}%
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Dynamic button */}
-                                            <button className={`${slide.button_color} ${slide.button_text_color} text-sm py-2.5 px-7 sm:py-3 sm:px-8 mt-4 rounded-md hover:opacity-90 hover:scale-105 active:scale-95 transition`}>
-                                                {slide.call_to_action}
-                                            </button>
-                                        </div>
-                                        <div className="image-content flex justify-center relative">
-                                            <div className="absolute w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 bg-gradient-to-tr from-green-300/50 to-green-200/50 blur-2xl rounded-full"></div>
-                                            <img
-                                                src={slide.image}
-                                                alt={slide.title}
-                                                className="relative z-10 w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 object-contain"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
-
-                {slides.length > 1 && (
-                    <>
-                        <button
-                            onClick={prevSlide}
-                            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 text-slate-700 rounded-full p-3 shadow-lg hover:bg-slate-800 hover:text-white transition-all duration-300 z-30 backdrop-blur-sm"
-                            aria-label="Previous slide"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                        </button>
-                        <button
-                            onClick={nextSlide}
-                            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 text-slate-700 rounded-full p-3 shadow-lg hover:bg-slate-800 hover:text-white transition-all duration-300 z-30 backdrop-blur-sm"
-                            aria-label="Next slide"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                            </svg>
-                        </button>
-                    </>
-                )}
-
-                {slides.length > 1 && (
-                    <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex gap-3 z-30">
-                        {slides.map((_, index) => (
-                            <button
-                                key={index}
-                                onClick={() => goToSlide(index)}
-                                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                                    index === currentSlide
-                                        ? "bg-slate-800 w-8 shadow-lg"
-                                        : "bg-slate-400 hover:bg-slate-500"
-                                }`}
-                                aria-label={`Go to slide ${index + 1}`}
-                            />
-                        ))}
-                    </div>
-                )}
-            </div>
-        </section>
-    );
-}
+<SliderSectionPreview/>
 
 export default HomeBannerControl;
