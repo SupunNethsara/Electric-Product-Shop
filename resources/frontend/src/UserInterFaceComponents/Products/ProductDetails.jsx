@@ -542,7 +542,7 @@ const ProductDetails = () => {
                                     <Truck size={20} className="text-blue-600 flex-shrink-0" />
                                     <div>
                                         <div className="font-medium text-blue-900 text-sm">Free Shipping</div>
-                                        <div className="text-blue-700 text-xs">On orders over Rs. 1,999</div>
+                                        <div className="text-blue-700 text-xs"> Rs.0</div>
                                     </div>
                                 </div>
                             </div>
