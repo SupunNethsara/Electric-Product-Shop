@@ -212,7 +212,7 @@ const Navbar = () => {
                                     <FileText size={18} />
                                     <span className="text-sm">Quotes</span>
                                     {quotationCount > 0 && (
-                                        <span className="absolute -top-1 -right-1 text-[10px] text-white bg-blue-500 size-4 rounded-full flex items-center justify-center font-medium">
+                                        <span className="absolute -top-1 -right-1 text-[10px] text-white bg-[#e3251b] size-4 rounded-full flex items-center justify-center font-medium">
                                             {quotationCount}
                                         </span>
                                     )}
@@ -330,7 +330,7 @@ const Navbar = () => {
                             >
                                 <FileText size={20} />
                                 {quotationCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 text-[10px] text-white bg-blue-500 size-4 rounded-full flex items-center justify-center font-medium">
+                                    <span className="absolute -top-1 -right-1 text-[10px] text-white bg-[#e3251b]size-4 rounded-full flex items-center justify-center font-medium">
                                         {quotationCount}
                                     </span>
                                 )}

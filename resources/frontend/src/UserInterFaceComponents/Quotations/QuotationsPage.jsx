@@ -1,5 +1,4 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
@@ -16,6 +15,7 @@ import {
     clearQuotationError
 } from '../../Store/slices/quotationSlice.js';
 import useToast from '../Common/useToast.jsx';
+import ConfirmationModal from '../Common/ConfirmationModal.jsx';
 
 const QuotationsPage = () => {
     const dispatch = useDispatch();
@@ -32,6 +32,11 @@ const QuotationsPage = () => {
 
     const { isAuthenticated } = useSelector((state) => state.auth);
 
+    // State for confirmation modals
+    const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+    const [showClearConfirm, setShowClearConfirm] = useState(false);
+    const [selectedItemId, setSelectedItemId] = useState(null);
+
     useEffect(() => {
         if (isAuthenticated) {
             dispatch(fetchQuotations());
@@ -45,25 +50,32 @@ const QuotationsPage = () => {
         }
     }, [error, dispatch, showError]);
 
-    const handleRemoveItem = async (itemId) => {
-        if (window.confirm('Are you sure you want to remove this item from quotations?')) {
-            try {
-                await dispatch(removeFromQuotation(itemId)).unwrap();
-                success('Item removed from quotations');
-            } catch (error) {
-                showError(error || 'Failed to remove item');
-            }
+    const handleRemoveItem = (itemId) => {
+        setSelectedItemId(itemId);
+        setShowRemoveConfirm(true);
+    };
+
+    const confirmRemoveItem = async () => {
+        try {
+            await dispatch(removeFromQuotation(selectedItemId)).unwrap();
+            success('Item removed from quotations');
+        } catch (error) {
+            showError(error || 'Failed to remove item');
+        } finally {
+            setSelectedItemId(null);
         }
     };
 
-    const handleClearQuotations = async () => {
-        if (window.confirm('Are you sure you want to clear all quotations?')) {
-            try {
-                await dispatch(clearQuotations()).unwrap();
-                success('All quotations cleared');
-            } catch (error) {
-                showError(error || 'Failed to clear quotations');
-            }
+    const handleClearQuotations = () => {
+        setShowClearConfirm(true);
+    };
+
+    const confirmClearQuotations = async () => {
+        try {
+            await dispatch(clearQuotations()).unwrap();
+            success('All quotations cleared');
+        } catch (error) {
+            showError(error || 'Failed to clear quotations');
         }
     };
 
@@ -175,160 +187,182 @@ const QuotationsPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pt-24 pb-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Quotation Management</h1>
-                        <p className="text-gray-600 mt-1 text-sm">
-                            {totalItems} items • Total: Rs. {totalPrice.toLocaleString()}
-                        </p>
+        <>
+            <div className="min-h-screen bg-gray-50 pt-24 pb-12">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900">Quotation Management</h1>
+                            <p className="text-gray-600 mt-1 text-sm">
+                                {totalItems} items • Total: Rs. {totalPrice.toLocaleString()}
+                            </p>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 mt-4 sm:mt-0">
+                            {items.length > 0 && (
+                                <>
+                                    <button
+                                        onClick={generateQuotationPDF}
+                                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                                    >
+                                        <Download size={16} />
+                                        Download PDF
+                                    </button>
+
+                                    <button
+                                        onClick={handleClearQuotations}
+                                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                                    >
+                                        <Trash2 size={16} />
+                                        Clear All
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 mt-4 sm:mt-0">
-                        {items.length > 0 && (
-                            <>
-                                <button
-                                    onClick={generateQuotationPDF}
-                                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                                >
-                                    <Download size={16} />
-                                    Download PDF
-                                </button>
+                    {items.length === 0 ? (
+                        <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+                            <FileText size={48} className="mx-auto text-gray-400 mb-3" />
+                            <h2 className="text-lg font-semibold text-gray-900 mb-2">No quotations yet</h2>
+                            <p className="text-gray-600 mb-4 text-sm">Add products to your quotation list to see them here</p>
+                            <button
+                                onClick={() => navigate('/quotations')}
+                                className="bg-[#e3251b] text-white px-5 py-2 rounded-lg hover:bg-[#9f1811] transition-colors text-sm"
+                            >
+                                Browse Products
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                            <div className="lg:col-span-3">
+                                <div className="bg-white rounded-lg border border-gray-200">
+                                    <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                                        <h2 className="font-semibold text-gray-900 text-base">Quotation Items</h2>
+                                    </div>
 
-                                <button
-                                    onClick={handleClearQuotations}
-                                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                                >
-                                    <Trash2 size={16} />
-                                    Clear All
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </div>
-
-                {items.length === 0 ? (
-                    <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-                        <FileText size={48} className="mx-auto text-gray-400 mb-3" />
-                        <h2 className="text-lg font-semibold text-gray-900 mb-2">No quotations yet</h2>
-                        <p className="text-gray-600 mb-4 text-sm">Add products to your quotation list to see them here</p>
-                        <button
-                            onClick={() => navigate('/')}
-                            className="bg-[#e3251b] text-white px-5 py-2 rounded-lg hover:bg-[#9f1811] transition-colors text-sm"
-                        >
-                            Browse Products
-                        </button>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                        <div className="lg:col-span-3">
-                            <div className="bg-white rounded-lg border border-gray-200">
-                                <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-                                    <h2 className="font-semibold text-gray-900 text-base">Quotation Items</h2>
-                                </div>
-
-                                <div className="divide-y divide-gray-100">
-                                    {items.map((item) => (
-                                        <div key={item.id} className="p-4 hover:bg-gray-50 transition-colors">
-                                            <div className="flex gap-3 items-start">
-                                                <div className="flex-shrink-0">
-                                                    <div className="w-16 h-16 bg-gray-100 rounded border border-gray-200 overflow-hidden">
-                                                        <img
-                                                            src={item.product.image || '/placeholder-image.jpg'}
-                                                            alt={item.product.name}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <div className="flex-1">
-                                                            <h3 className="font-medium text-gray-900 text-sm leading-tight mb-1">
-                                                                {item.product.name}
-                                                            </h3>
-                                                            <p className="text-gray-500 text-xs mb-1">
-                                                                Model: {item.product.model}
-                                                            </p>
-                                                            <p className="text-blue-600 font-semibold text-sm">
-                                                                Rs. {parseFloat(item.product.price).toLocaleString()}
-                                                            </p>
+                                    <div className="divide-y divide-gray-100">
+                                        {items.map((item) => (
+                                            <div key={item.id} className="p-4 hover:bg-gray-50 transition-colors">
+                                                <div className="flex gap-3 items-start">
+                                                    <div className="flex-shrink-0">
+                                                        <div className="w-16 h-16 bg-gray-100 rounded border border-gray-200 overflow-hidden">
+                                                            <img
+                                                                src={item.product.image || '/placeholder-image.jpg'}
+                                                                alt={item.product.name}
+                                                                className="w-full h-full object-cover"
+                                                            />
                                                         </div>
-                                                        <button
-                                                            onClick={() => handleRemoveItem(item.id)}
-                                                            className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
                                                     </div>
 
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-xs text-gray-600 font-medium">
-                                                                Qty: {item.quantity}
-                                                            </span>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <div className="flex-1">
+                                                                <h3 className="font-medium text-gray-900 text-sm leading-tight mb-1">
+                                                                    {item.product.name}
+                                                                </h3>
+                                                                <p className="text-gray-500 text-xs mb-1">
+                                                                    Model: {item.product.model}
+                                                                </p>
+                                                                <p className="text-blue-600 font-semibold text-sm">
+                                                                    Rs. {parseFloat(item.product.price).toLocaleString()}
+                                                                </p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleRemoveItem(item.id)}
+                                                                className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
                                                         </div>
-                                                        <div className="text-right">
-                                                            <p className="font-semibold text-gray-900 text-sm">
-                                                                Rs. {(parseFloat(item.product.price) * item.quantity).toLocaleString()}
-                                                            </p>
+
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-xs text-gray-600 font-medium">
+                                                                    Qty: {item.quantity}
+                                                                </span>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="font-semibold text-gray-900 text-sm">
+                                                                    Rs. {(parseFloat(item.product.price) * item.quantity).toLocaleString()}
+                                                                </p>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="lg:col-span-1">
-                            <div className="bg-white rounded-lg border border-gray-200 sticky top-6">
-                                <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-                                    <h2 className="font-semibold text-gray-900 text-base">Summary</h2>
-                                </div>
-
-                                <div className="p-4 space-y-3">
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-sm text-gray-600">
-                                            <span>Subtotal ({totalItems} items)</span>
-                                            <span>Rs. {totalPrice.toLocaleString()}</span>
-                                        </div>
-                                        <div className="flex justify-between text-sm text-gray-600">
-                                            <span>Tax (10%)</span>
-                                            <span>Rs. {(totalPrice * 0.1).toLocaleString()}</span>
-                                        </div>
-                                        <div className="flex justify-between font-semibold text-gray-900 pt-2 border-t border-gray-200">
-                                            <span>Total</span>
-                                            <span>Rs. {(totalPrice * 1.1).toLocaleString()}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2 pt-2">
-                                        <button
-                                            onClick={generateQuotationPDF}
-                                            className="w-full flex items-center justify-center gap-2 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-                                        >
-                                            <Download size={16} />
-                                            Download PDF
-                                        </button>
-
-                                        <button
-                                            onClick={() => navigate('/')}
-                                            className="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
-                                        >
-                                            <ShoppingBag size={16} />
-                                            Continue Shopping
-                                        </button>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
+
+                            <div className="lg:col-span-1">
+                                <div className="bg-white rounded-lg border border-gray-200 sticky top-6">
+                                    <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                                        <h2 className="font-semibold text-gray-900 text-base">Summary</h2>
+                                    </div>
+
+                                    <div className="p-4 space-y-3">
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-sm text-gray-600">
+                                                <span>Subtotal ({totalItems} items)</span>
+                                                <span>Rs. {totalPrice.toLocaleString()}</span>
+                                            </div>
+                                            <div className="flex justify-between text-sm text-gray-600">
+                                                <span>Tax (10%)</span>
+                                                <span>Rs. {(totalPrice * 0.1).toLocaleString()}</span>
+                                            </div>
+                                            <div className="flex justify-between font-semibold text-gray-900 pt-2 border-t border-gray-200">
+                                                <span>Total</span>
+                                                <span>Rs. {(totalPrice * 1.1).toLocaleString()}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2 pt-2">
+                                            <button
+                                                onClick={generateQuotationPDF}
+                                                className="w-full flex items-center justify-center gap-2 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                                            >
+                                                <Download size={16} />
+                                                Download PDF
+                                            </button>
+
+                                            <button
+                                                onClick={() => navigate('/quotations')}
+                                                className="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                                            >
+                                                <ShoppingBag size={16} />
+                                                Continue Shopping
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
-        </div>
+
+            <ConfirmationModal
+                isOpen={showRemoveConfirm}
+                onClose={() => setShowRemoveConfirm(false)}
+                onConfirm={confirmRemoveItem}
+                title="Remove Item"
+                message="Are you sure you want to remove this item from quotations?"
+                confirmText="Remove"
+                type="danger"
+            />
+
+            <ConfirmationModal
+                isOpen={showClearConfirm}
+                onClose={() => setShowClearConfirm(false)}
+                onConfirm={confirmClearQuotations}
+                title="Clear All Quotations"
+                message="Are you sure you want to clear all quotations? This action cannot be undone."
+                confirmText="Clear All"
+                type="danger"
+            />
+        </>
     );
 };
 
