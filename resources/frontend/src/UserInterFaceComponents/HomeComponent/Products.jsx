@@ -1,7 +1,8 @@
-import ProductCard from "./ProductCard.jsx";
+import ProductCard from "../Products/ProductCard.jsx";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { ChevronDown, Search } from 'lucide-react';
+import {Link} from "react-router-dom";
 
 const Products = () => {
     const [products, setProducts] = useState([]);
@@ -184,6 +185,14 @@ const Products = () => {
                     </button>
                 </div>
             )}
+            <div className="mt-8 flex justify-center">
+                <Link
+                    to="/shop"
+                    className="inline-flex items-center justify-center text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors duration-300 border border-blue-600 hover:border-blue-800 rounded-lg px-6 py-2 w-auto min-w-[200px]"
+                >
+                    View All Products
+                </Link>
+            </div>
         </div>
     );
 };
