@@ -398,7 +398,7 @@ function CheckOutUser() {
                                     <div className="text-center py-4 text-gray-500">
                                         No items to display.
                                         <button
-                                            onClick={() => navigate('/products')}
+                                            onClick={() => navigate('/shop')}
                                             className="ml-2 text-blue-600 hover:text-blue-800"
                                         >
                                             Continue Shopping
