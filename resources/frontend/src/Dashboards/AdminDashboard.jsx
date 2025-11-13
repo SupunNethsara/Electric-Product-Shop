@@ -7,6 +7,7 @@ import Orders from "./AdminRoutes/Orders.jsx";
 import Quotations from "./AdminRoutes/Quotations.jsx";
 import UserManage from "./AdminRoutes/UserManage.jsx";
 import Reports from "./Common/Reports/Reports.jsx";
+import Branding from "./AdminRoutes/Branding.jsx";
 
 const AdminDashboard = () => {
     return (
@@ -19,6 +20,7 @@ const AdminDashboard = () => {
                 <Route path="/categories" element={<Categories />} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/quotations" element={<Quotations />} />
+                <Route path="/branding" element={<Branding />} />
                 <Route path="/user-manage" element={<UserManage />} />
                 <Route path="reports" element={<Reports />} />
             </Routes>

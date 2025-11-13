@@ -53,7 +53,8 @@ function SuperAdminSidebar() {
             href: '/super-admin/organization',
             icon: Building,
             current: location.pathname.includes('/super-admin/organization')
-        }
+        },
+
     ];
 
     return (
