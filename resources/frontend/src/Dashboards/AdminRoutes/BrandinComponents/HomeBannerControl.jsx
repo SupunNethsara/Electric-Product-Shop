@@ -1,49 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { useRef } from 'react';
+import axios from 'axios';
+
+const API_BASE_URL = 'http://localhost:8000/api';
+
 function HomeBannerControl() {
     const [slides, setSlides] = useState([]);
     const [editingSlide, setEditingSlide] = useState(null);
     const [isAddingNew, setIsAddingNew] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const initialSlides = [
-            {
-                id: 1,
-                title: "Smart Watch Series",
-                description: "Stay connected with the latest smartwatch featuring health monitoring and premium design.",
-                price: "$299.99",
-                originalPrice: "$374.99",
-                image: "/GreenSmartWatch.png",
-                isActive: true,
-                order: 1
-            },
-            {
-                id: 2,
-                title: "Wireless Headphones",
-                description: "Experience crystal-clear audio with noise cancellation technology.",
-                price: "$199.99",
-                originalPrice: "$249.99",
-                image: "/GreenHeadSet.png",
-                isActive: true,
-                order: 2
-            }
-        ];
-        setSlides(initialSlides);
+        fetchSlides();
     }, []);
+
+    const fetchSlides = async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/slides`);
+            setSlides(response.data);
+        } catch (error) {
+            console.error('Error fetching slides:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleAddSlide = () => {
         const newSlide = {
-            id: Date.now(),
             title: "New Product",
             description: "Product description here...",
             price: "$99.99",
-            originalPrice: "$129.99",
+            original_price: "$129.99",
             image: "/default-image.png",
-            isActive: true,
+            background_gradient: "from-green-200 via-green-100 to-green-200",
+            gradient_from: "#dcfce7",
+            gradient_via: "#f0fdf4",
+            gradient_to: "#dcfce7",
+            text_color: "text-slate-800",
+            button_color: "bg-slate-800",
+            button_text_color: "text-white",
+            badge_text: "NEWS",
+            badge_color: "bg-green-600",
+            promotion_text: "Free Shipping on Orders Above $50!",
+            call_to_action: "SHOP NOW",
+            is_active: true,
             order: slides.length + 1
         };
-        setSlides([...slides, newSlide]);
         setEditingSlide(newSlide);
         setIsAddingNew(true);
     };
@@ -53,25 +56,37 @@ function HomeBannerControl() {
         setIsAddingNew(false);
     };
 
-    const handleSaveSlide = (updatedSlide) => {
-        if (isAddingNew) {
-            setSlides(slides.map(slide =>
-                slide.id === updatedSlide.id ? updatedSlide : slide
-            ));
-        } else {
-            setSlides(slides.map(slide =>
-                slide.id === updatedSlide.id ? updatedSlide : slide
-            ));
+    const handleSaveSlide = async (updatedSlide) => {
+        try {
+            setIsLoading(true);
+            if (isAddingNew) {
+                const response = await axios.post(`${API_BASE_URL}/slides`, updatedSlide);
+                setSlides(prev => [...prev, response.data]);
+            } else {
+                const response = await axios.put(`${API_BASE_URL}/slides/${updatedSlide.id}`, updatedSlide);
+                setSlides(prev => prev.map(slide =>
+                    slide.id === updatedSlide.id ? response.data : slide
+                ));
+            }
+            setEditingSlide(null);
+            setIsAddingNew(false);
+        } catch (error) {
+            console.error('Error saving slide:', error);
+        } finally {
+            setIsLoading(false);
         }
-        setEditingSlide(null);
-        setIsAddingNew(false);
     };
 
-    const handleDeleteSlide = (slideId) => {
-        setSlides(slides.filter(slide => slide.id !== slideId));
+    const handleDeleteSlide = async (slideId) => {
+        try {
+            await axios.delete(`${API_BASE_URL}/slides/${slideId}`);
+            setSlides(prev => prev.filter(slide => slide.id !== slideId));
+        } catch (error) {
+            console.error('Error deleting slide:', error);
+        }
     };
 
-    const handleReorder = (fromIndex, toIndex) => {
+    const handleReorder = async (fromIndex, toIndex) => {
         const updatedSlides = [...slides];
         const [movedSlide] = updatedSlides.splice(fromIndex, 1);
         updatedSlides.splice(toIndex, 0, movedSlide);
@@ -82,13 +97,38 @@ function HomeBannerControl() {
         }));
 
         setSlides(reorderedSlides);
+
+        // Update order in backend
+        try {
+            await axios.put(`${API_BASE_URL}/slides/order/update`, {
+                slides: reorderedSlides.map(slide => ({
+                    id: slide.id,
+                    order: slide.order
+                }))
+            });
+        } catch (error) {
+            console.error('Error updating order:', error);
+        }
     };
 
-    const toggleSlideActive = (slideId) => {
-        setSlides(slides.map(slide =>
-            slide.id === slideId ? { ...slide, isActive: !slide.isActive } : slide
-        ));
+    const toggleSlideActive = async (slideId) => {
+        try {
+            const response = await axios.put(`${API_BASE_URL}/slides/${slideId}/toggle-status`);
+            setSlides(prev => prev.map(slide =>
+                slide.id === slideId ? response.data : slide
+            ));
+        } catch (error) {
+            console.error('Error toggling slide status:', error);
+        }
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -174,12 +214,12 @@ function HomeBannerControl() {
                                         <button
                                             onClick={() => toggleSlideActive(slide.id)}
                                             className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                slide.isActive
+                                                slide.is_active
                                                     ? 'bg-green-100 text-green-800'
                                                     : 'bg-red-100 text-red-800'
                                             }`}
                                         >
-                                            {slide.isActive ? 'Active' : 'Inactive'}
+                                            {slide.is_active ? 'Active' : 'Inactive'}
                                         </button>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
@@ -204,8 +244,8 @@ function HomeBannerControl() {
 
                     <div className="bg-white rounded-lg shadow p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Live Preview</h3>
-                        <div className=" rounded-lg p-4">
-                            <SliderSectionPreview slides={slides.filter(slide => slide.isActive)} />
+                        <div className="rounded-lg p-4">
+                            <SliderSectionPreview slides={slides.filter(slide => slide.is_active)} />
                         </div>
                     </div>
                 </>
@@ -229,13 +269,39 @@ function SlideEditor({ slide, onSave, onCancel, isNew }) {
         }));
     };
 
+    // Color presets for easy selection
+    const colorPresets = {
+        gradients: [
+            { value: 'from-green-200 via-green-100 to-green-200', label: 'Green Gradient' },
+            { value: 'from-blue-200 via-blue-100 to-blue-200', label: 'Blue Gradient' },
+            { value: 'from-purple-200 via-purple-100 to-purple-200', label: 'Purple Gradient' },
+            { value: 'from-orange-200 via-orange-100 to-orange-200', label: 'Orange Gradient' },
+            { value: 'from-pink-200 via-pink-100 to-pink-200', label: 'Pink Gradient' }
+        ],
+        badgeColors: [
+            { value: 'bg-green-600', label: 'Green' },
+            { value: 'bg-blue-600', label: 'Blue' },
+            { value: 'bg-red-600', label: 'Red' },
+            { value: 'bg-purple-600', label: 'Purple' },
+            { value: 'bg-yellow-600', label: 'Yellow' }
+        ],
+        buttonColors: [
+            { value: 'bg-slate-800', label: 'Dark Gray' },
+            { value: 'bg-blue-600', label: 'Blue' },
+            { value: 'bg-green-600', label: 'Green' },
+            { value: 'bg-red-600', label: 'Red' },
+            { value: 'bg-purple-600', label: 'Purple' }
+        ]
+    };
+
     return (
         <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 {isNew ? 'Add New Slide' : 'Edit Slide'}
             </h3>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Basic Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -295,15 +361,150 @@ function SlideEditor({ slide, onSave, onCancel, isNew }) {
                         </label>
                         <input
                             type="text"
-                            value={formData.originalPrice}
-                            onChange={(e) => handleChange('originalPrice', e.target.value)}
+                            value={formData.original_price}
+                            onChange={(e) => handleChange('original_price', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                             required
                         />
                     </div>
                 </div>
 
-                <div className="flex justify-end space-x-3 pt-4">
+                {/* Background Customization */}
+                <div className="border-t pt-6">
+                    <h4 className="text-lg font-medium text-gray-900 mb-4">Background Customization</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Background Gradient
+                            </label>
+                            <select
+                                value={formData.background_gradient}
+                                onChange={(e) => handleChange('background_gradient', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                            >
+                                {colorPresets.gradients.map(gradient => (
+                                    <option key={gradient.value} value={gradient.value}>
+                                        {gradient.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Custom Gradient From (Hex)
+                            </label>
+                            <input
+                                type="color"
+                                value={formData.gradient_from}
+                                onChange={(e) => handleChange('gradient_from', e.target.value)}
+                                className="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Custom Gradient Via (Hex)
+                            </label>
+                            <input
+                                type="color"
+                                value={formData.gradient_via}
+                                onChange={(e) => handleChange('gradient_via', e.target.value)}
+                                className="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Custom Gradient To (Hex)
+                            </label>
+                            <input
+                                type="color"
+                                value={formData.gradient_to}
+                                onChange={(e) => handleChange('gradient_to', e.target.value)}
+                                className="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Content Customization */}
+                <div className="border-t pt-6">
+                    <h4 className="text-lg font-medium text-gray-900 mb-4">Content Customization</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Badge Text
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.badge_text}
+                                onChange={(e) => handleChange('badge_text', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Badge Color
+                            </label>
+                            <select
+                                value={formData.badge_color}
+                                onChange={(e) => handleChange('badge_color', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                            >
+                                {colorPresets.badgeColors.map(color => (
+                                    <option key={color.value} value={color.value}>
+                                        {color.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Promotion Text
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.promotion_text}
+                                onChange={(e) => handleChange('promotion_text', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Button Text
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.call_to_action}
+                                onChange={(e) => handleChange('call_to_action', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Button Color
+                            </label>
+                            <select
+                                value={formData.button_color}
+                                onChange={(e) => handleChange('button_color', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                            >
+                                {colorPresets.buttonColors.map(color => (
+                                    <option key={color.value} value={color.value}>
+                                        {color.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4 border-t">
                     <button
                         type="button"
                         onClick={onCancel}
@@ -408,114 +609,120 @@ function SliderSectionPreview({ slides }) {
     return (
         <section className="flex justify-center items-center">
             <div className="max-w-7xl h-[500px] sm:h-[450px] lg:h-[500px] mx-auto w-full">
-                <div className="relative bg-gradient-to-br from-green-200 via-green-100 to-green-200 rounded-3xl overflow-hidden shadow-xl h-full">
-                    <div className="relative h-full">
-                        <div className="h-full">
-                            {slides.map((slide, index) => {
-                                const discountPercent = calculateDiscount(
-                                    slide.price,
-                                    slide.originalPrice
-                                );
+                {slides.map((slide, index) => {
+                    const discountPercent = calculateDiscount(slide.price, slide.original_price);
+                    const isActive = index === currentSlide;
 
-                                return (
-                                    <div
-                                        key={slide.id}
-                                        ref={(el) => (slideRefs.current[index] = el)}
-                                        className={`absolute inset-0 transition-opacity duration-500 ${
-                                            index === currentSlide ? 'opacity-100' : 'opacity-0'
-                                        }`}
-                                    >
-                                        <div className="w-full h-full p-5 sm:p-16 grid md:grid-cols-2 items-center">
-                                            <div className="text-content space-y-3 sm:space-y-4 text-center md:text-left">
-                                                <div className="inline-flex items-center gap-3 bg-green-300 text-green-600 pr-4 p-1 rounded-full text-xs sm:text-sm">
-                                                    <span className='bg-green-600 px-3 py-1 max-sm:ml-1 rounded-full text-white text-xs'>
-                                                        NEWS
+                    return (
+                        <div
+                            key={slide.id}
+                            ref={(el) => (slideRefs.current[index] = el)}
+                            className={`absolute inset-0 transition-opacity duration-500 ${
+                                isActive ? 'opacity-100' : 'opacity-0'
+                            }`}
+                        >
+                            {/* Dynamic background with custom gradient */}
+                            <div
+                                className={`relative bg-gradient-to-br ${slide.background_gradient} rounded-3xl overflow-hidden shadow-xl h-full`}
+                                style={{
+                                    background: slide.background_gradient.includes('custom')
+                                        ? `linear-gradient(135deg, ${slide.gradient_from}, ${slide.gradient_via}, ${slide.gradient_to})`
+                                        : undefined
+                                }}
+                            >
+                                <div className="relative h-full">
+                                    <div className="w-full h-full p-5 sm:p-16 grid md:grid-cols-2 items-center">
+                                        <div className="text-content space-y-3 sm:space-y-4 text-center md:text-left">
+                                            {/* Dynamic badge */}
+                                            <div className="inline-flex items-center gap-3 bg-green-300 text-green-600 pr-4 p-1 rounded-full text-xs sm:text-sm">
+                                                <span className={`${slide.badge_color} px-3 py-1 max-sm:ml-1 rounded-full text-white text-xs`}>
+                                                    {slide.badge_text}
+                                                </span>
+                                                {slide.promotion_text}
+                                            </div>
+
+                                            <h1 className="text-3xl sm:text-4xl leading-[1.2] font-medium bg-gradient-to-r from-slate-600 to-[#A0FF74] bg-clip-text text-transparent max-w-xs sm:max-w-md">
+                                                {slide.title}
+                                            </h1>
+
+                                            <p className="text-slate-600 leading-relaxed max-w-md mx-auto md:mx-0 text-sm sm:text-sm">
+                                                {slide.description}
+                                            </p>
+
+                                            <div className="text-slate-800 text-sm font-medium mt-1 sm:mt-3">
+                                                <p>Starts from</p>
+                                                <div className="flex items-center gap-3 flex-wrap mt-1">
+                                                    <span className="text-xl sm:text-2xl font-bold text-slate-800">
+                                                        {slide.price}
                                                     </span>
-                                                    Free Shipping on Orders Above $50!
+                                                    <span className="text-base sm:text-lg text-slate-400 line-through">
+                                                        {slide.original_price}
+                                                    </span>
+                                                    <span className="px-3 py-1 bg-green-600 text-white text-sm font-semibold rounded-full">
+                                                        Save {discountPercent}%
+                                                    </span>
                                                 </div>
-
-                                                <h1 className="text-3xl sm:text-4xl leading-[1.2] font-medium bg-gradient-to-r from-slate-600 to-[#A0FF74] bg-clip-text text-transparent max-w-xs sm:max-w-md">
-                                                    {slide.title}
-                                                </h1>
-
-                                                <p className="text-slate-600 leading-relaxed max-w-md mx-auto md:mx-0 text-sm sm:text-sm">
-                                                    {slide.description}
-                                                </p>
-
-                                                <div className="text-slate-800 text-sm font-medium mt-1 sm:mt-3">
-                                                    <p>Starts from</p>
-                                                    <div className="flex items-center gap-3 flex-wrap mt-1">
-                                                        <span className="text-xl sm:text-2xl font-bold text-slate-800">
-                                                            {slide.price}
-                                                        </span>
-                                                        <span className="text-base sm:text-lg text-slate-400 line-through">
-                                                            {slide.originalPrice}
-                                                        </span>
-                                                        <span className="px-3 py-1 bg-green-600 text-white text-sm font-semibold rounded-full">
-                                                            Save {discountPercent}%
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                <button className="bg-slate-800 text-white text-sm py-2.5 px-7 sm:py-3 sm:px-8 mt-4 rounded-md hover:bg-slate-900 hover:scale-105 active:scale-95 transition">
-                                                    SHOP NOW
-                                                </button>
                                             </div>
-                                            <div className="image-content flex justify-center relative">
-                                                <div className="absolute w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 bg-gradient-to-tr from-green-300/50 to-green-200/50 blur-2xl rounded-full"></div>
-                                                <img
-                                                    src={slide.image}
-                                                    alt={slide.title}
-                                                    className="relative z-10 w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 object-contain"
-                                                />
-                                            </div>
+
+                                            {/* Dynamic button */}
+                                            <button className={`${slide.button_color} ${slide.button_text_color} text-sm py-2.5 px-7 sm:py-3 sm:px-8 mt-4 rounded-md hover:opacity-90 hover:scale-105 active:scale-95 transition`}>
+                                                {slide.call_to_action}
+                                            </button>
+                                        </div>
+                                        <div className="image-content flex justify-center relative">
+                                            <div className="absolute w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 bg-gradient-to-tr from-green-300/50 to-green-200/50 blur-2xl rounded-full"></div>
+                                            <img
+                                                src={slide.image}
+                                                alt={slide.title}
+                                                className="relative z-10 w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 object-contain"
+                                            />
                                         </div>
                                     </div>
-                                );
-                            })}
-                        </div>
-
-                        {slides.length > 1 && (
-                            <>
-                                <button
-                                    onClick={prevSlide}
-                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 text-slate-700 rounded-full p-3 shadow-lg hover:bg-slate-800 hover:text-white transition-all duration-300 z-30 backdrop-blur-sm"
-                                    aria-label="Previous slide"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                                    </svg>
-                                </button>
-                                <button
-                                    onClick={nextSlide}
-                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 text-slate-700 rounded-full p-3 shadow-lg hover:bg-slate-800 hover:text-white transition-all duration-300 z-30 backdrop-blur-sm"
-                                    aria-label="Next slide"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                                    </svg>
-                                </button>
-                            </>
-                        )}
-
-                        {slides.length > 1 && (
-                            <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex gap-3 z-30">
-                                {slides.map((_, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => goToSlide(index)}
-                                        className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                                            index === currentSlide
-                                                ? "bg-slate-800 w-8 shadow-lg"
-                                                : "bg-slate-400 hover:bg-slate-500"
-                                        }`}
-                                        aria-label={`Go to slide ${index + 1}`}
-                                    />
-                                ))}
+                                </div>
                             </div>
-                        )}
+                        </div>
+                    );
+                })}
+
+                {slides.length > 1 && (
+                    <>
+                        <button
+                            onClick={prevSlide}
+                            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 text-slate-700 rounded-full p-3 shadow-lg hover:bg-slate-800 hover:text-white transition-all duration-300 z-30 backdrop-blur-sm"
+                            aria-label="Previous slide"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                        <button
+                            onClick={nextSlide}
+                            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 text-slate-700 rounded-full p-3 shadow-lg hover:bg-slate-800 hover:text-white transition-all duration-300 z-30 backdrop-blur-sm"
+                            aria-label="Next slide"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                    </>
+                )}
+
+                {slides.length > 1 && (
+                    <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex gap-3 z-30">
+                        {slides.map((_, index) => (
+                            <button
+                                key={index}
+                                onClick={() => goToSlide(index)}
+                                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                                    index === currentSlide
+                                        ? "bg-slate-800 w-8 shadow-lg"
+                                        : "bg-slate-400 hover:bg-slate-500"
+                                }`}
+                                aria-label={`Go to slide ${index + 1}`}
+                            />
+                        ))}
                     </div>
-                </div>
+                )}
             </div>
         </section>
     );

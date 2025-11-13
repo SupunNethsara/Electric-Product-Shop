@@ -10,3 +10,4 @@ require __DIR__.'/modules/user.php';
 require __DIR__.'/modules/review.php';
 require __DIR__.'/modules/report.php';
 require __DIR__.'/modules/quotation.php';
+require __DIR__.'/modules/slides.php';
