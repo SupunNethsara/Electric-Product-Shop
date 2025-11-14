@@ -4,7 +4,7 @@ namespace App\Http\Controllers\ProductController;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ImageUploadRequest;
-use App\Http\Requests\UploadProudctRequest;
+use App\Http\Requests\UploadProductRequest;
 use App\Http\Requests\ValidateFilesRequest;
 use App\Imports\ProductDetailsImport;
 use App\Imports\ProductPricingImport;
@@ -188,7 +188,7 @@ class ProductController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Validation passed successfully!']);
     }
 
-    public function uploadProducts(UploadProudctRequest $request)
+    public function uploadProducts(UploadProductRequest $request)
     {
         $request->validated();
 
@@ -227,14 +227,16 @@ class ProductController extends Controller
                     ['item_code' => $itemCode],
                     [
                         'category_id' => $request->category_id,
+                        'category_2' => $detailRow[2] ?? $request->category_2, // Read from Excel or fallback to form
+                        'category_3' => $detailRow[3] ?? $request->category_3, // Read from Excel or fallback to form
                         'name' => $detailRow[1] ?? 'No Name',
-                        'model' => $detailRow[2] ?? '',
-                        'description' => $detailRow[3] ?? '',
-                        'hedding' => $detailRow[4] ?? null,
-                        'warranty' => $detailRow[5] ?? null,
-                        'specification' => $detailRow[6] ?? null,
-                        'tags' => $detailRow[7] ?? null,
-                        'youtube_video_id' => $detailRow[8] ?? null,
+                        'model' => $detailRow[4] ?? '', // Updated index
+                        'description' => $detailRow[5] ?? '', // Updated index
+                        'hedding' => $detailRow[6] ?? null, // Updated index
+                        'warranty' => $detailRow[7] ?? null, // Updated index
+                        'specification' => $detailRow[8] ?? null, // Updated index
+                        'tags' => $detailRow[9] ?? null, // Updated index
+                        'youtube_video_id' => $detailRow[10] ?? null, // Updated index
                         'price' => $priceRow[1] ?? 0,
                         'buy_now_price' => $priceRow[3] ?? null,
                         'availability' => $priceRow[2] ?? 0,
@@ -242,7 +244,6 @@ class ProductController extends Controller
                 );
             }
         });
-
 
         return response()->json(['message' => 'Products uploaded successfully!']);
     }

@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignUuid('category_id')->constrained()->onDelete('cascade');
             $table->string('item_code')->unique();
             $table->string('name');
+            $table->string('category_2');
+            $table->string('category_3');
             $table->string('model')->nullable();
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2)->nullable();
@@ -31,7 +33,6 @@ return new class extends Migration
             $table->string('status')->default('disabled');
             $table->timestamps();
         });
-
     }
 
     /**
@@ -42,3 +43,4 @@ return new class extends Migration
         Schema::dropIfExists('products');
     }
 };
+
