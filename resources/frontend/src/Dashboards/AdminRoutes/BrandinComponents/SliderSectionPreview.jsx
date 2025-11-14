@@ -77,6 +77,11 @@ function SliderSectionPreview({ slides }) {
         }
     }, [currentSlide, slides.length]);
 
+    const getColorClass = (colorClass, defaultClass = '') => {
+        if (!colorClass) return defaultClass;
+        return colorClass.replace(/["']/g, '').trim();
+    };
+
     if (slides.length === 0) {
         return (
             <div className="flex items-center justify-center h-64 text-gray-500 bg-gray-100 rounded-lg">
@@ -105,41 +110,40 @@ function SliderSectionPreview({ slides }) {
                             isActive ? 'opacity-100' : 'opacity-0 pointer-events-none'
                         }`}
                     >
-                        {/* Dynamic background with custom gradient */}
                         <div
-                            className={`relative bg-gradient-to-br ${slide.background_gradient} w-full h-full`}
+                            className="relative w-full h-full"
                             style={{
-                                background: slide.background_gradient.includes('custom')
+                                background: slide.gradient_from && slide.gradient_via && slide.gradient_to
                                     ? `linear-gradient(135deg, ${slide.gradient_from}, ${slide.gradient_via}, ${slide.gradient_to})`
-                                    : undefined
+                                    : `linear-gradient(135deg, #dcfce7, #f0fdf4, #dcfce7)` // Default fallback
                             }}
                         >
                             <div className="relative w-full h-full p-4 sm:p-8 lg:p-12 grid grid-cols-1 md:grid-cols-2 items-center">
                                 {/* Text Content */}
-                                <div className="text-content space-y-3 sm:space-y-4 text-center md:text-left z-10">
+                                <div className={`text-content space-y-3 sm:space-y-4 text-center md:text-left z-10 ${getColorClass(slide.text_color, 'text-slate-800')}`}>
                                     {/* Dynamic badge */}
                                     <div className="inline-flex items-center gap-2 bg-green-300 text-green-600 pr-3 p-1 rounded-full text-xs">
-                                        <span className={`${slide.badge_color} px-2 py-1 rounded-full text-white text-xs font-medium`}>
-                                            {slide.badge_text}
+                                        <span className={`${getColorClass(slide.badge_color, 'bg-green-600')} px-2 py-1 rounded-full text-white text-xs font-medium`}>
+                                            {slide.badge_text || 'NEWS'}
                                         </span>
-                                        <span className="pr-1">{slide.promotion_text}</span>
+                                        <span className="pr-1">{slide.promotion_text || 'Free Shipping on Orders Above $50!'}</span>
                                     </div>
 
                                     <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent leading-tight">
                                         {slide.title}
                                     </h1>
 
-                                    <p className="text-slate-600 leading-relaxed text-sm sm:text-base max-w-md mx-auto md:mx-0">
+                                    <p className="leading-relaxed text-sm sm:text-base max-w-md mx-auto md:mx-0 opacity-90">
                                         {slide.description}
                                     </p>
 
-                                    <div className="text-slate-800 font-medium">
-                                        <p className="text-sm">Starts from</p>
+                                    <div className="font-medium">
+                                        <p className="text-sm opacity-90">Starts from</p>
                                         <div className="flex items-center gap-3 flex-wrap mt-1">
-                                            <span className="text-xl sm:text-2xl font-bold text-slate-800">
+                                            <span className="text-xl sm:text-2xl font-bold">
                                                 {slide.price}
                                             </span>
-                                            <span className="text-lg text-slate-400 line-through">
+                                            <span className="text-lg opacity-60 line-through">
                                                 {slide.original_price}
                                             </span>
                                             {discountPercent > 0 && (
@@ -150,21 +154,29 @@ function SliderSectionPreview({ slides }) {
                                         </div>
                                     </div>
 
-                                    {/* Dynamic button */}
                                     <button
-                                        className={`${slide.button_color} ${slide.button_text_color} py-2 px-6 sm:py-3 sm:px-8 mt-3 rounded-lg font-medium hover:opacity-90 transition-all duration-200 transform hover:scale-105 active:scale-95 text-sm sm:text-base`}
+                                        className={`${getColorClass(slide.button_color, 'bg-slate-800')} ${getColorClass(slide.button_text_color, 'text-white')} py-2 px-6 sm:py-3 sm:px-8 mt-3 rounded-lg font-medium hover:opacity-90 transition-all duration-200 transform hover:scale-105 active:scale-95 text-sm sm:text-base`}
                                     >
-                                        {slide.call_to_action}
+                                        {slide.call_to_action || 'SHOP NOW'}
                                     </button>
                                 </div>
 
-                                {/* Image Content */}
                                 <div className="image-content flex justify-center items-center relative mt-6 md:mt-0">
-                                    <div className="absolute w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 bg-gradient-to-tr from-green-300/40 to-green-200/40 blur-2xl rounded-full"></div>
+                                    <div
+                                        className="absolute w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 blur-2xl rounded-full"
+                                        style={{
+                                            background: slide.gradient_from && slide.gradient_to
+                                                ? `linear-gradient(135deg, ${slide.gradient_from}40, ${slide.gradient_to}40)`
+                                                : 'linear-gradient(135deg, #86efac40, #4ade8040)'
+                                        }}
+                                    ></div>
                                     <img
                                         src={slide.image}
                                         alt={slide.title}
                                         className="relative z-10 w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 object-contain drop-shadow-2xl"
+                                        onError={(e) => {
+                                            e.target.src = 'https://via.placeholder.com/400x400?text=Image+Not+Found';
+                                        }}
                                     />
                                 </div>
                             </div>
@@ -173,7 +185,6 @@ function SliderSectionPreview({ slides }) {
                 );
             })}
 
-            {/* Navigation Arrows */}
             {slides.length > 1 && (
                 <>
                     <button
@@ -197,7 +208,6 @@ function SliderSectionPreview({ slides }) {
                 </>
             )}
 
-            {/* Slide Indicators */}
             {slides.length > 1 && (
                 <div className="absolute bottom-3 sm:bottom-6 left-1/2 transform -translate-x-1/2 flex gap-2 z-30">
                     {slides.map((_, index) => (

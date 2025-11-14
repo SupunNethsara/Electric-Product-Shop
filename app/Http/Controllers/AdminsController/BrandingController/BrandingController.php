@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Slide;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
+
 class BrandingController extends Controller
 {
     public function index()
@@ -21,7 +23,7 @@ class BrandingController extends Controller
             'description' => 'required|string',
             'price' => 'required|string',
             'original_price' => 'required|string',
-            'image' => 'required|string',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'background_gradient' => 'nullable|string',
             'gradient_from' => 'nullable|string',
             'gradient_via' => 'nullable|string',
@@ -33,9 +35,18 @@ class BrandingController extends Controller
             'badge_color' => 'nullable|string',
             'promotion_text' => 'nullable|string',
             'call_to_action' => 'nullable|string',
-            'is_active' => 'boolean',
+            'is_active' => 'sometimes',
             'order' => 'integer'
         ]);
+
+        if (isset($validated['is_active'])) {
+            $validated['is_active'] = $this->convertToBoolean($validated['is_active']);
+        }
+
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('slides', 'public');
+            $validated['image'] = Storage::disk('public')->url($imagePath);
+        }
 
         $slide = Slide::create($validated);
         return response()->json($slide, Response::HTTP_CREATED);
@@ -53,7 +64,7 @@ class BrandingController extends Controller
             'description' => 'sometimes|required|string',
             'price' => 'sometimes|required|string',
             'original_price' => 'sometimes|required|string',
-            'image' => 'sometimes|required|string',
+            'image' => 'sometimes|required',
             'background_gradient' => 'nullable|string',
             'gradient_from' => 'nullable|string',
             'gradient_via' => 'nullable|string',
@@ -65,9 +76,27 @@ class BrandingController extends Controller
             'badge_color' => 'nullable|string',
             'promotion_text' => 'nullable|string',
             'call_to_action' => 'nullable|string',
-            'is_active' => 'boolean',
+            'is_active' => 'sometimes',
             'order' => 'integer'
         ]);
+
+        if (isset($validated['is_active'])) {
+            $validated['is_active'] = $this->convertToBoolean($validated['is_active']);
+        }
+
+        if ($request->hasFile('image')) {
+            $request->validate([
+                'image' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048'
+            ]);
+            if ($slide->image && Storage::disk('public')->exists(str_replace('/storage/', '', $slide->image))) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $slide->image));
+            }
+
+            $imagePath = $request->file('image')->store('slides', 'public');
+            $validated['image'] = Storage::disk('public')->url($imagePath);
+        } else {
+            $validated['image'] = $request->input('image');
+        }
 
         $slide->update($validated);
         return response()->json($slide);
@@ -75,6 +104,10 @@ class BrandingController extends Controller
 
     public function destroy(Slide $slide)
     {
+        if ($slide->image && Storage::disk('public')->exists(str_replace('/storage/', '', $slide->image))) {
+            Storage::disk('public')->delete(str_replace('/storage/', '', $slide->image));
+        }
+
         $slide->delete();
         return response()->json(['message' => 'Slide deleted successfully']);
     }
@@ -98,5 +131,25 @@ class BrandingController extends Controller
     {
         $slide->update(['is_active' => !$slide->is_active]);
         return response()->json($slide);
+    }
+
+    /**
+     * Convert various boolean representations to actual boolean
+     */
+    private function convertToBoolean($value)
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            return $value === 'true' || $value === '1';
+        }
+
+        if (is_numeric($value)) {
+            return (bool)$value;
+        }
+
+        return false;
     }
 }
