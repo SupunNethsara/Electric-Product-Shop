@@ -1,4 +1,3 @@
-// Categories.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import CategoryModal from "./Common/CategoryModal.jsx";
@@ -8,6 +7,7 @@ function Categories() {
     const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [message, setMessage] = useState("");
+    const [selectedParent, setSelectedParent] = useState(null);
 
     const fetchCategories = async () => {
         try {
@@ -34,11 +34,23 @@ function Categories() {
             const response = await axios.put(`http://127.0.0.1:8000/api/categories/${categoryId}/toggle`);
 
             if (response.data && response.data.success) {
-                setCategories(prev =>
-                    prev.map(cat =>
-                        cat.id === categoryId ? response.data.data : cat
-                    )
-                );
+                // Update the category in the state
+                const updateCategoryInTree = (cats) => {
+                    return cats.map(cat => {
+                        if (cat.id === categoryId) {
+                            return response.data.data;
+                        }
+                        if (cat.children && cat.children.length > 0) {
+                            return {
+                                ...cat,
+                                children: updateCategoryInTree(cat.children)
+                            };
+                        }
+                        return cat;
+                    });
+                };
+
+                setCategories(prev => updateCategoryInTree(prev));
                 setMessage("Category status updated successfully!");
             } else {
                 setMessage("Unexpected response from server");
@@ -56,7 +68,99 @@ function Categories() {
         setMessage("Category created successfully!");
         fetchCategories();
         setIsModalOpen(false);
+        setSelectedParent(null);
     };
+
+    const handleAddSubcategory = (parentCategory) => {
+        setSelectedParent(parentCategory);
+        setIsModalOpen(true);
+    };
+
+    // Recursive function to render categories tree
+    const renderCategoryTree = (categories, level = 0) => {
+        return categories.map((category) => (
+            <React.Fragment key={category.id}>
+                <tr className="hover:bg-gray-50 transition-colors duration-150">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                        <div
+                            className="text-sm font-medium text-gray-900"
+                            style={{ paddingLeft: `${level * 20}px` }}
+                        >
+                            {level > 0 && (
+                                <span className="text-gray-400 mr-2">↳</span>
+                            )}
+                            {category.name}
+                            {category.level < 2 && (
+                                <button
+                                    onClick={() => handleAddSubcategory(category)}
+                                    className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded hover:bg-blue-200"
+                                >
+                                    + Add Subcategory
+                                </button>
+                            )}
+                        </div>
+                    </td>
+                    <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900 max-w-xs">
+                            {category.description || "No description"}
+                        </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                            {new Date(category.created_at).toLocaleDateString()}
+                        </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                        <label className="inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={category.status === 'active'}
+                                onChange={() => toggleCategoryStatus(category.id)}
+                                className="sr-only peer"
+                            />
+                            <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green-400
+                                    after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white
+                                    after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all
+                                    peer-checked:after:translate-x-full peer-checked:bg-green-500"></div>
+                            <span className="ml-2 text-sm text-gray-700">
+                                {category.status === 'active' ? "Active" : "Inactive"}
+                            </span>
+                        </label>
+                    </td>
+                </tr>
+                {category.children && category.children.length > 0 && (
+                    renderCategoryTree(category.children, level + 1)
+                )}
+            </React.Fragment>
+        ));
+    };
+
+    // Count total categories including children
+    const countAllCategories = (cats) => {
+        let count = 0;
+        cats.forEach(cat => {
+            count++;
+            if (cat.children) {
+                count += countAllCategories(cat.children);
+            }
+        });
+        return count;
+    };
+
+    const countActiveCategories = (cats) => {
+        let count = 0;
+        cats.forEach(cat => {
+            if (cat.status === 'active') count++;
+            if (cat.children) {
+                count += countActiveCategories(cat.children);
+            }
+        });
+        return count;
+    };
+
+    const totalCategories = countAllCategories(categories);
+    const activeCategories = countActiveCategories(categories);
+    const inactiveCategories = totalCategories - activeCategories;
 
     return (
         <div className="min-h-full p-4">
@@ -64,11 +168,14 @@ function Categories() {
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
                     <p className="text-gray-600 mt-1">
-                        Manage your product categories
+                        Manage your product categories and subcategories
                     </p>
                 </div>
                 <button
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => {
+                        setSelectedParent(null);
+                        setIsModalOpen(true);
+                    }}
                     className="bg-[#00ad42] text-white px-4 py-2 rounded-md hover:bg-green-600
                     focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2
                     transition-colors duration-200 text-sm font-medium"
@@ -80,19 +187,19 @@ function Categories() {
             <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
                     <div className="text-xl font-semibold text-gray-900">
-                        {categories.length}
+                        {totalCategories}
                     </div>
                     <div className="text-gray-600 text-xs">Total Categories</div>
                 </div>
                 <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
                     <div className="text-xl font-semibold text-green-600">
-                        {categories.filter(cat => cat.status === 'active').length}
+                        {activeCategories}
                     </div>
                     <div className="text-gray-600 text-xs">Active</div>
                 </div>
                 <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
                     <div className="text-xl font-semibold text-gray-600">
-                        {categories.filter(cat => cat.status === 'disabled').length}
+                        {inactiveCategories}
                     </div>
                     <div className="text-gray-600 text-xs">Inactive</div>
                 </div>
@@ -120,7 +227,7 @@ function Categories() {
                 <div className="px-6 py-4 border-b border-gray-200">
                     <div className="flex justify-between items-center">
                         <h2 className="text-lg font-medium text-gray-900">
-                            Categories List
+                            Categories Hierarchy
                         </h2>
                         <button
                             onClick={fetchCategories}
@@ -203,47 +310,7 @@ function Categories() {
                                 </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                {categories.map((category) => (
-                                    <tr
-                                        key={category.id}
-                                        className="hover:bg-gray-50 transition-colors duration-150"
-                                    >
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900">
-                                                {category.name}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-sm text-gray-900 max-w-xs">
-                                                {category.description || "No description"}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">
-                                                {new Date(
-                                                    category.created_at
-                                                ).toLocaleDateString()}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <label className="inline-flex items-center cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={category.status === 'active'}
-                                                    onChange={() => toggleCategoryStatus(category.id)}
-                                                    className="sr-only peer"
-                                                />
-                                                <div className="relative w-11 h-6 bg-gray-200 rounded-full peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green-400
-                                                        after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white
-                                                        after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all
-                                                        peer-checked:after:translate-x-full peer-checked:bg-green-500"></div>
-                                                <span className="ml-2 text-sm text-gray-700">
-                                                    {category.status === 'active' ? "Active" : "Inactive"}
-                                                </span>
-                                            </label>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {renderCategoryTree(categories)}
                                 </tbody>
                             </table>
                         </div>
@@ -253,8 +320,12 @@ function Categories() {
 
             <CategoryModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setSelectedParent(null);
+                }}
                 onCategoryCreated={handleCategoryCreated}
+                parentCategory={selectedParent}
             />
         </div>
     );
