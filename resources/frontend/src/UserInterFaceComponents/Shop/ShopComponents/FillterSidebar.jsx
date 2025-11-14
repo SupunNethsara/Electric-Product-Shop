@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
+import { Plus, Minus } from "lucide-react";
 
 function FillterSidebar({
                             isFilterOpen = false,
                             selectedCategories = [],
-                            priceRange = [0, 1000],
+                            priceRange = [0, 300000],
                             availability = "all",
                             categories = [],
                             toggleCategory = () => {},
@@ -11,6 +12,68 @@ function FillterSidebar({
                             setAvailability = () => {},
                             clearAllFilters = () => {},
                         }) {
+    const [expandedCategories, setExpandedCategories] = useState({});
+
+    const toggleExpand = (categoryId) => {
+        setExpandedCategories(prev => ({
+            ...prev,
+            [categoryId]: !prev[categoryId]
+        }));
+    };
+
+    const renderCategoryTree = (parentId = null, level = 0) => {
+        const currentLevelCategories = categories.filter(cat =>
+            (parentId === null && cat.level === level) ||
+            cat.parent_id === parentId
+        );
+
+        if (currentLevelCategories.length === 0) return null;
+
+        return currentLevelCategories.map(category => {
+            const hasChildren = categories.some(cat => cat.parent_id === category.id);
+            const isExpanded = expandedCategories[category.id];
+
+            return (
+                <div key={category.id} className={`${level > 0 ? 'ml-4' : ''}`}>
+                    <div className="flex items-center justify-between group py-1">
+                        <label className="flex items-center gap-2 cursor-pointer flex-1">
+                            <input
+                                type="checkbox"
+                                checked={selectedCategories.includes(category.id)}
+                                onChange={() => toggleCategory(category.id)}
+                                className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
+                            />
+                            <span className={`text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200 ${
+                                level === 0 ? 'font-semibold' : level === 1 ? 'font-medium' : 'text-gray-600'
+                            }`}>
+                                {category.name}
+                            </span>
+                        </label>
+
+                        {hasChildren && (
+                            <button
+                                onClick={() => toggleExpand(category.id)}
+                                className="p-1 hover:bg-gray-100 rounded transition-colors duration-200 flex items-center justify-center w-6 h-6"
+                            >
+                                {isExpanded ? (
+                                    <Minus size={14} className="text-gray-500" />
+                                ) : (
+                                    <Plus size={14} className="text-gray-500" />
+                                )}
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Render children recursively if expanded */}
+                    {hasChildren && isExpanded && (
+                        <div className="mt-1">
+                            {renderCategoryTree(category.id, level + 1)}
+                        </div>
+                    )}
+                </div>
+            );
+        });
+    };
 
     return (
         <div
@@ -73,24 +136,9 @@ function FillterSidebar({
                     <h3 className="font-medium text-gray-900 mb-3 text-sm">
                         Categories
                     </h3>
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                    <div className="space-y-1 max-h-96 overflow-y-auto">
                         {categories.length > 0 ? (
-                            categories.map((category) => (
-                                <label
-                                    key={category.id}
-                                    className="flex items-center gap-2 cursor-pointer group"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedCategories.includes(category.id)}
-                                        onChange={() => toggleCategory(category.id)}
-                                        className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
-                                    />
-                                    <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
-                                        {category.name}
-                                    </span>
-                                </label>
-                            ))
+                            renderCategoryTree()
                         ) : (
                             <p className="text-sm text-gray-500">No categories available</p>
                         )}

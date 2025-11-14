@@ -3,16 +3,23 @@ import { Search, X } from "lucide-react";
 import ProductCard from "../../Products/ProductCard.jsx";
 
 export default function ProductSection({
-    filteredProducts = [],
-    searchQuery = "",
-    selectedCategories = [],
-    categories = [],
-    toggleCategory = () => {},
-    clearAllFilters = () => {},
-    loading = false,
-}) {
+                                           filteredProducts = [],
+                                           searchQuery = "",
+                                           selectedCategories = [],
+                                           categories = [],
+                                           toggleCategory = () => {},
+                                           clearAllFilters = () => {},
+                                           loading = false,
+                                       }) {
+
+    const getCategoryFullName = (categoryId) => {
+        const category = categories.find(cat => cat.id === categoryId);
+        return category ? category.fullPath || category.name : `Category ${categoryId}`;
+    };
+
     return (
         <div className="flex-1">
+            {/* Filter chips */}
             <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-gray-600">
                     {searchQuery && `Search results for "${searchQuery}"`}
@@ -20,21 +27,16 @@ export default function ProductSection({
 
                 <div className="flex flex-wrap gap-1">
                     {selectedCategories.map((categoryId) => {
-                        const category = categories.find(
-                            (cat) =>
-                                cat.id == categoryId ||
-                                String(cat.id) === String(categoryId),
-                        );
+                        const category = categories.find(cat => cat.id === categoryId);
                         return (
                             <span
                                 key={categoryId}
                                 className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs"
                             >
-                                {category
-                                    ? category.name
-                                    : `Category ${categoryId}`}
+                                {category ? category.name : `Category ${categoryId}`}
                                 <button
                                     onClick={() => toggleCategory(categoryId)}
+                                    className="hover:text-green-900 transition-colors"
                                 >
                                     <X size={12} />
                                 </button>

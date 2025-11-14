@@ -25,6 +25,51 @@ function ProductShop() {
         window.scrollTo(0, 0);
     }, []);
 
+    // Helper function to flatten hierarchical categories
+    const flattenCategories = (categories, level = 0, parentName = '') => {
+        let flattened = [];
+
+        categories.forEach(category => {
+            const fullPath = parentName ? `${parentName} > ${category.name}` : category.name;
+            flattened.push({
+                id: category.id,
+                name: category.name,
+                level: level,
+                parent_id: category.parent_id,
+                fullPath: fullPath
+            });
+
+            if (category.children && category.children.length > 0) {
+                const childCategories = flattenCategories(category.children, level + 1, category.name);
+                flattened = flattened.concat(childCategories);
+            }
+        });
+
+        return flattened;
+    };
+
+    // Helper function to get category IDs including children
+    const getCategoryIdsWithChildren = (selectedCategoryIds, allCategories) => {
+        const result = new Set(selectedCategoryIds);
+
+        selectedCategoryIds.forEach(categoryId => {
+            const category = allCategories.find(cat => cat.id === categoryId);
+            if (category) {
+                // Find all children of this category
+                const findChildren = (parentId) => {
+                    const children = allCategories.filter(cat => cat.parent_id === parentId);
+                    children.forEach(child => {
+                        result.add(child.id);
+                        findChildren(child.id); // Recursively find grandchildren
+                    });
+                };
+                findChildren(categoryId);
+            }
+        });
+
+        return Array.from(result);
+    };
+
     const fetchProducts = useCallback(async () => {
         try {
             setLoading(true);
@@ -38,7 +83,15 @@ function ProductShop() {
                 params.search = searchQuery.trim();
             }
 
-            if (selectedCategories.length > 0) params.categories = selectedCategories.join(',');
+            // Handle hierarchical category filtering
+            if (selectedCategories.length > 0) {
+                // Get all selected category IDs including their children
+                const allCategoryIds = getCategoryIdsWithChildren(selectedCategories, categories);
+                if (allCategoryIds.length > 0) {
+                    params.categories = allCategoryIds.join(',');
+                }
+            }
+
             if (priceRange[0] > 0) params.min_price = priceRange[0];
             if (priceRange[1] < 300000) params.max_price = priceRange[1];
             if (availability !== 'all') params.availability = availability;
@@ -60,7 +113,7 @@ function ProductShop() {
         } finally {
             setLoading(false);
         }
-    }, [currentPage, itemsPerPage, searchQuery, selectedCategories, priceRange, availability, sortBy]);
+    }, [currentPage, itemsPerPage, searchQuery, selectedCategories, priceRange, availability, sortBy, categories]);
 
     useEffect(() => {
         fetchProducts();
@@ -71,11 +124,11 @@ function ProductShop() {
             try {
                 const response = await axios.get('http://127.0.0.1:8000/api/categories/active');
                 const categoriesData = Array.isArray(response.data) ? response.data : response.data?.data || [];
-                const categoryItems = categoriesData.map(cat => ({
-                    id: cat.id,
-                    name: cat.name
-                }));
-                setCategories(categoryItems);
+
+                // Flatten the hierarchical structure for easy access
+                const flattenedCategories = flattenCategories(categoriesData);
+                setCategories(flattenedCategories);
+                console.log('📁 Flattened categories:', flattenedCategories);
             } catch (error) {
                 console.error('Error fetching categories:', error);
                 setCategories([]);
