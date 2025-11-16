@@ -3,6 +3,7 @@ import axios from 'axios';
 import ProductRow from './ProductRow';
 import { Search, Filter, Eye, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import useToast from "../../../UserInterFaceComponents/Common/useToast.jsx";
+import {ProductDetailsModal} from "./ProductDetailsModal.jsx";
 
 const ProductsTable = ({ refreshTrigger }) => {
     const [products, setProducts] = useState([]);
@@ -200,7 +201,7 @@ const ProductsTable = ({ refreshTrigger }) => {
         const pages = [];
         const current = pagination.current_page;
         const last = pagination.last_page;
-        const delta = 2; // Number of pages to show on each side of current page
+        const delta = 2;
 
         for (let i = Math.max(2, current - delta); i <= Math.min(last - 1, current + delta); i++) {
             pages.push(i);
@@ -407,11 +408,9 @@ const ProductsTable = ({ refreshTrigger }) => {
                     </table>
                 </div>
 
-                {/* Pagination */}
                 {pagination.total > 0 && (
                     <div className="border-t border-gray-200 px-4 py-3 sm:px-6">
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                            {/* Items per page selector */}
                             <div className="flex items-center gap-2">
                                 <span className="text-sm text-gray-700">Show</span>
                                 <select
@@ -428,16 +427,14 @@ const ProductsTable = ({ refreshTrigger }) => {
                                 <span className="text-sm text-gray-700">per page</span>
                             </div>
 
-                            {/* Page info */}
                             <div className="text-sm text-gray-700">
                                 Showing <span className="font-medium">{pagination.from}</span> to{' '}
                                 <span className="font-medium">{pagination.to}</span> of{' '}
                                 <span className="font-medium">{pagination.total}</span> results
                             </div>
 
-                            {/* Pagination controls */}
                             <div className="flex items-center space-x-1">
-                                {/* First page */}
+
                                 <button
                                     onClick={() => handlePageChange(1)}
                                     disabled={pagination.current_page === 1}
@@ -446,7 +443,6 @@ const ProductsTable = ({ refreshTrigger }) => {
                                     <ChevronsLeft className="h-4 w-4" />
                                 </button>
 
-                                {/* Previous page */}
                                 <button
                                     onClick={() => handlePageChange(pagination.current_page - 1)}
                                     disabled={pagination.current_page === 1}
@@ -455,7 +451,6 @@ const ProductsTable = ({ refreshTrigger }) => {
                                     <ChevronLeft className="h-4 w-4" />
                                 </button>
 
-                                {/* Page numbers */}
                                 {generatePageNumbers().map((page, index) => (
                                     <button
                                         key={index}
@@ -471,7 +466,6 @@ const ProductsTable = ({ refreshTrigger }) => {
                                     </button>
                                 ))}
 
-                                {/* Next page */}
                                 <button
                                     onClick={() => handlePageChange(pagination.current_page + 1)}
                                     disabled={pagination.current_page === pagination.last_page}
@@ -480,7 +474,6 @@ const ProductsTable = ({ refreshTrigger }) => {
                                     <ChevronRight className="h-4 w-4" />
                                 </button>
 
-                                {/* Last page */}
                                 <button
                                     onClick={() => handlePageChange(pagination.last_page)}
                                     disabled={pagination.current_page === pagination.last_page}
@@ -494,7 +487,6 @@ const ProductsTable = ({ refreshTrigger }) => {
                 )}
             </div>
 
-            {/* Product Details Modal */}
             {showModal && selectedProduct && (
                 <ProductDetailsModal
                     product={selectedProduct}
@@ -504,137 +496,5 @@ const ProductsTable = ({ refreshTrigger }) => {
         </div>
     );
 };
-
-// Separate Modal Component for better organization
-const ProductDetailsModal = ({ product, onClose }) => (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">
-                    Product Details - {product.name}
-                </h3>
-                <button
-                    onClick={onClose}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                    <X className="w-6 h-6" />
-                </button>
-            </div>
-
-            <div className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <h4 className="font-medium text-gray-900 mb-3">Basic Information</h4>
-                        <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Item Code:</span>
-                                <span className="font-medium">{product.item_code}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Model:</span>
-                                <span className="font-medium">{product.model}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Status:</span>
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                    product.status === 'active'
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-red-100 text-red-800'
-                                }`}>
-                                    {product.status}
-                                </span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Warranty:</span>
-                                <span className="font-medium">{product.warranty}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h4 className="font-medium text-gray-900 mb-3">Pricing & Stock</h4>
-                        <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Regular Price:</span>
-                                <span className="font-medium">Rs. {product.price}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Buy Now Price:</span>
-                                <span className="font-medium text-green-600">Rs. {product.buy_now_price}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Availability:</span>
-                                <span className="font-medium">{product.availability} units</span>
-                            </div>
-                            {product.tags && (
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Tags:</span>
-                                    <span className="font-medium text-right">{product.tags}</span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {product.hedding && (
-                    <div>
-                        <h4 className="font-medium text-gray-900 mb-3">Product Heading</h4>
-                        <p className="text-sm text-gray-700">{product.hedding}</p>
-                    </div>
-                )}
-
-                {product.specification && (
-                    <div>
-                        <h4 className="font-medium text-gray-900 mb-3">Specifications</h4>
-                        <pre className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap font-sans">
-                            {product.specification}
-                        </pre>
-                    </div>
-                )}
-
-                <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Ratings & Reviews</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div className="text-center p-3 bg-gray-50 rounded-lg">
-                            <div className="font-semibold text-gray-900">{product.average_rating || 0}</div>
-                            <div className="text-gray-600">Average Rating</div>
-                        </div>
-                        <div className="text-center p-3 bg-gray-50 rounded-lg">
-                            <div className="font-semibold text-gray-900">{product.reviews_count || 0}</div>
-                            <div className="text-gray-600">Total Reviews</div>
-                        </div>
-                        <div className="text-center p-3 bg-gray-50 rounded-lg">
-                            <div className="font-semibold text-gray-900">
-                                {product.rating_distribution?.['5'] || 0}
-                            </div>
-                            <div className="text-gray-600">5 Star Reviews</div>
-                        </div>
-                        <div className="text-center p-3 bg-gray-50 rounded-lg">
-                            <div className="font-semibold text-gray-900">
-                                {product.rating_distribution?.['1'] || 0}
-                            </div>
-                            <div className="text-gray-600">1 Star Reviews</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <span className="text-gray-600">Created:</span>
-                        <span className="ml-2 font-medium">
-                            {new Date(product.created_at).toLocaleDateString()}
-                        </span>
-                    </div>
-                    <div>
-                        <span className="text-gray-600">Last Updated:</span>
-                        <span className="ml-2 font-medium">
-                            {new Date(product.updated_at).toLocaleDateString()}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-);
 
 export default ProductsTable;
