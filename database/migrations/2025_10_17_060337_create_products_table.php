@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('category_2');
             $table->string('category_3');
+            $table->uuid('category_2_id')->nullable();
+            $table->uuid('category_3_id')->nullable();
             $table->string('model')->nullable();
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2)->nullable();
@@ -43,4 +45,3 @@ return new class extends Migration
         Schema::dropIfExists('products');
     }
 };
-

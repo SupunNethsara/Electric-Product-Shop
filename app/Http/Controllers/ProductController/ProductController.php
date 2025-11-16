@@ -8,6 +8,7 @@ use App\Http\Requests\UploadProductRequest;
 use App\Http\Requests\ValidateFilesRequest;
 use App\Imports\ProductDetailsImport;
 use App\Imports\ProductPricingImport;
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductView;
 use Illuminate\Http\Request;
@@ -116,7 +117,13 @@ class ProductController extends Controller
             if (is_string($categories)) {
                 $categories = explode(',', $categories);
             }
-            $query->whereIn('category_id', $categories);
+
+            // Use the category IDs for filtering
+            $query->where(function($q) use ($categories) {
+                $q->whereIn('category_id', $categories)
+                    ->orWhereIn('category_2_id', $categories)
+                    ->orWhereIn('category_3_id', $categories);
+            });
         }
 
         $query->whereBetween('price', [$minPrice, $maxPrice]);
@@ -188,6 +195,65 @@ class ProductController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Validation passed successfully!']);
     }
 
+//    public function uploadProducts(UploadProductRequest $request)
+//    {
+//        $request->validated();
+//
+//        $detailsImport = new ProductDetailsImport();
+//        $pricingImport = new ProductPricingImport();
+//
+//        Excel::import($detailsImport, $request->file('details_file'));
+//        Excel::import($pricingImport, $request->file('pricing_file'));
+//
+//        if ($detailsImport->errors || $pricingImport->errors) {
+//            return response()->json([
+//                'status' => 'failed',
+//                'details_errors' => $detailsImport->errors,
+//                'pricing_errors' => $pricingImport->errors,
+//            ], 422);
+//        }
+//
+//        $details = Excel::toArray([], $request->file('details_file'))[0];
+//        $pricing = Excel::toArray([], $request->file('pricing_file'))[0];
+//
+//        array_shift($details);
+//        array_shift($pricing);
+//
+//        DB::transaction(function () use ($details, $pricing, $request) {
+//            foreach ($details as $detailRow) {
+//                if (empty($detailRow[0])) continue;
+//                $itemCode = $detailRow[0];
+//
+//                $priceRow = collect($pricing)->first(function($row) use ($itemCode) {
+//                    return !empty($row[0]) && $row[0] === $itemCode;
+//                });
+//
+//                if (!$priceRow) continue;
+//
+//                Product::updateOrCreate(
+//                    ['item_code' => $itemCode],
+//                    [
+//                        'category_id' => $request->category_id,
+//                        'category_2' => $detailRow[2] ?? $request->category_2, // Read from Excel or fallback to form
+//                        'category_3' => $detailRow[3] ?? $request->category_3, // Read from Excel or fallback to form
+//                        'name' => $detailRow[1] ?? 'No Name',
+//                        'model' => $detailRow[4] ?? '', // Updated index
+//                        'description' => $detailRow[5] ?? '', // Updated index
+//                        'hedding' => $detailRow[6] ?? null, // Updated index
+//                        'warranty' => $detailRow[7] ?? null, // Updated index
+//                        'specification' => $detailRow[8] ?? null, // Updated index
+//                        'tags' => $detailRow[9] ?? null, // Updated index
+//                        'youtube_video_id' => $detailRow[10] ?? null, // Updated index
+//                        'price' => $priceRow[1] ?? 0,
+//                        'buy_now_price' => $priceRow[3] ?? null,
+//                        'availability' => $priceRow[2] ?? 0,
+//                    ]
+//                );
+//            }
+//        });
+//
+//        return response()->json(['message' => 'Products uploaded successfully!']);
+//    }
     public function uploadProducts(UploadProductRequest $request)
     {
         $request->validated();
@@ -223,20 +289,41 @@ class ProductController extends Controller
 
                 if (!$priceRow) continue;
 
+                $category2Name = $detailRow[2] ?? $request->category_2;
+                $category3Name = $detailRow[3] ?? $request->category_3;
+
+                $category2Id = null;
+                $category3Id = null;
+
+                if (!empty($category2Name)) {
+                    $category2 = Category::where('name', $category2Name)->first();
+                    $category2Id = $category2 ? $category2->id : null;
+                }
+
+                if (!empty($category3Name)) {
+                    $category3 = Category::where('name', $category3Name)->first();
+                    $category3Id = $category3 ? $category3->id : null;
+                }
+
+                // Use the most specific category available
+                $finalCategoryId = $category3Id ?? $category2Id ?? $request->category_id;
+
                 Product::updateOrCreate(
                     ['item_code' => $itemCode],
                     [
-                        'category_id' => $request->category_id,
-                        'category_2' => $detailRow[2] ?? $request->category_2, // Read from Excel or fallback to form
-                        'category_3' => $detailRow[3] ?? $request->category_3, // Read from Excel or fallback to form
+                        'category_id' => $finalCategoryId,
+                        'category_2' => $category2Name,
+                        'category_3' => $category3Name,
+                        'category_2_id' => $category2Id,
+                        'category_3_id' => $category3Id,
                         'name' => $detailRow[1] ?? 'No Name',
-                        'model' => $detailRow[4] ?? '', // Updated index
-                        'description' => $detailRow[5] ?? '', // Updated index
-                        'hedding' => $detailRow[6] ?? null, // Updated index
-                        'warranty' => $detailRow[7] ?? null, // Updated index
-                        'specification' => $detailRow[8] ?? null, // Updated index
-                        'tags' => $detailRow[9] ?? null, // Updated index
-                        'youtube_video_id' => $detailRow[10] ?? null, // Updated index
+                        'model' => $detailRow[4] ?? '',
+                        'description' => $detailRow[5] ?? '',
+                        'hedding' => $detailRow[6] ?? null,
+                        'warranty' => $detailRow[7] ?? null,
+                        'specification' => $detailRow[8] ?? null,
+                        'tags' => $detailRow[9] ?? null,
+                        'youtube_video_id' => $detailRow[10] ?? null,
                         'price' => $priceRow[1] ?? 0,
                         'buy_now_price' => $priceRow[3] ?? null,
                         'availability' => $priceRow[2] ?? 0,
@@ -247,7 +334,6 @@ class ProductController extends Controller
 
         return response()->json(['message' => 'Products uploaded successfully!']);
     }
-
     public function uploadImages(ImageUploadRequest $request)
     {
         try {

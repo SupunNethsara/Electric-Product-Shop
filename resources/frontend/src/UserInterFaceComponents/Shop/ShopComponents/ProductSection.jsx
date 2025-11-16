@@ -12,14 +12,9 @@ export default function ProductSection({
                                            loading = false,
                                        }) {
 
-    const getCategoryFullName = (categoryId) => {
-        const category = categories.find(cat => cat.id === categoryId);
-        return category ? category.fullPath || category.name : `Category ${categoryId}`;
-    };
 
     return (
         <div className="flex-1">
-            {/* Filter chips */}
             <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-gray-600">
                     {searchQuery && `Search results for "${searchQuery}"`}

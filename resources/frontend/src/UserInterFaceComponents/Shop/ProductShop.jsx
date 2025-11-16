@@ -25,7 +25,6 @@ function ProductShop() {
         window.scrollTo(0, 0);
     }, []);
 
-    // Helper function to flatten hierarchical categories
     const flattenCategories = (categories, level = 0, parentName = '') => {
         let flattened = [];
 
@@ -48,23 +47,37 @@ function ProductShop() {
         return flattened;
     };
 
-    // Helper function to get category IDs including children
     const getCategoryIdsWithChildren = (selectedCategoryIds, allCategories) => {
         const result = new Set(selectedCategoryIds);
 
         selectedCategoryIds.forEach(categoryId => {
-            const category = allCategories.find(cat => cat.id === categoryId);
-            if (category) {
-                // Find all children of this category
-                const findChildren = (parentId) => {
-                    const children = allCategories.filter(cat => cat.parent_id === parentId);
-                    children.forEach(child => {
-                        result.add(child.id);
-                        findChildren(child.id); // Recursively find grandchildren
-                    });
-                };
-                findChildren(categoryId);
-            }
+            // Add the selected category
+            result.add(categoryId);
+
+            // Find all descendants (children, grandchildren, etc.)
+            const findDescendants = (parentId) => {
+                const children = allCategories.filter(cat => cat.parent_id === parentId);
+                children.forEach(child => {
+                    result.add(child.id);
+                    findDescendants(child.id);
+                });
+            };
+
+            findDescendants(categoryId);
+
+            // Also find all ancestors and their descendants
+            const findAncestorsAndDescendants = (currentId) => {
+                const category = allCategories.find(cat => cat.id === currentId);
+                if (category && category.parent_id) {
+                    result.add(category.parent_id);
+                    // Get all siblings (other children of the same parent)
+                    const siblings = allCategories.filter(cat => cat.parent_id === category.parent_id);
+                    siblings.forEach(sibling => result.add(sibling.id));
+                    findAncestorsAndDescendants(category.parent_id);
+                }
+            };
+
+            findAncestorsAndDescendants(categoryId);
         });
 
         return Array.from(result);
@@ -83,10 +96,10 @@ function ProductShop() {
                 params.search = searchQuery.trim();
             }
 
-            // Handle hierarchical category filtering
             if (selectedCategories.length > 0) {
-                // Get all selected category IDs including their children
                 const allCategoryIds = getCategoryIdsWithChildren(selectedCategories, categories);
+                console.log('📋 Filtering by category IDs:', allCategoryIds);
+
                 if (allCategoryIds.length > 0) {
                     params.categories = allCategoryIds.join(',');
                 }
@@ -114,7 +127,6 @@ function ProductShop() {
             setLoading(false);
         }
     }, [currentPage, itemsPerPage, searchQuery, selectedCategories, priceRange, availability, sortBy, categories]);
-
     useEffect(() => {
         fetchProducts();
     }, [fetchProducts]);
@@ -125,7 +137,6 @@ function ProductShop() {
                 const response = await axios.get('http://127.0.0.1:8000/api/categories/active');
                 const categoriesData = Array.isArray(response.data) ? response.data : response.data?.data || [];
 
-                // Flatten the hierarchical structure for easy access
                 const flattenedCategories = flattenCategories(categoriesData);
                 setCategories(flattenedCategories);
                 console.log('📁 Flattened categories:', flattenedCategories);

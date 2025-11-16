@@ -14,6 +14,7 @@ function FillterSidebar({
                         }) {
     const [expandedCategories, setExpandedCategories] = useState({});
 
+
     const toggleExpand = (categoryId) => {
         setExpandedCategories(prev => ({
             ...prev,
@@ -64,7 +65,6 @@ function FillterSidebar({
                         )}
                     </div>
 
-                    {/* Render children recursively if expanded */}
                     {hasChildren && isExpanded && (
                         <div className="mt-1">
                             {renderCategoryTree(category.id, level + 1)}
