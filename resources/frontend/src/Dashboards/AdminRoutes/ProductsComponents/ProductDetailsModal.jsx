@@ -215,7 +215,7 @@ export const ProductDetailsModal = ({ product, onClose }) => {
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
             <div className="bg-white rounded-2xl max-w-7xl w-full max-h-[95vh] overflow-hidden shadow-2xl">
-                <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
+                <div className="relative bg-gradient-to-r from-blue-600 to-blue-400 text-white p-6">
                     <button
                         onClick={onClose}
                         className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-all duration-200"
