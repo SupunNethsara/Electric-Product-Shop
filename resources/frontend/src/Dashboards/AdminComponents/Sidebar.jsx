@@ -32,12 +32,6 @@ const Sidebar = () => {
             current: location.pathname.includes('/admin/products')
         },
         {
-            name: 'Categories',
-            href: '/admin/categories',
-            icon: FileText,
-            current: location.pathname.includes('/admin/categories')
-        },
-        {
             name: 'Orders',
             href: '/admin/orders',
             icon: ShoppingCart,

@@ -44,9 +44,8 @@ function MetricsGrid() {
         }).format(amount);
     };
 
-    // Calculate additional metrics based on your API data
+
     const calculateAdditionalMetrics = () => {
-        // You can add calculations here based on your actual business logic
         const completedOrders = data.totalOrders - data.pendingOrders;
         const completionRate = data.totalOrders > 0 ? (completedOrders / data.totalOrders * 100).toFixed(0) : 0;
 

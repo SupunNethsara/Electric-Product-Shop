@@ -21,16 +21,35 @@ function FillterSidebar({
         }));
     };
 
-    const renderCategoryTree = (parentId = null, level = 0) => {
-        const currentLevelCategories = categories.filter(cat =>
-            (parentId === null && cat.level === level) ||
-            cat.parent_id === parentId
-        );
+    // Group categories by level and parent
+    const categoryTree = categories.reduce((acc, category) => {
+        if (category.level === 0) {
+            if (!acc[category.id]) {
+                acc[category.id] = { ...category, children: [] };
+            }
+        } else if (category.level === 1) {
+            const parent = Object.values(acc).find(cat => cat.name === category.parent);
+            if (parent) {
+                if (!parent.children.find(c => c.id === category.id)) {
+                    parent.children.push({ ...category, children: [] });
+                }
+            }
+        } else if (category.level === 2) {
+            Object.values(acc).forEach(parent => {
+                const child = parent.children.find(c => c.name === category.parent);
+                if (child) {
+                    if (!child.children.find(c => c.id === category.id)) {
+                        child.children.push(category);
+                    }
+                }
+            });
+        }
+        return acc;
+    }, {});
 
-        if (currentLevelCategories.length === 0) return null;
-
-        return currentLevelCategories.map(category => {
-            const hasChildren = categories.some(cat => cat.parent_id === category.id);
+    const renderCategoryTree = (categoryList, level = 0) => {
+        return categoryList.map(category => {
+            const hasChildren = category.children && category.children.length > 0;
             const isExpanded = expandedCategories[category.id];
             const isSelected = selectedCategories.includes(category.id);
 
@@ -68,7 +87,7 @@ function FillterSidebar({
 
                     {hasChildren && isExpanded && (
                         <div className="mt-1">
-                            {renderCategoryTree(category.id, level + 1)}
+                            {renderCategoryTree(category.children, level + 1)}
                         </div>
                     )}
                 </div>
@@ -139,7 +158,7 @@ function FillterSidebar({
                     </h3>
                     <div className="space-y-1 max-h-96 overflow-y-auto">
                         {categories.length > 0 ? (
-                            renderCategoryTree()
+                            renderCategoryTree(Object.values(categoryTree))
                         ) : (
                             <p className="text-sm text-gray-500">No categories available</p>
                         )}

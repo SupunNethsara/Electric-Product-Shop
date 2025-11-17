@@ -10,7 +10,6 @@ function ShopHeader({
                         searchInput,
                         setSearchInput,
                         onSearch,
-                        onKeyPress,
                         onClearSearch,
                         isFilterOpen,
                         setIsFilterOpen,
@@ -21,6 +20,26 @@ function ShopHeader({
                         onPageChange,
                         totalPages,
                     }) {
+
+    const handleInputChange = (e) => {
+        const value = e.target.value;
+        console.log('🔤 Input changed:', value);
+        setSearchInput(value);
+    };
+
+    const handleSearchClick = () => {
+        console.log('🖱️ Search button clicked, input value:', searchInput);
+        onSearch();
+    };
+
+    const handleKeyPress = (e) => {
+        console.log('⌨️ Key pressed:', e.key);
+        if (e.key === 'Enter') {
+            console.log('🔍 Enter key detected, triggering search');
+            onSearch();
+        }
+    };
+
     return (
         <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
             <div className="flex flex-col lg:flex-row gap-4 items-center justify-between mb-4">
@@ -31,11 +50,8 @@ function ShopHeader({
                             type="text"
                             placeholder="Search products, brands, categories..."
                             value={searchInput}
-                            onChange={(e) => {
-                                console.log('🔤 Input changed:', e.target.value);
-                                setSearchInput(e.target.value);
-                            }}
-                            onKeyPress={onKeyPress}
+                            onChange={handleInputChange}
+                            onKeyPress={handleKeyPress}
                             className="w-full pl-10 pr-20 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                         />
                         {searchInput && (
@@ -47,10 +63,7 @@ function ShopHeader({
                             </button>
                         )}
                         <button
-                            onClick={() => {
-                                console.log('🖱️ Search button clicked, input value:', searchInput);
-                                onSearch();
-                            }}
+                            onClick={handleSearchClick}
                             className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition-colors duration-200 text-sm"
                         >
                             Search

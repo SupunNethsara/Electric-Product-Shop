@@ -13,16 +13,34 @@ function MobileFilterDrawer({
                                 clearAllFilters,
                             }) {
 
-    // Recursive function to render category tree for mobile
-    const renderCategoryTree = (parentId = null, level = 0) => {
-        const currentLevelCategories = categories.filter(cat =>
-            (parentId === null && cat.level === level) ||
-            cat.parent_id === parentId
-        );
+    // Group categories for mobile view
+    const categoryTree = categories.reduce((acc, category) => {
+        if (category.level === 0) {
+            if (!acc[category.id]) {
+                acc[category.id] = { ...category, children: [] };
+            }
+        } else if (category.level === 1) {
+            const parent = Object.values(acc).find(cat => cat.name === category.parent);
+            if (parent) {
+                if (!parent.children.find(c => c.id === category.id)) {
+                    parent.children.push({ ...category, children: [] });
+                }
+            }
+        } else if (category.level === 2) {
+            Object.values(acc).forEach(parent => {
+                const child = parent.children.find(c => c.name === category.parent);
+                if (child) {
+                    if (!child.children.find(c => c.id === category.id)) {
+                        child.children.push(category);
+                    }
+                }
+            });
+        }
+        return acc;
+    }, {});
 
-        if (currentLevelCategories.length === 0) return null;
-
-        return currentLevelCategories.map(category => (
+    const renderCategoryTree = (categoryList, level = 0) => {
+        return categoryList.map(category => (
             <div key={category.id} className={`${level > 0 ? 'ml-4' : ''}`}>
                 <label className="flex items-center gap-2 cursor-pointer py-1">
                     <input
@@ -38,7 +56,11 @@ function MobileFilterDrawer({
                     </span>
                 </label>
                 {/* Render children recursively */}
-                {renderCategoryTree(category.id, level + 1)}
+                {category.children && category.children.length > 0 && (
+                    <div className="mt-1">
+                        {renderCategoryTree(category.children, level + 1)}
+                    </div>
+                )}
             </div>
         ));
     };
@@ -97,7 +119,7 @@ function MobileFilterDrawer({
                             </h3>
                             <div className="space-y-1 max-h-60 overflow-y-auto">
                                 {categories.length > 0 ? (
-                                    renderCategoryTree()
+                                    renderCategoryTree(Object.values(categoryTree))
                                 ) : (
                                     <p className="text-sm text-gray-500">No categories available</p>
                                 )}

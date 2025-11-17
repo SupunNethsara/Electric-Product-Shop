@@ -27,30 +27,78 @@ function ProductShop() {
         window.scrollTo(0, 0);
     }, []);
 
-    const getAllChildCategoryIds = (parentId, allCategories) => {
-        const result = new Set();
-        result.add(parentId);
-        const findChildren = (currentParentId) => {
-            const children = allCategories.filter(cat => cat.parent_id === currentParentId);
-            children.forEach(child => {
-                result.add(child.id);
-                findChildren(child.id);
-            });
-        };
+    // Extract unique categories from products
+    const extractCategoriesFromProducts = (products) => {
+        const categorySet = new Set();
+        const categoryMap = {};
 
-        findChildren(parentId);
-        return Array.from(result);
-    };
+        products.forEach(product => {
+            // Add category_1
+            if (product.category_1) {
+                const key1 = `cat1_${product.category_1}`;
+                if (!categoryMap[key1]) {
+                    categoryMap[key1] = {
+                        id: key1,
+                        name: product.category_1,
+                        level: 0,
+                        type: 'category_1'
+                    };
+                }
+            }
 
-    const getCategoryIdsWithChildren = (selectedCategoryIds, allCategories) => {
-        const result = new Set();
+            // Add category_2
+            if (product.category_2) {
+                const key2 = `cat2_${product.category_1}_${product.category_2}`;
+                if (!categoryMap[key2]) {
+                    categoryMap[key2] = {
+                        id: key2,
+                        name: product.category_2,
+                        level: 1,
+                        parent: product.category_1,
+                        type: 'category_2'
+                    };
+                }
+            }
 
-        selectedCategoryIds.forEach(categoryId => {
-            const categoryAndChildren = getAllChildCategoryIds(categoryId, allCategories);
-            categoryAndChildren.forEach(id => result.add(id));
+            // Add category_3
+            if (product.category_3) {
+                const key3 = `cat3_${product.category_1}_${product.category_2}_${product.category_3}`;
+                if (!categoryMap[key3]) {
+                    categoryMap[key3] = {
+                        id: key3,
+                        name: product.category_3,
+                        level: 2,
+                        parent: product.category_2,
+                        type: 'category_3'
+                    };
+                }
+            }
         });
 
-        return Array.from(result);
+        return Object.values(categoryMap);
+    };
+
+    // Check if product matches selected categories
+    const productMatchesCategories = (product, selectedCats) => {
+        if (selectedCats.length === 0) return true;
+
+        return selectedCats.some(catId => {
+            const category = categories.find(c => c.id === catId);
+            if (!category) return false;
+
+            switch (category.type) {
+                case 'category_1':
+                    return product.category_1 === category.name;
+                case 'category_2':
+                    return product.category_2 === category.name &&
+                        product.category_1 === category.parent;
+                case 'category_3':
+                    return product.category_3 === category.name &&
+                        product.category_2 === category.parent;
+                default:
+                    return false;
+            }
+        });
     };
 
     useEffect(() => {
@@ -62,14 +110,23 @@ function ProductShop() {
                 });
 
                 const products = response.data.data || [];
+                console.log('📦 Fetched products:', products.length);
+                console.log('🔍 Sample product:', products[0]); // Check the structure
+
                 setAllProducts(products);
                 setFilteredProducts(products);
                 setTotalProducts(products.length);
+
+                // Extract categories from products
+                const extractedCategories = extractCategoriesFromProducts(products);
+                console.log('🏷️ Extracted categories:', extractedCategories);
+                setCategories(extractedCategories);
             } catch (error) {
                 console.error('Error fetching products:', error);
                 setAllProducts([]);
                 setFilteredProducts([]);
                 setTotalProducts(0);
+                setCategories([]);
             } finally {
                 setLoading(false);
                 setInitialLoad(false);
@@ -80,12 +137,14 @@ function ProductShop() {
     }, []);
 
     useEffect(() => {
-        if (initialLoad || categories.length === 0) return;
+        if (initialLoad) return;
+        console.log('🔄 Triggering applyFilters due to dependency change');
         applyFilters();
-    }, [searchQuery, selectedCategories, priceRange, availability, sortBy, allProducts, categories]);
+    }, [searchQuery, selectedCategories, priceRange, availability, sortBy, allProducts]);
 
     const applyFilters = useCallback(() => {
         if (allProducts.length === 0) {
+            console.log('❌ No products to filter');
             setFilteredProducts([]);
             setTotalProducts(0);
             return;
@@ -93,93 +152,77 @@ function ProductShop() {
 
         let filtered = [...allProducts];
 
-        if (selectedCategories.length > 0) {
-            const allCategoryIdsToFilter = getCategoryIdsWithChildren(selectedCategories, categories);
-            const categoryFilterSet = new Set(allCategoryIdsToFilter);
-
-            console.log('🔍 Selected categories:', selectedCategories);
-            console.log('📦 All category IDs to filter (including children):', allCategoryIdsToFilter);
-            console.log('📋 Total products before filter:', filtered.length);
-
-            const categoryMap = {};
-            categories.forEach(cat => {
-                categoryMap[cat.id] = cat.name;
-            });
-
-            const selectedCategoryNames = selectedCategories.map(id => ({
-                id,
-                name: categoryMap[id] || 'Unknown Category',
-                isSelected: true
-            }));
-
-            console.log('🏷️ Selected category details:', selectedCategoryNames);
-
-            filtered = filtered.filter(product => {
-                const productCategoryIds = [
-                    product.category_id,
-                    product.category_2_id,
-                    product.category_3_id
-                ].filter(Boolean);
-
-                const hasMatch = categoryFilterSet.has(product.category_id);
-
-                if (hasMatch) {
-                    console.log(`✅ MATCH: ${product.name}`, {
-                        itemCode: product.item_code,
-                        primaryCategory: {
-                            id: product.category_id,
-                            name: categoryMap[product.category_id] || 'Unknown Category'
-                        },
-                        allCategories: productCategoryIds.map(id => ({
-                            id,
-                            name: categoryMap[id] || 'Unknown Category',
-                            isInFilter: categoryFilterSet.has(id)
-                        }))
-                    });
-                } else {
-                    console.log(`❌ NO MATCH: ${product.name}`, {
-                        itemCode: product.item_code,
-                        primaryCategory: {
-                            id: product.category_id,
-                            name: categoryMap[product.category_id] || 'Unknown Category'
-                        },
-                        allCategories: productCategoryIds.map(id => ({
-                            id,
-                            name: categoryMap[id] || 'Unknown Category',
-                            isInFilter: categoryFilterSet.has(id)
-                        }))
-                    });
-                }
-
-                return hasMatch;
-            });
-
-        }
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase().trim();
-            filtered = filtered.filter(product =>
-                product.name.toLowerCase().includes(query) ||
-                product.description?.toLowerCase().includes(query) ||
-                product.model?.toLowerCase().includes(query)
-            );
-        }
-
-        filtered = filtered.filter(product => {
-            const price = parseFloat(product.price) || 0;
-            return price >= priceRange[0] && price <= priceRange[1];
+        console.log('🔄 Applying filters:', {
+            totalProducts: allProducts.length,
+            searchQuery,
+            selectedCategories,
+            priceRange,
+            availability,
+            sortBy
         });
 
-        if (availability !== 'all') {
-            if (availability === 'in-stock') {
-                filtered = filtered.filter(product => product.availability > 0);
-            } else if (availability === 'out-of-stock') {
-                filtered = filtered.filter(product => product.availability === 0);
-            }
+        // Search filter - IMPROVED
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase().trim();
+            console.log('🔍 Searching for:', query);
+
+            filtered = filtered.filter(product => {
+                const matches =
+                    product.name?.toLowerCase().includes(query) ||
+                    product.description?.toLowerCase().includes(query) ||
+                    product.model?.toLowerCase().includes(query) ||
+                    product.item_code?.toLowerCase().includes(query) ||
+                    product.category_1?.toLowerCase().includes(query) ||
+                    product.category_2?.toLowerCase().includes(query) ||
+                    product.category_3?.toLowerCase().includes(query) ||
+                    product.tags?.toLowerCase().includes(query);
+
+                if (matches) {
+                    console.log('✅ Search match:', product.name);
+                }
+                return matches;
+            });
+
+            console.log('🔍 After search filter:', filtered.length, 'products');
+        } else {
+            console.log('🔍 No search query, skipping search filter');
         }
 
-        // Sorting
+        // Category filter
+        if (selectedCategories.length > 0) {
+            filtered = filtered.filter(product =>
+                productMatchesCategories(product, selectedCategories)
+            );
+            console.log('🏷️ After category filter:', filtered.length);
+        }
+
+        // Price filter
+        filtered = filtered.filter(product => {
+            const price = parseFloat(product.price) || 0;
+            const inRange = price >= priceRange[0] && price <= priceRange[1];
+            return inRange;
+        });
+        console.log('💰 After price filter:', filtered.length);
+
+        // Availability filter
+        if (availability !== 'all') {
+            if (availability === 'in-stock') {
+                filtered = filtered.filter(product => {
+                    const isInStock = parseInt(product.availability) > 0;
+                    return isInStock;
+                });
+            } else if (availability === 'out-of-stock') {
+                filtered = filtered.filter(product => {
+                    const isOutOfStock = parseInt(product.availability) === 0;
+                    return isOutOfStock;
+                });
+            }
+            console.log('📦 After availability filter:', filtered.length);
+        }
+
         filtered = sortProducts(filtered, sortBy);
 
+        console.log('✅ Final filtered products:', filtered.length);
         setFilteredProducts(filtered);
         setTotalProducts(filtered.length);
         setCurrentPage(1);
@@ -196,7 +239,7 @@ function ProductShop() {
             case 'rating':
                 return sorted.sort((a, b) => (parseFloat(b.average_rating) || 0) - (parseFloat(a.average_rating) || 0));
             case 'name':
-                return sorted.sort((a, b) => a.name.localeCompare(b.name));
+                return sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
             default:
                 return sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         }
@@ -207,40 +250,6 @@ function ProductShop() {
         const endIndex = startIndex + itemsPerPage;
         return filteredProducts.slice(startIndex, endIndex);
     };
-
-    const flattenCategories = (categories, level = 0, parentName = '') => {
-        let flattened = [];
-        categories.forEach(category => {
-            const fullPath = parentName ? `${parentName} > ${category.name}` : category.name;
-            flattened.push({
-                id: category.id,
-                name: category.name,
-                level: level,
-                parent_id: category.parent_id,
-                fullPath: fullPath
-            });
-            if (category.children && category.children.length > 0) {
-                const childCategories = flattenCategories(category.children, level + 1, category.name);
-                flattened = flattened.concat(childCategories);
-            }
-        });
-        return flattened;
-    };
-
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const response = await axios.get('http://127.0.0.1:8000/api/categories/active');
-                const categoriesData = Array.isArray(response.data) ? response.data : response.data?.data || [];
-                const flattenedCategories = flattenCategories(categoriesData);
-                setCategories(flattenedCategories);
-            } catch (error) {
-                console.error('Error fetching categories:', error);
-                setCategories([]);
-            }
-        };
-        fetchCategories();
-    }, []);
 
     const toggleCategory = (categoryId) => {
         setSelectedCategories(prev =>
@@ -262,13 +271,24 @@ function ProductShop() {
 
     const handleSearch = () => {
         const trimmedInput = searchInput.trim();
+        console.log('🔍 Handle search called:', {
+            searchInput,
+            trimmedInput,
+            currentSearchQuery: searchQuery
+        });
+
         if (trimmedInput !== searchQuery) {
+            console.log('🔄 Updating search query from:', searchQuery, 'to:', trimmedInput);
             setSearchQuery(trimmedInput);
+        } else {
+            console.log('⚡ Search query unchanged, triggering filter refresh');
+            applyFilters();
         }
     };
 
     const handleKeyPress = (e) => {
         if (e.key === 'Enter') {
+            console.log('⌨️ Enter key pressed');
             handleSearch();
         }
     };
@@ -284,6 +304,7 @@ function ProductShop() {
     };
 
     const handleClearSearch = () => {
+        console.log('🗑️ Clearing search');
         setSearchInput('');
         setSearchQuery('');
     };
