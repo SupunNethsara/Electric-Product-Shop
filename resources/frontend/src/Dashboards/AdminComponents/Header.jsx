@@ -277,7 +277,7 @@ function Header() {
                                                                     </span>
                                                                 </div>
                                                                 <p className="text-xs font-medium text-green-600 mt-1">
-                                                                    ${parseFloat(notification.total_amount).toFixed(2)}
+                                                                    Rs:{parseFloat(notification.total_amount).toFixed(2)}
                                                                 </p>
                                                             </div>
                                                             <div className="flex items-center space-x-1">
