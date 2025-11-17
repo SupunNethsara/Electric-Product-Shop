@@ -425,8 +425,7 @@ class ProductController extends Controller
 
     public function getMostViewedProducts()
     {
-        $products = Product::with('category')
-            ->where('total_views', '>', 0)
+        $products = Product::where('total_views', '>', 0)
             ->orderBy('total_views', 'desc')
             ->limit(1)
             ->get();
