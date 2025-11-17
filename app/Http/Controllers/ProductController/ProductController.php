@@ -223,7 +223,7 @@ class ProductController extends Controller
                     $priceRow = collect($pricing)->first(function($row) use ($itemCode) {
                         return !empty($row[0]) && trim($row[0]) === $itemCode;
                     });
-
+                    $existingProduct = Product::where('item_code', $itemCode)->first();
                     if (!$priceRow) {
                         \Log::warning("No pricing found for item code: {$itemCode}");
                         continue;
@@ -245,13 +245,13 @@ class ProductController extends Controller
                         'price' => is_numeric($priceRow[1] ?? 0) ? (float)$priceRow[1] : 0,
                         'buy_now_price' => is_numeric($priceRow[2] ?? 0) ? (float)$priceRow[2] : 0,
                         'availability' => is_numeric($priceRow[3] ?? 0) ? (int)$priceRow[3] : 0,
-                        'status' => 'disabled'
+                        'status' => $existingProduct && $existingProduct->images ? 'active' : 'disabled'
+
                     ];
 
                     $productData = array_map(function($value) {
                         return is_string($value) ? trim($value) : $value;
                     }, $productData);
-
                     Product::updateOrCreate(
                         ['item_code' => $itemCode],
                         $productData
