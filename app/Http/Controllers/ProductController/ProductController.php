@@ -211,7 +211,6 @@ class ProductController extends Controller
         $details = Excel::toArray([], $request->file('details_file'))[0];
         $pricing = Excel::toArray([], $request->file('pricing_file'))[0];
 
-        // Remove headers
         array_shift($details);
         array_shift($pricing);
 
@@ -221,8 +220,6 @@ class ProductController extends Controller
                 try {
                     if (empty($detailRow[0])) continue;
                     $itemCode = trim($detailRow[0]);
-
-                    // Find matching price row
                     $priceRow = collect($pricing)->first(function($row) use ($itemCode) {
                         return !empty($row[0]) && trim($row[0]) === $itemCode;
                     });
@@ -232,24 +229,23 @@ class ProductController extends Controller
                         continue;
                     }
 
-                    // Map data with proper indexes
                     $productData = [
                         'item_code' => $itemCode,
-                        'name' => $detailRow[1] ?? null, // "Analog Camera"
-                        'category_1' => $detailRow[2] ?? null, // "CCTV"
-                        'category_2' => $detailRow[3] ?? null, // "CCTV System"
-                        'category_3' => $detailRow[4] ?? null, // "Hikvision"
-                        'model' => $detailRow[5] ?? null, // "DS-ZCE100-0T" (was index 5, should be 4)
-                        'description' => $detailRow[6] ?? null, // "Hikvision 2 MP Analog Camera" (was index 6)
-                        'hedding' => $detailRow[7] ?? null, // Headline (was index 7)
-                        'warranty' => $detailRow[8] ?? null, // "2 year" (was index 8)
-                        'specification' => $detailRow[9] ?? null, // The technical specs (was index 9)
-                        'tags' => $detailRow[10] ?? null, // (was index 10)
-                        'youtube_video_id' => $detailRow[11] ?? null, // (was index 11)
+                        'name' => $detailRow[1] ?? null,
+                        'category_1' => $detailRow[2] ?? null,
+                        'category_2' => $detailRow[3] ?? null,
+                        'category_3' => $detailRow[4] ?? null,
+                        'model' => $detailRow[5] ?? null,
+                        'description' => $detailRow[6] ?? null,
+                        'hedding' => $detailRow[7] ?? null,
+                        'warranty' => $detailRow[8] ?? null,
+                        'specification' => $detailRow[9] ?? null,
+                        'tags' => $detailRow[10] ?? null,
+                        'youtube_video_id' => $detailRow[11] ?? null,
                         'price' => is_numeric($priceRow[1] ?? 0) ? (float)$priceRow[1] : 0,
                         'buy_now_price' => is_numeric($priceRow[2] ?? 0) ? (float)$priceRow[2] : 0,
                         'availability' => is_numeric($priceRow[3] ?? 0) ? (int)$priceRow[3] : 0,
-                        'status' => 'active'
+                        'status' => 'disabled'
                     ];
 
                     // Clean empty strings

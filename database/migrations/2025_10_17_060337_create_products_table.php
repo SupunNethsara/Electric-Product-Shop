@@ -25,8 +25,8 @@ return new class extends Migration
             $table->integer('total_views')->default(0);
             $table->string('youtube_video_id')->nullable();
             $table->decimal('price', 10, 2)->nullable();
-            $table->decimal('buy_now_price', 10, 2)->nullable();
             $table->integer('availability')->default(0);
+            $table->decimal('buy_now_price', 10, 2)->nullable();
             $table->string('image')->nullable();
             $table->json('images')->nullable();
             $table->string('status')->default('disabled');

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 export const ProductDetailsModal = ({ product, onClose }) => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [generatingPDF, setGeneratingPDF] = useState(false);
-
+console.log(product)
     const parseImages = (imagesData) => {
         if (!imagesData) return [];
         try {
