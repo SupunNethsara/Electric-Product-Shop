@@ -248,12 +248,10 @@ class ProductController extends Controller
                         'status' => 'disabled'
                     ];
 
-                    // Clean empty strings
                     $productData = array_map(function($value) {
                         return is_string($value) ? trim($value) : $value;
                     }, $productData);
 
-                    // Update or create the product
                     Product::updateOrCreate(
                         ['item_code' => $itemCode],
                         $productData
