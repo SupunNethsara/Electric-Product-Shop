@@ -346,6 +346,13 @@ console.log(product)
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                                         <Tag className="w-5 h-5 text-blue-600 mb-2" />
+                                        <p className="text-xs text-blue-600 mb-1">Category</p>
+                                        <p className="font-semibold text-blue-900">
+                                            {product.category_1 || 'N/A'}
+                                        </p>
+                                    </div>
+                                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                                        <Tag className="w-5 h-5 text-blue-600 mb-2" />
                                         <p className="text-xs text-blue-600 mb-1">Brand</p>
                                         <p className="font-semibold text-blue-900">
                                             {product.category_2 || 'N/A'}
