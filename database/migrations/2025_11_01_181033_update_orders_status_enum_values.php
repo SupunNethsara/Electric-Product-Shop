@@ -7,21 +7,59 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
-        // First update existing data to match new enum values
-        DB::table('orders')->where('status', 'delivered')->update(['status' => 'completed']);
+        // Create order_items table
+        Schema::create('order_items', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('order_id')
+                ->constrained('orders', 'id')
+                ->onDelete('cascade');
+            $table->foreignUuid('product_id')
+                ->constrained('products', 'id')
+                ->onDelete('cascade');
+            $table->integer('quantity');
+            $table->decimal('price', 10, 2);
+            $table->timestamps();
+        });
 
-        // Then modify the column
-        DB::statement("ALTER TABLE orders MODIFY COLUMN status ENUM('pending', 'contacted', 'processing', 'shipped', 'completed', 'cancelled') DEFAULT 'pending'");
+        // Safely add cancellation fields if they don't exist
+        Schema::table('orders', function (Blueprint $table) {
+            if (!Schema::hasColumn('orders', 'cancellation_reason')) {
+                $table->text('cancellation_reason')->nullable()->after('status');
+            }
+            if (!Schema::hasColumn('orders', 'cancelled_by')) {
+                $table->foreignUuid('cancelled_by')->nullable()->after('cancellation_reason');
+            }
+            if (!Schema::hasColumn('orders', 'cancelled_at')) {
+                $table->timestamp('cancelled_at')->nullable()->after('cancelled_by');
+            }
+        });
+
+        // Add foreign key constraint safely
+        if (Schema::hasColumn('orders', 'cancelled_by')) {
+            Schema::table('orders', function (Blueprint $table) {
+                $table->foreign('cancelled_by')->references('id')->on('users')->onDelete('set null');
+            });
+        }
     }
 
-    public function down()
+    public function down(): void
     {
-        // Revert data changes
-        DB::table('orders')->where('status', 'completed')->update(['status' => 'delivered']);
+        // Drop order_items table
+        Schema::dropIfExists('order_items');
 
-        // Revert column modification
-        DB::statement("ALTER TABLE orders MODIFY COLUMN status ENUM('pending', 'processing', 'delivered', 'cancelled') DEFAULT 'pending'");
+        // Safely remove cancellation fields if they exist
+        Schema::table('orders', function (Blueprint $table) {
+            if (Schema::hasColumn('orders', 'cancellation_reason')) {
+                $table->dropColumn('cancellation_reason');
+            }
+            if (Schema::hasColumn('orders', 'cancelled_by')) {
+                $table->dropColumn('cancelled_by');
+            }
+            if (Schema::hasColumn('orders', 'cancelled_at')) {
+                $table->dropColumn('cancelled_at');
+            }
+        });
     }
 };
