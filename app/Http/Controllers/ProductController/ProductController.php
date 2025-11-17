@@ -427,7 +427,7 @@ class ProductController extends Controller
     {
         $products = Product::where('total_views', '>', 0)
             ->orderBy('total_views', 'desc')
-            ->limit(1)
+            ->limit(10)
             ->get();
 
         if ($products->isEmpty()) {
