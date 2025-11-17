@@ -27,10 +27,9 @@ function ProductShop() {
         window.scrollTo(0, 0);
     }, []);
 
-
-
     const getAllChildCategoryIds = (parentId, allCategories) => {
-        const result = new Set([parentId]);
+        const result = new Set();
+        result.add(parentId);
         const findChildren = (currentParentId) => {
             const children = allCategories.filter(cat => cat.parent_id === currentParentId);
             children.forEach(child => {
@@ -47,8 +46,8 @@ function ProductShop() {
         const result = new Set();
 
         selectedCategoryIds.forEach(categoryId => {
-            const childCategoryIds = getAllChildCategoryIds(categoryId, allCategories);
-            childCategoryIds.forEach(childId => result.add(childId));
+            const categoryAndChildren = getAllChildCategoryIds(categoryId, allCategories);
+            categoryAndChildren.forEach(id => result.add(id));
         });
 
         return Array.from(result);
@@ -66,8 +65,6 @@ function ProductShop() {
                 setAllProducts(products);
                 setFilteredProducts(products);
                 setTotalProducts(products.length);
-
-
             } catch (error) {
                 console.error('Error fetching products:', error);
                 setAllProducts([]);
@@ -84,8 +81,6 @@ function ProductShop() {
 
     useEffect(() => {
         if (initialLoad || categories.length === 0) return;
-
-        console.log('🔍 Applying filters...');
         applyFilters();
     }, [searchQuery, selectedCategories, priceRange, availability, sortBy, allProducts, categories]);
 
@@ -99,8 +94,25 @@ function ProductShop() {
         let filtered = [...allProducts];
 
         if (selectedCategories.length > 0) {
-            const beforeCategory = filtered.length;
             const allCategoryIdsToFilter = getCategoryIdsWithChildren(selectedCategories, categories);
+            const categoryFilterSet = new Set(allCategoryIdsToFilter);
+
+            console.log('🔍 Selected categories:', selectedCategories);
+            console.log('📦 All category IDs to filter (including children):', allCategoryIdsToFilter);
+            console.log('📋 Total products before filter:', filtered.length);
+
+            const categoryMap = {};
+            categories.forEach(cat => {
+                categoryMap[cat.id] = cat.name;
+            });
+
+            const selectedCategoryNames = selectedCategories.map(id => ({
+                id,
+                name: categoryMap[id] || 'Unknown Category',
+                isSelected: true
+            }));
+
+            console.log('🏷️ Selected category details:', selectedCategoryNames);
 
             filtered = filtered.filter(product => {
                 const productCategoryIds = [
@@ -109,38 +121,42 @@ function ProductShop() {
                     product.category_3_id
                 ].filter(Boolean);
 
-                const hasMatch = productCategoryIds.some(catId => {
-                    if (!catId) return false;
-
-                    if (allCategoryIdsToFilter.includes(catId)) {
-                        return true;
-                    }
-                    let currentCat = categories.find(c => c.id === catId);
-                    while (currentCat && currentCat.parent_id) {
-                        if (allCategoryIdsToFilter.includes(currentCat.parent_id)) {
-                            console.log(`✅ Hierarchical match found for product ${product.name} - parent category ${currentCat.parent_id} of ${catId}`);
-                            return true;
-                        }
-                        currentCat = categories.find(c => c.id === currentCat.parent_id);
-                    }
-
-                    return false;
-                });
+                const hasMatch = categoryFilterSet.has(product.category_id);
 
                 if (hasMatch) {
-                    console.log(`✅ INCLUDED: ${product.name}`, {
-                        productId: product.id,
-                        categories: productCategoryIds,
-                        matchedCategories: productCategoryIds.filter(id => allCategoryIdsToFilter.includes(id))
+                    console.log(`✅ MATCH: ${product.name}`, {
+                        itemCode: product.item_code,
+                        primaryCategory: {
+                            id: product.category_id,
+                            name: categoryMap[product.category_id] || 'Unknown Category'
+                        },
+                        allCategories: productCategoryIds.map(id => ({
+                            id,
+                            name: categoryMap[id] || 'Unknown Category',
+                            isInFilter: categoryFilterSet.has(id)
+                        }))
+                    });
+                } else {
+                    console.log(`❌ NO MATCH: ${product.name}`, {
+                        itemCode: product.item_code,
+                        primaryCategory: {
+                            id: product.category_id,
+                            name: categoryMap[product.category_id] || 'Unknown Category'
+                        },
+                        allCategories: productCategoryIds.map(id => ({
+                            id,
+                            name: categoryMap[id] || 'Unknown Category',
+                            isInFilter: categoryFilterSet.has(id)
+                        }))
                     });
                 }
 
                 return hasMatch;
             });
+
         }
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase().trim();
-            const beforeSearch = filtered.length;
             filtered = filtered.filter(product =>
                 product.name.toLowerCase().includes(query) ||
                 product.description?.toLowerCase().includes(query) ||
@@ -148,14 +164,12 @@ function ProductShop() {
             );
         }
 
-        const beforePrice = filtered.length;
         filtered = filtered.filter(product => {
             const price = parseFloat(product.price) || 0;
             return price >= priceRange[0] && price <= priceRange[1];
         });
 
         if (availability !== 'all') {
-            const beforeAvailability = filtered.length;
             if (availability === 'in-stock') {
                 filtered = filtered.filter(product => product.availability > 0);
             } else if (availability === 'out-of-stock') {
@@ -163,7 +177,9 @@ function ProductShop() {
             }
         }
 
+        // Sorting
         filtered = sortProducts(filtered, sortBy);
+
         setFilteredProducts(filtered);
         setTotalProducts(filtered.length);
         setCurrentPage(1);
@@ -218,7 +234,6 @@ function ProductShop() {
                 const categoriesData = Array.isArray(response.data) ? response.data : response.data?.data || [];
                 const flattenedCategories = flattenCategories(categoriesData);
                 setCategories(flattenedCategories);
-
             } catch (error) {
                 console.error('Error fetching categories:', error);
                 setCategories([]);

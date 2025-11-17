@@ -11,43 +11,21 @@ class Product extends Model
     use HasFactory, HasUuids;
 
     protected $fillable = [
-        'category_id', 'item_code', 'category_2' ,'category_3', 'name', 'model', 'hedding','warranty',
-        'description', 'specification', 'tags', 'specification_pdf_id', 'total_views',
-        'youtube_video_id', 'price', 'buy_now_price', 'availability', 'image', 'images', 'status'
+        'item_code', 'name', 'category_1', 'category_2', 'category_3', 'model', 'hedding', 'warranty',
+        'description', 'specification', 'tags', 'specification_pdf_id','youtube_video_id',
+        'price', 'buy_now_price', 'availability', 'image', 'images', 'status'
     ];
 
     protected $casts = [
         'images' => 'array'
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::saving(function ($product) {
-            if (!empty($product->category_2) && empty($product->category_2_id)) {
-                $category2 = Category::where('name', $product->category_2)->first();
-                $product->category_2_id = $category2 ? $category2->id : null;
-            }
-
-            if (!empty($product->category_3) && empty($product->category_3_id)) {
-                $category3 = Category::where('name', $product->category_3)->first();
-                $product->category_3_id = $category3 ? $category3->id : null;
-            }
-
-            if (empty($product->category_id) && !empty($product->category_3_id)) {
-                $product->category_id = $product->category_3_id;
-            } elseif (empty($product->category_id) && !empty($product->category_2_id)) {
-                $product->category_id = $product->category_2_id;
-            }
-        });
-    }
 
     protected $appends = [
         'average_rating',
         'reviews_count',
         'rating_distribution',
-        'total_views'
+
     ];
 
     public function category()

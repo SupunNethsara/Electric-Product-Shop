@@ -1,10 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 import axios from 'axios';
 import FileUpload from './FileUpload';
 import ValidationResults from './ValidationResults';
 import UploadProgress from './UploadProgress';
-import CategorySelect from './CategorySelect';
 import UploadComplete from "./UploadComplete.jsx";
 
 
@@ -14,29 +13,13 @@ const UploadProducts = ({ onUploadComplete }) => {
         details: null,
         pricing: null
     });
-    const [categories, setCategories] = useState([]);
+
     const [selectedCategory, setSelectedCategory] = useState('');
     const [validationResult, setValidationResult] = useState(null);
     const [loading, setLoading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
-    const [categoriesLoading, setCategoriesLoading] = useState(false);
 
-    useEffect(() => {
-        fetchCategories();
-    }, []);
 
-    const fetchCategories = async () => {
-        setCategoriesLoading(true);
-        try {
-            const response = await axios.get('http://127.0.0.1:8000/api/categories/active');
-            setCategories(response.data);
-        } catch (error) {
-            console.error('Failed to fetch categories');
-            alert('Failed to load categories');
-        } finally {
-            setCategoriesLoading(false);
-        }
-    };
 
     const handleFileSelect = (type, file) => {
         setFiles(prev => ({
@@ -58,12 +41,6 @@ const UploadProducts = ({ onUploadComplete }) => {
             alert('Please select both files');
             return;
         }
-
-        if (!selectedCategory) {
-            alert('Please select a category');
-            return;
-        }
-
         setLoading(true);
         const formData = new FormData();
         formData.append('details_file', files.details);
@@ -97,16 +74,10 @@ const UploadProducts = ({ onUploadComplete }) => {
             return;
         }
 
-        if (!selectedCategory) {
-            alert('Please select a category');
-            return;
-        }
-
         setLoading(true);
         const formData = new FormData();
         formData.append('details_file', files.details);
         formData.append('pricing_file', files.pricing);
-        formData.append('category_id', selectedCategory);
 
         try {
             await axios.post('http://127.0.0.1:8000/api/products/upload', formData, {
@@ -150,14 +121,6 @@ const UploadProducts = ({ onUploadComplete }) => {
         <div className="space-y-6">
             {uploadStage === 'validate' && (
                 <>
-
-                    <CategorySelect
-                        categories={categories}
-                        loading={categoriesLoading}
-                        selectedCategory={selectedCategory}
-                        onCategoryChange={setSelectedCategory}
-                    />
-
                     <FileUpload
                         files={files}
                         onFileSelect={handleFileSelect}
@@ -175,7 +138,7 @@ const UploadProducts = ({ onUploadComplete }) => {
                         </button>
                         <button
                             onClick={validateFiles}
-                            disabled={loading || !files.details || !files.pricing || !selectedCategory || categoriesLoading}
+                            disabled={loading || !files.details || !files.pricing }
                             className="bg-blue-600 text-white px-6 py-2 rounded-md font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                         >
                             {loading ? 'Validating...' : 'Validate Files'}
@@ -189,7 +152,6 @@ const UploadProducts = ({ onUploadComplete }) => {
                     uploadProgress={uploadProgress}
                     loading={loading}
                     selectedCategory={selectedCategory}
-                    categories={categories}
                     onBack={handleBackToValidation}
                     onUpload={uploadProducts}
                 />

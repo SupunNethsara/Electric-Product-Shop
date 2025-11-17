@@ -22,7 +22,6 @@ class UploadProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id' => 'required|exists:categories,id',
             'details_file' => 'required|file|mimes:xlsx,csv',
             'pricing_file' => 'required|file|mimes:xlsx,csv',
         ];

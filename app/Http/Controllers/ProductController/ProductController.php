@@ -93,6 +93,9 @@ class ProductController extends Controller
             'data' => $product
         ]);
     }
+
+
+
     public function getActiveProducts(Request $request)
     {
         $perPage = $request->get('per_page', 20);
@@ -106,37 +109,26 @@ class ProductController extends Controller
 
         $query = Product::where('status', 'active');
 
+        // Search filtering
         if (!empty($searchQuery)) {
             $query->where(function($q) use ($searchQuery) {
                 $q->where('name', 'like', "%{$searchQuery}%")
-                    ->orWhere('description', 'like', "%{$searchQuery}%");
+                    ->orWhere('description', 'like', "%{$searchQuery}%")
+                    ->orWhere('model', 'like', "%{$searchQuery}%");
             });
         }
 
-        if (!empty($categories)) {
-
-            if (is_string($categories)) {
-                $categories = explode(',', $categories);
-            }
-
-            $categories = array_filter($categories);
-
-            if (!empty($categories)) {
-                $query->where(function($q) use ($categories) {
-                    $q->whereIn('category_id', $categories)
-                        ->orWhereIn('category_2_id', $categories)
-                        ->orWhereIn('category_3_id', $categories);
-                });
-            }
-        }
+        // Price range filtering
         $query->whereBetween('price', [$minPrice, $maxPrice]);
 
+        // Availability filtering
         if ($availability === 'in-stock') {
             $query->where('availability', '>', 0);
         } elseif ($availability === 'out-of-stock') {
             $query->where('availability', 0);
         }
 
+        // Sorting
         switch ($sortBy) {
             case 'price-low':
                 $query->orderBy('price', 'asc');
@@ -219,63 +211,78 @@ class ProductController extends Controller
         $details = Excel::toArray([], $request->file('details_file'))[0];
         $pricing = Excel::toArray([], $request->file('pricing_file'))[0];
 
+        // Remove headers
         array_shift($details);
         array_shift($pricing);
 
-        DB::transaction(function () use ($details, $pricing, $request) {
-            foreach ($details as $detailRow) {
-                if (empty($detailRow[0])) continue;
-                $itemCode = $detailRow[0];
+        DB::beginTransaction();
+        try {
+            foreach ($details as $index => $detailRow) {
+                try {
+                    if (empty($detailRow[0])) continue;
+                    $itemCode = trim($detailRow[0]);
 
-                $priceRow = collect($pricing)->first(function($row) use ($itemCode) {
-                    return !empty($row[0]) && $row[0] === $itemCode;
-                });
+                    // Find matching price row
+                    $priceRow = collect($pricing)->first(function($row) use ($itemCode) {
+                        return !empty($row[0]) && trim($row[0]) === $itemCode;
+                    });
 
-                if (!$priceRow) continue;
+                    if (!$priceRow) {
+                        \Log::warning("No pricing found for item code: {$itemCode}");
+                        continue;
+                    }
 
-                $category2Name = $detailRow[2] ?? $request->category_2;
-                $category3Name = $detailRow[3] ?? $request->category_3;
+                    // Map data with proper indexes
+                    $productData = [
+                        'item_code' => $itemCode,
+                        'name' => $detailRow[1] ?? null, // "Analog Camera"
+                        'category_1' => $detailRow[2] ?? null, // "CCTV"
+                        'category_2' => $detailRow[3] ?? null, // "CCTV System"
+                        'category_3' => $detailRow[4] ?? null, // "Hikvision"
+                        'model' => $detailRow[5] ?? null, // "DS-ZCE100-0T" (was index 5, should be 4)
+                        'description' => $detailRow[6] ?? null, // "Hikvision 2 MP Analog Camera" (was index 6)
+                        'hedding' => $detailRow[7] ?? null, // Headline (was index 7)
+                        'warranty' => $detailRow[8] ?? null, // "2 year" (was index 8)
+                        'specification' => $detailRow[9] ?? null, // The technical specs (was index 9)
+                        'tags' => $detailRow[10] ?? null, // (was index 10)
+                        'youtube_video_id' => $detailRow[11] ?? null, // (was index 11)
+                        'price' => is_numeric($priceRow[1] ?? 0) ? (float)$priceRow[1] : 0,
+                        'buy_now_price' => is_numeric($priceRow[2] ?? 0) ? (float)$priceRow[2] : 0,
+                        'availability' => is_numeric($priceRow[3] ?? 0) ? (int)$priceRow[3] : 0,
+                        'status' => 'active'
+                    ];
 
-                $category2Id = null;
-                $category3Id = null;
+                    // Clean empty strings
+                    $productData = array_map(function($value) {
+                        return is_string($value) ? trim($value) : $value;
+                    }, $productData);
 
-                if (!empty($category2Name)) {
-                    $category2 = Category::where('name', $category2Name)->first();
-                    $category2Id = $category2 ? $category2->id : null;
+                    // Update or create the product
+                    Product::updateOrCreate(
+                        ['item_code' => $itemCode],
+                        $productData
+                    );
+
+                } catch (\Exception $e) {
+                    \Log::error("Error processing product at row {$index}: " . $e->getMessage());
+                    continue;
                 }
-
-                if (!empty($category3Name)) {
-                    $category3 = Category::where('name', $category3Name)->first();
-                    $category3Id = $category3 ? $category3->id : null;
-                }
-
-                $finalCategoryId = $category3Id ?? $category2Id ?? $request->category_id;
-
-                Product::updateOrCreate(
-                    ['item_code' => $itemCode],
-                    [
-                        'category_id' => $finalCategoryId,
-                        'category_2' => $category2Name,
-                        'category_3' => $category3Name,
-                        'category_2_id' => $category2Id,
-                        'category_3_id' => $category3Id,
-                        'name' => $detailRow[1] ?? 'No Name',
-                        'model' => $detailRow[4] ?? '',
-                        'description' => $detailRow[5] ?? '',
-                        'hedding' => $detailRow[6] ?? null,
-                        'warranty' => $detailRow[7] ?? null,
-                        'specification' => $detailRow[8] ?? null,
-                        'tags' => $detailRow[9] ?? null,
-                        'youtube_video_id' => $detailRow[10] ?? null,
-                        'price' => $priceRow[1] ?? 0,
-                        'buy_now_price' => $priceRow[3] ?? null,
-                        'availability' => $priceRow[2] ?? 0,
-                    ]
-                );
             }
-        });
 
-        return response()->json(['message' => 'Products uploaded successfully!']);
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Products uploaded successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Upload failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Upload failed: ' . $e->getMessage()
+            ], 500);
+        }
     }
     public function uploadImages(ImageUploadRequest $request)
     {
