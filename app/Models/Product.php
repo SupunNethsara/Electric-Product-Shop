@@ -29,7 +29,7 @@ class Product extends Model
         'image',
         'images',
         'status',
-        'total_views'  // Added total_views here
+        'total_views'
     ];
 
 
