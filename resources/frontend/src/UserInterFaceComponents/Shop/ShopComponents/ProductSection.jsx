@@ -12,12 +12,13 @@ export default function ProductSection({
                                            loading = false,
                                        }) {
 
-
     return (
         <div className="flex-1">
             <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-gray-600">
                     {searchQuery && `Search results for "${searchQuery}"`}
+                    {!searchQuery && selectedCategories.length === 0 && "All Products"}
+                    {!searchQuery && selectedCategories.length > 0 && "Filtered Products"}
                 </p>
 
                 <div className="flex flex-wrap gap-1">

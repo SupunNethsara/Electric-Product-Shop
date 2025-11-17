@@ -6,7 +6,8 @@ import MobileFilterDrawer from "./ShopComponents/MobileFilterDrawer.jsx";
 import axios from "axios";
 
 function ProductShop() {
-    const [products, setProducts] = useState([]);
+    const [allProducts, setAllProducts] = useState([]);
+    const [filteredProducts, setFilteredProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategories, setSelectedCategories] = useState([]);
@@ -20,14 +21,179 @@ function ProductShop() {
     const [totalProducts, setTotalProducts] = useState(0);
     const [loading, setLoading] = useState(false);
     const [searchInput, setSearchInput] = useState('');
+    const [initialLoad, setInitialLoad] = useState(true);
 
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
+
+
+    const getAllChildCategoryIds = (parentId, allCategories) => {
+        const result = new Set([parentId]);
+        const findChildren = (currentParentId) => {
+            const children = allCategories.filter(cat => cat.parent_id === currentParentId);
+            children.forEach(child => {
+                result.add(child.id);
+                findChildren(child.id);
+            });
+        };
+
+        findChildren(parentId);
+        return Array.from(result);
+    };
+
+    const getCategoryIdsWithChildren = (selectedCategoryIds, allCategories) => {
+        const result = new Set();
+
+        selectedCategoryIds.forEach(categoryId => {
+            const childCategoryIds = getAllChildCategoryIds(categoryId, allCategories);
+            childCategoryIds.forEach(childId => result.add(childId));
+        });
+
+        return Array.from(result);
+    };
+
+    useEffect(() => {
+        const fetchAllProducts = async () => {
+            try {
+                setLoading(true);
+                const response = await axios.get('http://127.0.0.1:8000/api/products/active', {
+                    params: { per_page: 1000 }
+                });
+
+                const products = response.data.data || [];
+                setAllProducts(products);
+                setFilteredProducts(products);
+                setTotalProducts(products.length);
+
+
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                setAllProducts([]);
+                setFilteredProducts([]);
+                setTotalProducts(0);
+            } finally {
+                setLoading(false);
+                setInitialLoad(false);
+            }
+        };
+
+        fetchAllProducts();
+    }, []);
+
+    useEffect(() => {
+        if (initialLoad || categories.length === 0) return;
+
+        console.log('🔍 Applying filters...');
+        applyFilters();
+    }, [searchQuery, selectedCategories, priceRange, availability, sortBy, allProducts, categories]);
+
+    const applyFilters = useCallback(() => {
+        if (allProducts.length === 0) {
+            setFilteredProducts([]);
+            setTotalProducts(0);
+            return;
+        }
+
+        let filtered = [...allProducts];
+
+        if (selectedCategories.length > 0) {
+            const beforeCategory = filtered.length;
+            const allCategoryIdsToFilter = getCategoryIdsWithChildren(selectedCategories, categories);
+
+            filtered = filtered.filter(product => {
+                const productCategoryIds = [
+                    product.category_id,
+                    product.category_2_id,
+                    product.category_3_id
+                ].filter(Boolean);
+
+                const hasMatch = productCategoryIds.some(catId => {
+                    if (!catId) return false;
+
+                    if (allCategoryIdsToFilter.includes(catId)) {
+                        return true;
+                    }
+                    let currentCat = categories.find(c => c.id === catId);
+                    while (currentCat && currentCat.parent_id) {
+                        if (allCategoryIdsToFilter.includes(currentCat.parent_id)) {
+                            console.log(`✅ Hierarchical match found for product ${product.name} - parent category ${currentCat.parent_id} of ${catId}`);
+                            return true;
+                        }
+                        currentCat = categories.find(c => c.id === currentCat.parent_id);
+                    }
+
+                    return false;
+                });
+
+                if (hasMatch) {
+                    console.log(`✅ INCLUDED: ${product.name}`, {
+                        productId: product.id,
+                        categories: productCategoryIds,
+                        matchedCategories: productCategoryIds.filter(id => allCategoryIdsToFilter.includes(id))
+                    });
+                }
+
+                return hasMatch;
+            });
+        }
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase().trim();
+            const beforeSearch = filtered.length;
+            filtered = filtered.filter(product =>
+                product.name.toLowerCase().includes(query) ||
+                product.description?.toLowerCase().includes(query) ||
+                product.model?.toLowerCase().includes(query)
+            );
+        }
+
+        const beforePrice = filtered.length;
+        filtered = filtered.filter(product => {
+            const price = parseFloat(product.price) || 0;
+            return price >= priceRange[0] && price <= priceRange[1];
+        });
+
+        if (availability !== 'all') {
+            const beforeAvailability = filtered.length;
+            if (availability === 'in-stock') {
+                filtered = filtered.filter(product => product.availability > 0);
+            } else if (availability === 'out-of-stock') {
+                filtered = filtered.filter(product => product.availability === 0);
+            }
+        }
+
+        filtered = sortProducts(filtered, sortBy);
+        setFilteredProducts(filtered);
+        setTotalProducts(filtered.length);
+        setCurrentPage(1);
+    }, [allProducts, searchQuery, selectedCategories, priceRange, availability, sortBy, categories]);
+
+    const sortProducts = (products, sortType) => {
+        const sorted = [...products];
+
+        switch (sortType) {
+            case 'price-low':
+                return sorted.sort((a, b) => (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0));
+            case 'price-high':
+                return sorted.sort((a, b) => (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0));
+            case 'rating':
+                return sorted.sort((a, b) => (parseFloat(b.average_rating) || 0) - (parseFloat(a.average_rating) || 0));
+            case 'name':
+                return sorted.sort((a, b) => a.name.localeCompare(b.name));
+            default:
+                return sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        }
+    };
+
+    const getPaginatedProducts = () => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        return filteredProducts.slice(startIndex, endIndex);
+    };
+
     const flattenCategories = (categories, level = 0, parentName = '') => {
         let flattened = [];
-
         categories.forEach(category => {
             const fullPath = parentName ? `${parentName} > ${category.name}` : category.name;
             flattened.push({
@@ -37,115 +203,27 @@ function ProductShop() {
                 parent_id: category.parent_id,
                 fullPath: fullPath
             });
-
             if (category.children && category.children.length > 0) {
                 const childCategories = flattenCategories(category.children, level + 1, category.name);
                 flattened = flattened.concat(childCategories);
             }
         });
-
         return flattened;
     };
-
-    const getCategoryIdsWithChildren = (selectedCategoryIds, allCategories) => {
-        const result = new Set(selectedCategoryIds);
-
-        selectedCategoryIds.forEach(categoryId => {
-            // Add the selected category
-            result.add(categoryId);
-
-            // Find all descendants (children, grandchildren, etc.)
-            const findDescendants = (parentId) => {
-                const children = allCategories.filter(cat => cat.parent_id === parentId);
-                children.forEach(child => {
-                    result.add(child.id);
-                    findDescendants(child.id);
-                });
-            };
-
-            findDescendants(categoryId);
-
-            // Also find all ancestors and their descendants
-            const findAncestorsAndDescendants = (currentId) => {
-                const category = allCategories.find(cat => cat.id === currentId);
-                if (category && category.parent_id) {
-                    result.add(category.parent_id);
-                    // Get all siblings (other children of the same parent)
-                    const siblings = allCategories.filter(cat => cat.parent_id === category.parent_id);
-                    siblings.forEach(sibling => result.add(sibling.id));
-                    findAncestorsAndDescendants(category.parent_id);
-                }
-            };
-
-            findAncestorsAndDescendants(categoryId);
-        });
-
-        return Array.from(result);
-    };
-
-    const fetchProducts = useCallback(async () => {
-        try {
-            setLoading(true);
-
-            const params = {
-                page: currentPage,
-                per_page: itemsPerPage,
-            };
-
-            if (searchQuery && searchQuery.trim()) {
-                params.search = searchQuery.trim();
-            }
-
-            if (selectedCategories.length > 0) {
-                const allCategoryIds = getCategoryIdsWithChildren(selectedCategories, categories);
-                console.log('📋 Filtering by category IDs:', allCategoryIds);
-
-                if (allCategoryIds.length > 0) {
-                    params.categories = allCategoryIds.join(',');
-                }
-            }
-
-            if (priceRange[0] > 0) params.min_price = priceRange[0];
-            if (priceRange[1] < 300000) params.max_price = priceRange[1];
-            if (availability !== 'all') params.availability = availability;
-            if (sortBy !== 'featured') params.sort_by = sortBy;
-
-            console.log('🔍 Fetching products with params:', params);
-
-            const response = await axios.get('http://127.0.0.1:8000/api/products/active', {
-                params: params
-            });
-
-            setProducts(response.data.data || []);
-            setTotalProducts(response.data.meta?.total || 0);
-        } catch (error) {
-            console.error('Error fetching products:', error);
-            console.error('Error details:', error.response?.data);
-            setProducts([]);
-            setTotalProducts(0);
-        } finally {
-            setLoading(false);
-        }
-    }, [currentPage, itemsPerPage, searchQuery, selectedCategories, priceRange, availability, sortBy, categories]);
-    useEffect(() => {
-        fetchProducts();
-    }, [fetchProducts]);
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
                 const response = await axios.get('http://127.0.0.1:8000/api/categories/active');
                 const categoriesData = Array.isArray(response.data) ? response.data : response.data?.data || [];
-
                 const flattenedCategories = flattenCategories(categoriesData);
                 setCategories(flattenedCategories);
-                console.log('📁 Flattened categories:', flattenedCategories);
+
             } catch (error) {
                 console.error('Error fetching categories:', error);
                 setCategories([]);
             }
         };
-
         fetchCategories();
     }, []);
 
@@ -155,11 +233,9 @@ function ProductShop() {
                 ? prev.filter(id => id !== categoryId)
                 : [...prev, categoryId]
         );
-        setCurrentPage(1);
     };
 
     const clearAllFilters = () => {
-        console.log('🧹 Clearing all filters');
         setSearchInput('');
         setSearchQuery('');
         setSelectedCategories([]);
@@ -173,7 +249,6 @@ function ProductShop() {
         const trimmedInput = searchInput.trim();
         if (trimmedInput !== searchQuery) {
             setSearchQuery(trimmedInput);
-            setCurrentPage(1);
         }
     };
 
@@ -196,7 +271,6 @@ function ProductShop() {
     const handleClearSearch = () => {
         setSearchInput('');
         setSearchQuery('');
-        setCurrentPage(1);
     };
 
     const sortOptions = [
@@ -246,7 +320,7 @@ function ProductShop() {
 
                     <div className="flex-1">
                         <ProductSection
-                            filteredProducts={products}
+                            filteredProducts={getPaginatedProducts()}
                             searchQuery={searchQuery}
                             selectedCategories={selectedCategories}
                             categories={categories}

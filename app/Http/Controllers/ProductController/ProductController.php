@@ -114,18 +114,21 @@ class ProductController extends Controller
         }
 
         if (!empty($categories)) {
+
             if (is_string($categories)) {
                 $categories = explode(',', $categories);
             }
 
-            // Use the category IDs for filtering
-            $query->where(function($q) use ($categories) {
-                $q->whereIn('category_id', $categories)
-                    ->orWhereIn('category_2_id', $categories)
-                    ->orWhereIn('category_3_id', $categories);
-            });
-        }
+            $categories = array_filter($categories);
 
+            if (!empty($categories)) {
+                $query->where(function($q) use ($categories) {
+                    $q->whereIn('category_id', $categories)
+                        ->orWhereIn('category_2_id', $categories)
+                        ->orWhereIn('category_3_id', $categories);
+                });
+            }
+        }
         $query->whereBetween('price', [$minPrice, $maxPrice]);
 
         if ($availability === 'in-stock') {
@@ -195,65 +198,6 @@ class ProductController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Validation passed successfully!']);
     }
 
-//    public function uploadProducts(UploadProductRequest $request)
-//    {
-//        $request->validated();
-//
-//        $detailsImport = new ProductDetailsImport();
-//        $pricingImport = new ProductPricingImport();
-//
-//        Excel::import($detailsImport, $request->file('details_file'));
-//        Excel::import($pricingImport, $request->file('pricing_file'));
-//
-//        if ($detailsImport->errors || $pricingImport->errors) {
-//            return response()->json([
-//                'status' => 'failed',
-//                'details_errors' => $detailsImport->errors,
-//                'pricing_errors' => $pricingImport->errors,
-//            ], 422);
-//        }
-//
-//        $details = Excel::toArray([], $request->file('details_file'))[0];
-//        $pricing = Excel::toArray([], $request->file('pricing_file'))[0];
-//
-//        array_shift($details);
-//        array_shift($pricing);
-//
-//        DB::transaction(function () use ($details, $pricing, $request) {
-//            foreach ($details as $detailRow) {
-//                if (empty($detailRow[0])) continue;
-//                $itemCode = $detailRow[0];
-//
-//                $priceRow = collect($pricing)->first(function($row) use ($itemCode) {
-//                    return !empty($row[0]) && $row[0] === $itemCode;
-//                });
-//
-//                if (!$priceRow) continue;
-//
-//                Product::updateOrCreate(
-//                    ['item_code' => $itemCode],
-//                    [
-//                        'category_id' => $request->category_id,
-//                        'category_2' => $detailRow[2] ?? $request->category_2, // Read from Excel or fallback to form
-//                        'category_3' => $detailRow[3] ?? $request->category_3, // Read from Excel or fallback to form
-//                        'name' => $detailRow[1] ?? 'No Name',
-//                        'model' => $detailRow[4] ?? '', // Updated index
-//                        'description' => $detailRow[5] ?? '', // Updated index
-//                        'hedding' => $detailRow[6] ?? null, // Updated index
-//                        'warranty' => $detailRow[7] ?? null, // Updated index
-//                        'specification' => $detailRow[8] ?? null, // Updated index
-//                        'tags' => $detailRow[9] ?? null, // Updated index
-//                        'youtube_video_id' => $detailRow[10] ?? null, // Updated index
-//                        'price' => $priceRow[1] ?? 0,
-//                        'buy_now_price' => $priceRow[3] ?? null,
-//                        'availability' => $priceRow[2] ?? 0,
-//                    ]
-//                );
-//            }
-//        });
-//
-//        return response()->json(['message' => 'Products uploaded successfully!']);
-//    }
     public function uploadProducts(UploadProductRequest $request)
     {
         $request->validated();
@@ -305,7 +249,6 @@ class ProductController extends Controller
                     $category3Id = $category3 ? $category3->id : null;
                 }
 
-                // Use the most specific category available
                 $finalCategoryId = $category3Id ?? $category2Id ?? $request->category_id;
 
                 Product::updateOrCreate(

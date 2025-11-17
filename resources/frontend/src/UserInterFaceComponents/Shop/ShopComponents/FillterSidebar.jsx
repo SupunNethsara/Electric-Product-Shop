@@ -14,7 +14,6 @@ function FillterSidebar({
                         }) {
     const [expandedCategories, setExpandedCategories] = useState({});
 
-
     const toggleExpand = (categoryId) => {
         setExpandedCategories(prev => ({
             ...prev,
@@ -33,28 +32,30 @@ function FillterSidebar({
         return currentLevelCategories.map(category => {
             const hasChildren = categories.some(cat => cat.parent_id === category.id);
             const isExpanded = expandedCategories[category.id];
+            const isSelected = selectedCategories.includes(category.id);
 
             return (
                 <div key={category.id} className={`${level > 0 ? 'ml-4' : ''}`}>
                     <div className="flex items-center justify-between group py-1">
-                        <label className="flex items-center gap-2 cursor-pointer flex-1">
-                            <input
-                                type="checkbox"
-                                checked={selectedCategories.includes(category.id)}
-                                onChange={() => toggleCategory(category.id)}
-                                className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
-                            />
-                            <span className={`text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200 ${
-                                level === 0 ? 'font-semibold' : level === 1 ? 'font-medium' : 'text-gray-600'
-                            }`}>
+                        <button
+                            onClick={() => toggleCategory(category.id)}
+                            className={`flex-1 text-left px-2 py-1.5 rounded transition-all duration-200 ${
+                                isSelected
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'hover:bg-gray-100 text-gray-700'
+                            }`}
+                        >
+                            <span className={`text-sm ${
+                                level === 0 ? 'font-semibold' : level === 1 ? 'font-medium' : ''
+                            } ${isSelected ? 'text-green-800' : 'group-hover:text-gray-900'}`}>
                                 {category.name}
                             </span>
-                        </label>
+                        </button>
 
                         {hasChildren && (
                             <button
                                 onClick={() => toggleExpand(category.id)}
-                                className="p-1 hover:bg-gray-100 rounded transition-colors duration-200 flex items-center justify-center w-6 h-6"
+                                className="p-1 hover:bg-gray-100 rounded transition-colors duration-200 flex items-center justify-center w-6 h-6 ml-1"
                             >
                                 {isExpanded ? (
                                     <Minus size={14} className="text-gray-500" />
@@ -155,24 +156,17 @@ function FillterSidebar({
                             { value: "in-stock", label: "In Stock" },
                             { value: "out-of-stock", label: "Out of Stock" },
                         ].map((option) => (
-                            <label
+                            <button
                                 key={option.value}
-                                className="flex items-center gap-2 cursor-pointer group"
+                                onClick={() => setAvailability(option.value)}
+                                className={`w-full text-left px-2 py-1.5 rounded text-sm transition-all duration-200 ${
+                                    availability === option.value
+                                        ? 'bg-green-100 text-green-800 font-medium'
+                                        : 'text-gray-700 hover:bg-gray-100'
+                                }`}
                             >
-                                <input
-                                    type="radio"
-                                    name="availability"
-                                    value={option.value}
-                                    checked={availability === option.value}
-                                    onChange={(e) =>
-                                        setAvailability(e.target.value)
-                                    }
-                                    className="text-green-600 focus:ring-green-500 w-4 h-4"
-                                />
-                                <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200">
-                                    {option.label}
-                                </span>
-                            </label>
+                                {option.label}
+                            </button>
                         ))}
                     </div>
                 </div>
