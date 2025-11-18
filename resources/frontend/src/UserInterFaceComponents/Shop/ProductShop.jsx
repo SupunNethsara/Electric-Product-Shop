@@ -27,13 +27,11 @@ function ProductShop() {
         window.scrollTo(0, 0);
     }, []);
 
-    // Extract unique categories from products
     const extractCategoriesFromProducts = (products) => {
         const categorySet = new Set();
         const categoryMap = {};
 
         products.forEach(product => {
-            // Add category_1
             if (product.category_1) {
                 const key1 = `cat1_${product.category_1}`;
                 if (!categoryMap[key1]) {
@@ -46,7 +44,6 @@ function ProductShop() {
                 }
             }
 
-            // Add category_2
             if (product.category_2) {
                 const key2 = `cat2_${product.category_1}_${product.category_2}`;
                 if (!categoryMap[key2]) {
@@ -60,7 +57,6 @@ function ProductShop() {
                 }
             }
 
-            // Add category_3
             if (product.category_3) {
                 const key3 = `cat3_${product.category_1}_${product.category_2}_${product.category_3}`;
                 if (!categoryMap[key3]) {
@@ -78,7 +74,6 @@ function ProductShop() {
         return Object.values(categoryMap);
     };
 
-    // Check if product matches selected categories
     const productMatchesCategories = (product, selectedCats) => {
         if (selectedCats.length === 0) return true;
 
@@ -110,16 +105,10 @@ function ProductShop() {
                 });
 
                 const products = response.data.data || [];
-                console.log('📦 Fetched products:', products.length);
-                console.log('🔍 Sample product:', products[0]); // Check the structure
-
                 setAllProducts(products);
                 setFilteredProducts(products);
                 setTotalProducts(products.length);
-
-                // Extract categories from products
                 const extractedCategories = extractCategoriesFromProducts(products);
-                console.log('🏷️ Extracted categories:', extractedCategories);
                 setCategories(extractedCategories);
             } catch (error) {
                 console.error('Error fetching products:', error);
@@ -138,13 +127,11 @@ function ProductShop() {
 
     useEffect(() => {
         if (initialLoad) return;
-        console.log('🔄 Triggering applyFilters due to dependency change');
         applyFilters();
     }, [searchQuery, selectedCategories, priceRange, availability, sortBy, allProducts]);
 
     const applyFilters = useCallback(() => {
         if (allProducts.length === 0) {
-            console.log('❌ No products to filter');
             setFilteredProducts([]);
             setTotalProducts(0);
             return;
@@ -152,16 +139,6 @@ function ProductShop() {
 
         let filtered = [...allProducts];
 
-        console.log('🔄 Applying filters:', {
-            totalProducts: allProducts.length,
-            searchQuery,
-            selectedCategories,
-            priceRange,
-            availability,
-            sortBy
-        });
-
-        // Search filter - IMPROVED
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase().trim();
             console.log('🔍 Searching for:', query);
@@ -182,29 +159,20 @@ function ProductShop() {
                 }
                 return matches;
             });
+       }
 
-            console.log('🔍 After search filter:', filtered.length, 'products');
-        } else {
-            console.log('🔍 No search query, skipping search filter');
-        }
-
-        // Category filter
         if (selectedCategories.length > 0) {
             filtered = filtered.filter(product =>
                 productMatchesCategories(product, selectedCategories)
             );
-            console.log('🏷️ After category filter:', filtered.length);
         }
 
-        // Price filter
         filtered = filtered.filter(product => {
             const price = parseFloat(product.price) || 0;
             const inRange = price >= priceRange[0] && price <= priceRange[1];
             return inRange;
         });
-        console.log('💰 After price filter:', filtered.length);
 
-        // Availability filter
         if (availability !== 'all') {
             if (availability === 'in-stock') {
                 filtered = filtered.filter(product => {
@@ -217,12 +185,9 @@ function ProductShop() {
                     return isOutOfStock;
                 });
             }
-            console.log('📦 After availability filter:', filtered.length);
         }
 
         filtered = sortProducts(filtered, sortBy);
-
-        console.log('✅ Final filtered products:', filtered.length);
         setFilteredProducts(filtered);
         setTotalProducts(filtered.length);
         setCurrentPage(1);
@@ -278,10 +243,8 @@ function ProductShop() {
         });
 
         if (trimmedInput !== searchQuery) {
-            console.log('🔄 Updating search query from:', searchQuery, 'to:', trimmedInput);
             setSearchQuery(trimmedInput);
         } else {
-            console.log('⚡ Search query unchanged, triggering filter refresh');
             applyFilters();
         }
     };
