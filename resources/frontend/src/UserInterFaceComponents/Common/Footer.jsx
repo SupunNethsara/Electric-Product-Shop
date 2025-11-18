@@ -115,9 +115,10 @@ const Footer = () => {
     }
 
     return (
-        <footer className="bg-gray-900 text-white">
+        <footer className="bg-gradient-to-br from-gray-900 to-blue-900 text-white">
             <div className="max-w-7xl mx-auto px-6 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
+                    {/* Brand Section */}
                     <div className="lg:col-span-2">
                         <Link to="/" className="inline-block mb-4">
                             {settings.logoUrl ? (
@@ -130,8 +131,8 @@ const Footer = () => {
                                 </div>
                             ) : (
                                 <div className="text-3xl font-semibold">
-                                    <span className="text-green-600">go</span>cart
-                                    <span className="text-green-600 text-4xl">.</span>
+                                    <span className="text-blue-400">go</span>cart
+                                    <span className="text-blue-400 text-4xl">.</span>
                                 </div>
                             )}
                         </Link>
@@ -142,20 +143,20 @@ const Footer = () => {
 
                         <div className="space-y-3">
                             {settings.mobile && (
-                                <div className="flex items-center gap-3 text-gray-300">
-                                    <Phone className="w-4 h-4 text-green-600" />
+                                <div className="flex items-center gap-3 text-gray-300 hover:text-blue-400 transition-colors duration-200">
+                                    <Phone className="w-4 h-4 text-blue-400" />
                                     <span>{settings.mobile}</span>
                                 </div>
                             )}
                             {settings.adminEmail && (
-                                <div className="flex items-center gap-3 text-gray-300">
-                                    <Mail className="w-4 h-4 text-green-600" />
+                                <div className="flex items-center gap-3 text-gray-300 hover:text-blue-400 transition-colors duration-200">
+                                    <Mail className="w-4 h-4 text-blue-400" />
                                     <span>{settings.adminEmail}</span>
                                 </div>
                             )}
                             {settings.address && (
-                                <div className="flex items-start gap-3 text-gray-300">
-                                    <MapPin className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+                                <div className="flex items-start gap-3 text-gray-300 hover:text-blue-400 transition-colors duration-200">
+                                    <MapPin className="w-4 h-4 text-blue-400 mt-1 flex-shrink-0" />
                                     <span className="text-sm">{settings.address}</span>
                                 </div>
                             )}
@@ -173,7 +174,7 @@ const Footer = () => {
                                     <li key={link.name}>
                                         <Link
                                             to={link.href}
-                                            className="text-gray-300 hover:text-green-600 transition-colors duration-200 text-sm"
+                                            className="text-gray-300 hover:text-blue-400 transition-colors duration-200 text-sm"
                                         >
                                             {link.name}
                                         </Link>
@@ -186,7 +187,6 @@ const Footer = () => {
 
                 <div className="border-t border-gray-700 my-8"></div>
 
-                {/* Social Links */}
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-4">
                         <span className="text-gray-300 text-sm">Follow us:</span>
@@ -197,7 +197,7 @@ const Footer = () => {
                                     href={social.href}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-2 hover:bg-gray-800 rounded-lg"
+                                    className="text-gray-400 hover:text-blue-400 hover:bg-blue-900/50 transition-all duration-200 p-2 rounded-lg border border-gray-700 hover:border-blue-400"
                                     aria-label={social.name}
                                 >
                                     {social.icon}
@@ -205,11 +205,14 @@ const Footer = () => {
                             ))}
                         </div>
                     </div>
+
+                    <div className="flex items-center gap-2 text-gray-400 text-sm">
+                        Made with <Heart className="w-4 h-4 text-red-500 fill-current" /> for our customers
+                    </div>
                 </div>
 
                 <div className="border-t border-gray-700 my-6"></div>
 
-                {/* Bottom Section */}
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-center">
                     <div className="text-gray-400 text-sm">
                         &copy; {currentYear} {settings.siteName}. All rights reserved.
@@ -218,28 +221,24 @@ const Footer = () => {
                     <div className="flex items-center gap-4 text-sm text-gray-400">
                         <Link
                             to="/privacy"
-                            className="hover:text-green-600 transition-colors duration-200"
+                            className="hover:text-blue-400 transition-colors duration-200"
                         >
                             Privacy Policy
                         </Link>
                         <span>•</span>
                         <Link
                             to="/terms"
-                            className="hover:text-green-600 transition-colors duration-200"
+                            className="hover:text-blue-400 transition-colors duration-200"
                         >
                             Terms of Service
                         </Link>
                         <span>•</span>
                         <Link
                             to="/cookies"
-                            className="hover:text-green-600 transition-colors duration-200"
+                            className="hover:text-blue-400 transition-colors duration-200"
                         >
                             Cookie Policy
                         </Link>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-gray-400 text-sm">
-                        Made with <Heart className="w-4 h-4 text-red-500 fill-current" /> for our customers
                     </div>
                 </div>
             </div>
