@@ -43,15 +43,25 @@ function App() {
 
     if (initialLoad || (isLoading && !appLoaded)) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading...</p>
+            <div className="min-h-screen flex items-center justify-center ">
+                <div className="text-center space-y-8">
+                    <div className="flex justify-center space-x-3">
+                        {[0, 1, 2].map((i) => (
+                            <div
+                                key={i}
+                                className="w-4 h-4 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full animate-bounce"
+                                style={{ animationDelay: `${i * 0.1}s` }}
+                            ></div>
+                        ))}
+                    </div>
+                    <div className="space-y-2">
+                        <p className="text-gray-700 font-medium text-lg">Loading</p>
+                        <p className="text-slate-400 text-sm">Please wait while we set things up</p>
+                    </div>
                 </div>
             </div>
         );
     }
-
     return (
         <Router>
             <GlobalModals />

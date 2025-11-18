@@ -3,9 +3,7 @@
 namespace App\Http\Controllers\DashboardController;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +18,6 @@ class StaticsController extends Controller
                 'totalUsers' => User::count(),
                 'totalOrders' => Order::count(),
                 'totalProducts' => Product::count(),
-                'totalCategories' => Category::count(),
                 'pendingOrders' => Order::where('status', 'pending')->count(),
                 'totalRevenue' => Order::where('status', 'completed')->sum('total_amount'),
             ]);
@@ -36,19 +33,19 @@ class StaticsController extends Controller
     {
         try {
             $monthlyOrders = Order::selectRaw('
-            YEAR(created_at) as year,
-            MONTH(created_at) as month,
-            COUNT(*) as orders,
-            COALESCE(SUM(total_amount), 0) as revenue
-        ')
+                YEAR(created_at) as year,
+                MONTH(created_at) as month,
+                COUNT(*) as orders,
+                COALESCE(SUM(total_amount), 0) as revenue
+            ')
                 ->groupBy('year', 'month')
                 ->orderBy('year')
                 ->orderBy('month')
                 ->get()
                 ->map(function ($item) {
                     return [
-                        'month' => date('M Y', mktime(0, 0, 0, $item->month, 1, $item->year)), // Include year in label
-                        'month_short' => date('M', mktime(0, 0, 0, $item->month, 1)), // Short month name only
+                        'month' => date('M Y', mktime(0, 0, 0, $item->month, 1, $item->year)),
+                        'month_short' => date('M', mktime(0, 0, 0, $item->month, 1)),
                         'year' => $item->year,
                         'month_num' => $item->month,
                         'orders' => (int) $item->orders,
@@ -117,10 +114,11 @@ class StaticsController extends Controller
                     ];
                 });
 
-            if (Schema::hasColumn('products', 'views')) {
-                $mostViewedProducts = Product::select('name', 'views')
-                    ->where('views', '>', 0)
-                    ->orderByDesc('views')
+            // FIX: Check for 'total_views' column instead of 'views'
+            if (Schema::hasColumn('products', 'total_views')) {
+                $mostViewedProducts = Product::select('name', 'total_views as views')
+                    ->where('total_views', '>', 0)
+                    ->orderByDesc('total_views')
                     ->take(5)
                     ->get()
                     ->map(function ($item) {
@@ -157,6 +155,7 @@ class StaticsController extends Controller
             ], 500);
         }
     }
+
     public function getRecentOrders()
     {
         try {
@@ -176,7 +175,7 @@ class StaticsController extends Controller
                         'formatted_date' => $order->created_at->format('M d, Y'),
                         'formatted_time' => $order->created_at->format('h:i A'),
                         'items_count' => $order->items->count(),
-                        'items' => $order->items->take(2)->map(function ($item) { // Show only first 2 items
+                        'items' => $order->items->take(2)->map(function ($item) {
                             return [
                                 'product_name' => $item->product->name ?? 'Unknown Product',
                                 'quantity' => $item->quantity,
@@ -198,11 +197,12 @@ class StaticsController extends Controller
             ], 500);
         }
     }
+
     public function recentUsers()
     {
         try {
             $recentUsers = User::whereNotIn('role', ['Super_Admin', 'admin'])
-            ->orderBy('created_at', 'desc')
+                ->orderBy('created_at', 'desc')
                 ->take(5)
                 ->get(['id', 'name', 'email', 'created_at']);
 
@@ -225,5 +225,4 @@ class StaticsController extends Controller
             ], 500);
         }
     }
-
 }

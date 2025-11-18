@@ -15,3 +15,4 @@ Route::patch('/products/{id}/status', [ProductController::class, 'updateStatus']
 Route::post('/products/{id}/track-view', [ProductController::class, 'trackView']);
 Route::get('/products/{id}/view-stats', [ProductController::class, 'getViewStats']);
 Route::get('/products/most-viewed', [ProductController::class, 'getMostViewedProducts']);
+

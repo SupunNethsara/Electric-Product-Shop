@@ -11,20 +11,38 @@ class Product extends Model
     use HasFactory, HasUuids;
 
     protected $fillable = [
-        'category_id', 'item_code', 'name', 'model', 'hedding','warranty',
-        'description', 'specification', 'tags', 'specification_pdf_id', 'total_views',
-        'youtube_video_id', 'price', 'buy_now_price', 'availability', 'image', 'images', 'status'
+        'item_code',
+        'name',
+        'category_1',
+        'category_2',
+        'category_3',
+        'model',
+        'description',
+        'specification',
+        'tags',
+        'youtube_video_id',
+        'price',
+        'buy_now_price',
+        'hedding',
+        'warranty',
+        'availability',
+        'image',
+        'images',
+        'status',
+        'total_views'
     ];
+
 
     protected $casts = [
         'images' => 'array'
     ];
 
+
     protected $appends = [
         'average_rating',
         'reviews_count',
         'rating_distribution',
-        'total_views'
+
     ];
 
     public function category()

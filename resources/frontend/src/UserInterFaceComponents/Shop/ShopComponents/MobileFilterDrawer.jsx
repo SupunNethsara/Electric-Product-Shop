@@ -12,6 +12,59 @@ function MobileFilterDrawer({
                                 setAvailability,
                                 clearAllFilters,
                             }) {
+
+    // Group categories for mobile view
+    const categoryTree = categories.reduce((acc, category) => {
+        if (category.level === 0) {
+            if (!acc[category.id]) {
+                acc[category.id] = { ...category, children: [] };
+            }
+        } else if (category.level === 1) {
+            const parent = Object.values(acc).find(cat => cat.name === category.parent);
+            if (parent) {
+                if (!parent.children.find(c => c.id === category.id)) {
+                    parent.children.push({ ...category, children: [] });
+                }
+            }
+        } else if (category.level === 2) {
+            Object.values(acc).forEach(parent => {
+                const child = parent.children.find(c => c.name === category.parent);
+                if (child) {
+                    if (!child.children.find(c => c.id === category.id)) {
+                        child.children.push(category);
+                    }
+                }
+            });
+        }
+        return acc;
+    }, {});
+
+    const renderCategoryTree = (categoryList, level = 0) => {
+        return categoryList.map(category => (
+            <div key={category.id} className={`${level > 0 ? 'ml-4' : ''}`}>
+                <label className="flex items-center gap-2 cursor-pointer py-1">
+                    <input
+                        type="checkbox"
+                        checked={selectedCategories.includes(category.id)}
+                        onChange={() => toggleCategory(category.id)}
+                        className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
+                    />
+                    <span className={`text-sm text-gray-700 ${
+                        level === 0 ? 'font-semibold' : level === 1 ? 'font-medium' : 'text-gray-600'
+                    }`}>
+                        {category.name}
+                    </span>
+                </label>
+                {/* Render children recursively */}
+                {category.children && category.children.length > 0 && (
+                    <div className="mt-1">
+                        {renderCategoryTree(category.children, level + 1)}
+                    </div>
+                )}
+            </div>
+        ));
+    };
+
     return (
         <div
             className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden"
@@ -64,23 +117,12 @@ function MobileFilterDrawer({
                             <h3 className="font-medium text-gray-900 mb-3 text-sm">
                                 Categories
                             </h3>
-                            <div className="space-y-2">
-                                {categories.map((category) => (
-                                    <label
-                                        key={category.id}
-                                        className="flex items-center gap-2 cursor-pointer"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedCategories.includes(category.id)}
-                                            onChange={() => toggleCategory(category.id)}
-                                            className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
-                                        />
-                                        <span className="text-sm text-gray-700">
-                                            {category.name}
-                                        </span>
-                                    </label>
-                                ))}
+                            <div className="space-y-1 max-h-60 overflow-y-auto">
+                                {categories.length > 0 ? (
+                                    renderCategoryTree(Object.values(categoryTree))
+                                ) : (
+                                    <p className="text-sm text-gray-500">No categories available</p>
+                                )}
                             </div>
                         </div>
 

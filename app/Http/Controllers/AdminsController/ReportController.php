@@ -66,10 +66,8 @@ class ReportController extends Controller
             $startDate = $request->get('start_date', Carbon::now()->subDays(30)->format('Y-m-d'));
             $endDate = $request->get('end_date', Carbon::now()->format('Y-m-d'));
 
-            // Total orders count
             $totalOrders = Order::whereBetween('created_at', [$startDate, $endDate . ' 23:59:59'])->count();
 
-            // Orders by status
             $pendingOrders = Order::where('status', 'pending')
                 ->whereBetween('created_at', [$startDate, $endDate . ' 23:59:59'])
                 ->count();
@@ -86,14 +84,12 @@ class ReportController extends Controller
                 ->whereBetween('created_at', [$startDate, $endDate . ' 23:59:59'])
                 ->count();
 
-            // Revenue calculations
             $totalRevenue = Order::where('status', 'completed')
                 ->whereBetween('created_at', [$startDate, $endDate . ' 23:59:59'])
                 ->sum('total_amount');
 
             $averageOrderValue = $completedOrders > 0 ? $totalRevenue / $completedOrders : 0;
 
-            // Orders trend (last 7 days for chart data)
             $last7Days = [];
             for ($i = 6; $i >= 0; $i--) {
                 $date = Carbon::now()->subDays($i)->format('Y-m-d');
@@ -104,7 +100,6 @@ class ReportController extends Controller
                 ];
             }
 
-            // Most recent orders for quick overview
             $recentOrders = Order::with(['user'])
                 ->whereBetween('created_at', [$startDate, $endDate . ' 23:59:59'])
                 ->orderBy('created_at', 'desc')
@@ -185,11 +180,7 @@ class ReportController extends Controller
                 ];
             });
 
-            // For now, return JSON response
-            // You can implement Excel/PDF export later using appropriate packages
             if ($format === 'excel') {
-                // Future implementation for Excel export
-                // return Excel::download(new OrdersExport($orders), "orders_{$startDate}_to_{$endDate}.xlsx");
                 return response()->json([
                     'success' => true,
                     'message' => 'Excel export will be implemented with Laravel Excel package',
@@ -234,7 +225,6 @@ class ReportController extends Controller
             $startDate = $request->get('start_date', Carbon::now()->subDays(30)->format('Y-m-d'));
             $endDate = $request->get('end_date', Carbon::now()->format('Y-m-d'));
 
-            // Monthly breakdown for charts
             $monthlyData = [];
             $currentDate = Carbon::parse($startDate);
             $endDateObj = Carbon::parse($endDate);
@@ -258,7 +248,6 @@ class ReportController extends Controller
                 $currentDate->addMonth();
             }
 
-            // Status distribution
             $statusDistribution = Order::whereBetween('created_at', [$startDate, $endDate . ' 23:59:59'])
                 ->selectRaw('status, COUNT(*) as count')
                 ->groupBy('status')
@@ -267,7 +256,6 @@ class ReportController extends Controller
                     return [$item->status => $item->count];
                 });
 
-            // Top customers by order count
             $topCustomers = Order::with('user')
                 ->whereBetween('created_at', [$startDate, $endDate . ' 23:59:59'])
                 ->whereNotNull('user_id')

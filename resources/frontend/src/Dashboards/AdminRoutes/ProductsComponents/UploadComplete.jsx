@@ -1,4 +1,3 @@
-// UploadComplete.js
 import React from 'react';
 
 const UploadComplete = ({ onReset, onViewProducts }) => {

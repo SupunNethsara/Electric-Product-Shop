@@ -11,13 +11,13 @@ function UserInterFace() {
         <div className="h-auto bg-gray-50 pt-30 pb-12">
             <Routes>
                 <Route path="/" element={<HomeSection />} />
-                <Route path="/home" element={<HomeSection/>}/>
-                <Route path="/shop" element={<ProductShop/>}/>
-                <Route path="/contact" element={<Contact/>}/>
-                <Route path="/about" element={<About/>}/>
-                <Route path="/quotations" element={<Quotation/>}/>
+                <Route path="/home" element={<HomeSection />} />
+                <Route path="/shop" element={<ProductShop />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/quotations" element={<Quotation />} />
 
-                <Route path="/cart" element={<CartSection/>}/>
+                <Route path="/cart" element={<CartSection />} />
             </Routes>
         </div>
     );

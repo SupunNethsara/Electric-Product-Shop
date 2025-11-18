@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Truck, Clock, HeadphonesIcon } from 'lucide-react';
+import { Shield, Award, Zap, HeadphonesIcon } from 'lucide-react';
 
 const WhyChooseUs = () => {
     const features = [
@@ -9,14 +9,14 @@ const WhyChooseUs = () => {
             description: "All products are thoroughly tested and come with warranty"
         },
         {
-            icon: <Truck className="w-8 h-8" />,
-            title: "Free Shipping",
-            description: "Free delivery on orders above $50 across the country"
+            icon: <Award className="w-8 h-8" />,
+            title: "Premium Products",
+            description: "Curated selection of high-quality electronics and gadgets"
         },
         {
-            icon: <Clock className="w-8 h-8" />,
-            title: "Quick Delivery",
-            description: "Get your orders delivered within 2-3 business days"
+            icon: <Zap className="w-8 h-8" />,
+            title: "Fast Processing",
+            description: "Quick order processing and instant confirmation"
         },
         {
             icon: <HeadphonesIcon className="w-8 h-8" />,
@@ -26,7 +26,7 @@ const WhyChooseUs = () => {
     ];
 
     return (
-        <section className="py-16 bg-gradient-to-br from-green-50 to-blue-50">
+        <section className="py-16 bg-gradient-to-br from-blue-50 to-indigo-50">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -44,7 +44,7 @@ const WhyChooseUs = () => {
                             className="text-center group"
                         >
                             <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-sm border border-gray-100 group-hover:shadow-lg group-hover:scale-105 transition-all duration-300 mb-4">
-                                <div className="text-green-600">
+                                <div className="text-blue-600">
                                     {feature.icon}
                                 </div>
                             </div>

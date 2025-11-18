@@ -47,7 +47,7 @@ const Testimonials = () => {
                             key={testimonial.id}
                             className="bg-gray-50 rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300 group"
                         >
-                            <Quote className="w-8 h-8 text-green-600 opacity-50 mb-4" />
+                            <Quote className="w-8 h-8 text-blue-600 opacity-50 mb-4" />
 
                             <div className="flex items-center mb-4">
                                 {[...Array(5)].map((_, i) => (

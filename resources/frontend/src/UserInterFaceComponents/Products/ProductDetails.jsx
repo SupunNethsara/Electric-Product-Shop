@@ -136,6 +136,8 @@ const ProductDetails = () => {
         per_page: 10
     });
 
+    console.log(product, 'Select product')
+
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
@@ -359,7 +361,7 @@ const ProductDetails = () => {
         return (
             <div className="min-h-screen bg-gray-50 pt-24 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
                     <p className="text-gray-600 text-lg">Loading product details...</p>
                 </div>
             </div>
@@ -386,7 +388,7 @@ const ProductDetails = () => {
                         </button>
                         <button
                             onClick={() => navigate('/')}
-                            className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                         >
                             Browse Products
                         </button>
@@ -404,7 +406,7 @@ const ProductDetails = () => {
                         <li className="inline-flex items-center">
                             <button
                                 onClick={() => navigate(-1)}
-                                className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-green-600 transition-colors"
+                                className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors"
                             >
                                 <ArrowLeft size={16} className="mr-2" />
                                 Back to Products
@@ -438,7 +440,7 @@ const ProductDetails = () => {
                                             onClick={() => setSelectedImage(index)}
                                             className={`aspect-square rounded-lg overflow-hidden border-2 transition-all duration-200 ${
                                                 selectedImage === index
-                                                    ? 'border-green-500 ring-2 ring-green-200'
+                                                    ? 'border-blue-500 ring-2 ring-blue-200'
                                                     : 'border-gray-200 hover:border-gray-300'
                                             }`}
                                         >
@@ -485,7 +487,7 @@ const ProductDetails = () => {
 
                                 <div className="flex items-center gap-4 flex-wrap">
                                     <div className="flex items-center gap-2">
-                                        <div className="flex items-center bg-green-100 text-green-800 px-2 py-1 rounded-lg text-sm font-semibold">
+                                        <div className="flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-lg text-sm font-semibold">
                                             <span>{ratingSummary.average_rating.toFixed(1)}</span>
                                             <Star size={14} className="ml-1 fill-current" />
                                         </div>
@@ -510,10 +512,9 @@ const ProductDetails = () => {
                                 </div>
                             </div>
 
-
-                            <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-5 border border-green-100">
+                            <div className="bg-gray-50 rounded-xl p-5 border border-blue-100">
                                 <div className="flex items-baseline gap-3 mb-1">
-                                    <span className="text-3xl font-bold text-green-600">
+                                    <span className="text-3xl font-bold text-gray-600">
                                         Rs. {currentPrice.toLocaleString()}
                                     </span>
                                     {product.price && product.buy_now_price && product.price > product.buy_now_price && (
@@ -528,7 +529,7 @@ const ProductDetails = () => {
                                     )}
                                 </div>
                                 {savings > 0 && (
-                                    <p className="text-green-600 font-medium">
+                                    <p className="text-blue-600 font-medium">
                                         You save Rs. {savings.toLocaleString()}
                                     </p>
                                 )}
@@ -549,11 +550,11 @@ const ProductDetails = () => {
                                         </div>
                                     </div>
                                 )}
-                                <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                                    <Truck size={20} className="text-blue-600 flex-shrink-0" />
+                                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-300">
+                                    <Truck size={20} className="text-gray-600 flex-shrink-0" />
                                     <div>
-                                        <div className="font-medium text-blue-900 text-sm">Free Shipping</div>
-                                        <div className="text-blue-700 text-xs"> Rs.0</div>
+                                        <div className="font-medium text-gray-900 text-sm">Free Shipping</div>
+                                        <div className="text-gray-700 text-xs"> Rs.0</div>
                                     </div>
                                 </div>
                             </div>
@@ -603,11 +604,11 @@ const ProductDetails = () => {
                                     <button
                                         onClick={handleAddToCart}
                                         disabled={product.availability === 0 || addingToCart || cartLoading}
-                                        className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-green-600 text-green-700 rounded-lg hover:bg-green-50 active:bg-green-100 transition-colors font-medium text-base disabled:opacity-60 disabled:cursor-not-allowed"
+                                        className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-blue-600 text-blue-700 rounded-lg hover:bg-blue-50 active:bg-blue-100 transition-colors font-medium text-base disabled:opacity-60 disabled:cursor-not-allowed"
                                     >
                                         {addingToCart ? (
                                             <>
-                                                <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+                                                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                                                 <span>Adding...</span>
                                             </>
                                         ) : (
@@ -620,7 +621,7 @@ const ProductDetails = () => {
                                     <button
                                         onClick={handleBuyNow}
                                         disabled={product.availability === 0 || addingToCart || cartLoading}
-                                        className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white py-3 px-4 rounded-lg hover:from-green-700 hover:to-green-800 active:from-green-800 active:to-green-900 transition-colors font-medium text-base shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+                                        className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 rounded-lg hover:from-blue-700 hover:to-blue-800 active:from-blue-800 active:to-blue-900 transition-colors font-medium text-base shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
                                     >
                                         {addingToCart ? 'Processing...' : (product.availability === 0 ? 'Out of Stock' : 'Buy Now')}
                                     </button>
@@ -654,7 +655,7 @@ const ProductDetails = () => {
                                         onClick={() => setActiveTab(tab.id)}
                                         className={`py-4 px-1 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
                                             activeTab === tab.id
-                                                ? 'border-green-600 text-green-600'
+                                                ? 'border-blue-600 text-blue-600'
                                                 : 'border-transparent text-gray-500 hover:text-gray-700'
                                         }`}
                                     >
@@ -737,7 +738,7 @@ const ProductDetails = () => {
                                             <select
                                                 value={reviewsFilters.rating}
                                                 onChange={(e) => setReviewsFilters(prev => ({ ...prev, rating: e.target.value, page: 1 }))}
-                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                             >
                                                 <option value="">All Ratings</option>
                                                 <option value="5">5 Stars</option>
@@ -750,7 +751,7 @@ const ProductDetails = () => {
                                             <select
                                                 value={reviewsFilters.sort}
                                                 onChange={(e) => setReviewsFilters(prev => ({ ...prev, sort: e.target.value, page: 1 }))}
-                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                             >
                                                 <option value="newest">Newest First</option>
                                                 <option value="oldest">Oldest First</option>
@@ -762,7 +763,7 @@ const ProductDetails = () => {
                                         {isAuthenticated && (
                                             <button
                                                 onClick={() => setShowReviewForm(true)}
-                                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
+                                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
                                             >
                                                 <Plus size={16} />
                                                 Write a Review

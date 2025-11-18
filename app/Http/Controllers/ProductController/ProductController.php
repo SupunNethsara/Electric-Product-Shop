@@ -4,7 +4,7 @@ namespace App\Http\Controllers\ProductController;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ImageUploadRequest;
-use App\Http\Requests\UploadProudctRequest;
+use App\Http\Requests\UploadProductRequest;
 use App\Http\Requests\ValidateFilesRequest;
 use App\Imports\ProductDetailsImport;
 use App\Imports\ProductPricingImport;
@@ -16,7 +16,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
+    public function Index(Request $request)
     {
         $perPage = $request->get('per_page', 15);
         $page = $request->get('page', 1);
@@ -49,9 +49,11 @@ class ProductController extends Controller
                     ->orWhere('price', '<=', $request->max_price);
             });
         }
+
         if ($request->has('in_stock') && $request->in_stock) {
             $query->where('availability', '>', 0);
         }
+
         $query->orderBy('created_at', 'desc');
 
         $products = $query->paginate($perPage, ['*'], 'page', $page);
@@ -92,12 +94,12 @@ class ProductController extends Controller
             'data' => $product
         ]);
     }
+
     public function getActiveProducts(Request $request)
     {
         $perPage = $request->get('per_page', 20);
         $page = $request->get('page', 1);
         $searchQuery = $request->get('search', '');
-        $categories = $request->get('categories', []);
         $minPrice = $request->get('min_price', 0);
         $maxPrice = $request->get('max_price', 300000);
         $availability = $request->get('availability', 'all');
@@ -108,17 +110,10 @@ class ProductController extends Controller
         if (!empty($searchQuery)) {
             $query->where(function($q) use ($searchQuery) {
                 $q->where('name', 'like', "%{$searchQuery}%")
-                    ->orWhere('description', 'like', "%{$searchQuery}%");
+                    ->orWhere('description', 'like', "%{$searchQuery}%")
+                    ->orWhere('model', 'like', "%{$searchQuery}%");
             });
         }
-
-        if (!empty($categories)) {
-            if (is_string($categories)) {
-                $categories = explode(',', $categories);
-            }
-            $query->whereIn('category_id', $categories);
-        }
-
         $query->whereBetween('price', [$minPrice, $maxPrice]);
 
         if ($availability === 'in-stock') {
@@ -159,7 +154,9 @@ class ProductController extends Controller
             ]
         ]);
     }
-    public function homeProducts(){
+
+    public function homeProducts()
+    {
         $products = Product::where('status', 'active')
             ->orderBy('created_at', 'desc')
             ->take(15)
@@ -167,6 +164,7 @@ class ProductController extends Controller
 
         return response()->json($products);
     }
+
     public function validateFiles(ValidateFilesRequest $request)
     {
         $request->validated();
@@ -188,7 +186,7 @@ class ProductController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Validation passed successfully!']);
     }
 
-    public function uploadProducts(UploadProudctRequest $request)
+    public function uploadProducts(UploadProductRequest $request)
     {
         $request->validated();
 
@@ -212,45 +210,75 @@ class ProductController extends Controller
         array_shift($details);
         array_shift($pricing);
 
-        DB::transaction(function () use ($details, $pricing, $request) {
-            foreach ($details as $detailRow) {
-                if (empty($detailRow[0])) continue;
-                $itemCode = $detailRow[0];
+        DB::beginTransaction();
+        try {
+            foreach ($details as $index => $detailRow) {
+                try {
+                    if (empty($detailRow[0])) continue;
+                    $itemCode = trim($detailRow[0]);
+                    $priceRow = collect($pricing)->first(function($row) use ($itemCode) {
+                        return !empty($row[0]) && trim($row[0]) === $itemCode;
+                    });
+                    $existingProduct = Product::where('item_code', $itemCode)->first();
+                    if (!$priceRow) {
+                        \Log::warning("No pricing found for item code: {$itemCode}");
+                        continue;
+                    }
 
-                $priceRow = collect($pricing)->first(function($row) use ($itemCode) {
-                    return !empty($row[0]) && $row[0] === $itemCode;
-                });
+                    $productData = [
+                        'item_code' => $itemCode,
+                        'name' => $detailRow[1] ?? null,
+                        'category_1' => $detailRow[2] ?? null,
+                        'category_2' => $detailRow[3] ?? null,
+                        'category_3' => $detailRow[4] ?? null,
+                        'model' => $detailRow[5] ?? null,
+                        'description' => $detailRow[6] ?? null,
+                        'hedding' => $detailRow[7] ?? null,
+                        'warranty' => $detailRow[8] ?? null,
+                        'specification' => $detailRow[9] ?? null,
+                        'tags' => $detailRow[10] ?? null,
+                        'youtube_video_id' => $detailRow[11] ?? null,
+                        'price' => is_numeric($priceRow[1] ?? 0) ? (float)$priceRow[1] : 0,
+                        'buy_now_price' => is_numeric($priceRow[2] ?? 0) ? (float)$priceRow[2] : 0,
+                        'availability' => is_numeric($priceRow[3] ?? 0) ? (int)$priceRow[3] : 0,
+                        'status' => $existingProduct && $existingProduct->images ? 'active' : 'disabled'
 
-                if (!$priceRow) continue;
+                    ];
 
-                Product::updateOrCreate(
-                    ['item_code' => $itemCode],
-                    [
-                        'category_id' => $request->category_id,
-                        'name' => $detailRow[1] ?? 'No Name',
-                        'model' => $detailRow[2] ?? '',
-                        'description' => $detailRow[3] ?? '',
-                        'hedding' => $detailRow[4] ?? null,
-                        'warranty' => $detailRow[5] ?? null,
-                        'specification' => $detailRow[6] ?? null,
-                        'tags' => $detailRow[7] ?? null,
-                        'youtube_video_id' => $detailRow[8] ?? null,
-                        'price' => $priceRow[1] ?? 0,
-                        'buy_now_price' => $priceRow[3] ?? null,
-                        'availability' => $priceRow[2] ?? 0,
-                    ]
-                );
+                    $productData = array_map(function($value) {
+                        return is_string($value) ? trim($value) : $value;
+                    }, $productData);
+                    Product::updateOrCreate(
+                        ['item_code' => $itemCode],
+                        $productData
+                    );
+
+                } catch (\Exception $e) {
+                    \Log::error("Error processing product at row {$index}: " . $e->getMessage());
+                    continue;
+                }
             }
-        });
 
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Products uploaded successfully!'
+            ]);
 
-        return response()->json(['message' => 'Products uploaded successfully!']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Upload failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Upload failed: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function uploadImages(ImageUploadRequest $request)
     {
         try {
-          $request->validated();
+            $request->validated();
             $product = Product::find($request->product_id);
 
             if (!$product) {
@@ -288,18 +316,21 @@ class ProductController extends Controller
             ], 500);
         }
     }
+
     /**
      * Track product view
      */
     public function trackView(Request $request, $id)
     {
         try {
-            $product = Product::find($id);
+            $product = Product::where('id', $id)
+                ->where('status', 'active')
+                ->first();
 
             if (!$product) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Product not found'
+                    'message' => 'Product not found or not active'
                 ], 404);
             }
 
@@ -355,18 +386,21 @@ class ProductController extends Controller
             ], 500);
         }
     }
+
     /**
      * Get product view statistics
      */
     public function getViewStats($id)
     {
         try {
-            $product = Product::find($id);
+            $product = Product::where('id', $id)
+                ->where('status', 'active')
+                ->first();
 
             if (!$product) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Product not found'
+                    'message' => 'Product not found or not active'
                 ], 404);
             }
 
@@ -394,10 +428,10 @@ class ProductController extends Controller
 
     public function getMostViewedProducts()
     {
-        $products = Product::with('category')
+        $products = Product::where('status', 'active')
             ->where('total_views', '>', 0)
             ->orderBy('total_views', 'desc')
-            ->limit(1)
+            ->limit(10)
             ->get();
 
         if ($products->isEmpty()) {
@@ -414,5 +448,4 @@ class ProductController extends Controller
             'total_views' => $products->sum('total_views')
         ]);
     }
-
 }
