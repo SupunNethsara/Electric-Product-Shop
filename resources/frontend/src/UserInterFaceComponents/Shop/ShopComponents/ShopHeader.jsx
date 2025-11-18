@@ -41,7 +41,7 @@ function ShopHeader({
     };
 
     return (
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6 shadow-sm">
             <div className="flex flex-col lg:flex-row gap-4 items-center justify-between mb-4">
                 <div className="flex-1 w-full lg:max-w-md">
                     <div className="relative">
@@ -52,7 +52,7 @@ function ShopHeader({
                             value={searchInput}
                             onChange={handleInputChange}
                             onKeyPress={handleKeyPress}
-                            className="w-full pl-10 pr-20 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                            className="w-full pl-10 pr-20 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                         />
                         {searchInput && (
                             <button
@@ -64,7 +64,7 @@ function ShopHeader({
                         )}
                         <button
                             onClick={handleSearchClick}
-                            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition-colors duration-200 text-sm"
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm"
                         >
                             Search
                         </button>
@@ -77,7 +77,7 @@ function ShopHeader({
                         <select
                             value={itemsPerPage}
                             onChange={(e) => onItemsPerPageChange(e.target.value)}
-                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="12">12</option>
                             <option value="24">24</option>
@@ -111,7 +111,7 @@ function ShopHeader({
                                         }}
                                         className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-200 ${
                                             sortBy === option.value
-                                                ? 'bg-green-50 text-green-600'
+                                                ? 'bg-blue-50 text-blue-600'
                                                 : 'text-gray-700'
                                         } first:rounded-t-lg last:rounded-b-lg`}
                                     >
@@ -148,7 +148,7 @@ function ShopHeader({
                             <span className="font-semibold">{totalProducts}</span>
                             {' '}products
                             {searchInput && (
-                                <span className="ml-2 text-green-600">
+                                <span className="ml-2 text-blue-600">
                                     for "{searchInput}"
                                 </span>
                             )}
@@ -188,7 +188,7 @@ function ShopHeader({
                                         onClick={() => onPageChange(pageNum)}
                                         className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors duration-200 ${
                                             currentPage === pageNum
-                                                ? 'bg-green-600 text-white border border-green-600'
+                                                ? 'bg-blue-600 text-white border border-blue-600'
                                                 : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                                         }`}
                                     >
@@ -206,7 +206,7 @@ function ShopHeader({
                                     onClick={() => onPageChange(totalPages)}
                                     className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors duration-200 ${
                                         currentPage === totalPages
-                                            ? 'bg-green-600 text-white border border-green-600'
+                                            ? 'bg-blue-600 text-white border border-blue-600'
                                             : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                                     }`}
                                 >
