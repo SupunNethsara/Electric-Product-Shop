@@ -135,7 +135,7 @@ const ProductDetails = () => {
         page: 1,
         per_page: 10
     });
-
+console.log(product ,'Select product')
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);

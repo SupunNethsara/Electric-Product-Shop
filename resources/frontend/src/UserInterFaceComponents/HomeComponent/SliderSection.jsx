@@ -1,11 +1,11 @@
-'use client'
+"use client";
 import React, { useEffect, useRef, useState } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { gsap } from "gsap";
 
 const calculateDiscount = (price, originalPrice) => {
-    const p = parseFloat(price.replace('Rs', ''));
-    const op = parseFloat(originalPrice.replace('Rs', ''));
+    const p = parseFloat(price.replace("Rs", ""));
+    const op = parseFloat(originalPrice.replace("Rs", ""));
 
     if (op <= p) return 0;
 
@@ -21,20 +21,21 @@ function SliderSection() {
     const slideRefs = useRef([]);
 
     const themeColors = {
-        primary: '#0866ff',
-        primaryHover: '#0759e0',
-        secondary: '#e3251b',
-        secondaryHover: '#c91f16',
-        gradientFrom: '#e6f0ff',
-        gradientVia: '#f0f7ff',
-        gradientTo: '#e6f0ff',
+        primary: "#0866ff",
+        primaryHover: "#0759e0",
+        secondary: "#e3251b",
+        secondaryHover: "#c91f16",
+        gradientFrom: "#e6f0ff",
+        gradientVia: "#f0f7ff",
+        gradientTo: "#e6f0ff",
     };
 
     const heroSlides = [
         {
             id: 1,
             title: "CCTV Systems",
-            description: "Advanced security solutions for your home and business.",
+            description:
+                "Advanced security solutions for your home and business.",
             price: "Rs299.99",
             originalPrice: "Rs374.99",
             image: "/CCTV.png",
@@ -42,7 +43,8 @@ function SliderSection() {
         {
             id: 2,
             title: "DSLR Cameras",
-            description: "Professional photography equipment for stunning results.",
+            description:
+                "Professional photography equipment for stunning results.",
             price: "Rs899.99",
             originalPrice: "Rs1,199.99",
             image: "/CameraBlack.png",
@@ -68,36 +70,43 @@ function SliderSection() {
         const nextSlideEl = slideRefs.current[newIndex];
 
         if (currentSlideEl && nextSlideEl) {
-            gsap.to(currentSlideEl.querySelectorAll('.text-content, .image-content'), {
-                opacity: 0,
-                y: 20,
-                duration: 0.4,
-                ease: "power2.inOut"
-            });
+            gsap.to(
+                currentSlideEl.querySelectorAll(
+                    ".text-content, .image-content",
+                ),
+                {
+                    opacity: 0,
+                    y: 20,
+                    duration: 0.4,
+                    ease: "power2.inOut",
+                },
+            );
 
-            gsap.set(nextSlideEl.querySelectorAll('.text-content, .image-content'), {
-                opacity: 0,
-                y: 20
-            });
+            gsap.set(
+                nextSlideEl.querySelectorAll(".text-content, .image-content"),
+                {
+                    opacity: 0,
+                    y: 20,
+                },
+            );
 
             setTimeout(() => {
                 setCurrentSlide(newIndex);
 
-                gsap.to(nextSlideEl.querySelector('.text-content'), {
+                gsap.to(nextSlideEl.querySelector(".text-content"), {
                     opacity: 1,
                     y: 0,
                     duration: 0.6,
-                    ease: "power2.out"
+                    ease: "power2.out",
                 });
 
-                gsap.to(nextSlideEl.querySelector('.image-content'), {
+                gsap.to(nextSlideEl.querySelector(".image-content"), {
                     opacity: 1,
                     y: 0,
                     duration: 0.8,
                     ease: "power2.out",
-                    delay: 0.2
+                    delay: 0.2,
                 });
-
             }, 400);
         }
     };
@@ -108,7 +117,8 @@ function SliderSection() {
     };
 
     const prevSlide = () => {
-        const prevIndex = (currentSlide - 1 + heroSlides.length) % heroSlides.length;
+        const prevIndex =
+            (currentSlide - 1 + heroSlides.length) % heroSlides.length;
         animateSlideChange(prevIndex);
     };
 
@@ -120,10 +130,13 @@ function SliderSection() {
     useEffect(() => {
         const firstSlide = slideRefs.current[0];
         if (firstSlide) {
-            gsap.set(firstSlide.querySelectorAll('.text-content, .image-content'), {
-                opacity: 1,
-                y: 0
-            });
+            gsap.set(
+                firstSlide.querySelectorAll(".text-content, .image-content"),
+                {
+                    opacity: 1,
+                    y: 0,
+                },
+            );
         }
     }, []);
 
@@ -146,19 +159,21 @@ function SliderSection() {
                 <div
                     className="relative rounded-3xl overflow-hidden shadow-xl h-full"
                     style={{
-                        background: `linear-gradient(135deg, ${themeColors.gradientFrom}, ${themeColors.gradientVia}, ${themeColors.gradientTo})`
+                        background: `linear-gradient(135deg, ${themeColors.gradientFrom}, ${themeColors.gradientVia}, ${themeColors.gradientTo})`,
                     }}
                 >
                     <div className="relative h-full">
                         <div
                             ref={slideContainerRef}
                             className="flex transition-transform duration-500 ease-in-out h-full"
-                            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                            style={{
+                                transform: `translateX(-${currentSlide * 100}%)`,
+                            }}
                         >
                             {heroSlides.map((slide, index) => {
                                 const discountPercent = calculateDiscount(
                                     slide.price,
-                                    slide.originalPrice
+                                    slide.originalPrice,
                                 );
 
                                 return (
@@ -173,7 +188,7 @@ function SliderSection() {
                                                 className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm"
                                                 style={{
                                                     backgroundColor: `${themeColors.primary}15`,
-                                                    color: themeColors.primary
+                                                    color: themeColors.primary,
                                                 }}
                                             >
                                                 <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 animate-pulse"></span>
@@ -198,7 +213,10 @@ function SliderSection() {
                                                 {discountPercent > 0 && (
                                                     <span
                                                         className="px-3 py-1.5 sm:px-4 sm:py-2 text-white text-xs sm:text-sm font-semibold rounded-full"
-                                                        style={{ backgroundColor: themeColors.secondary }}
+                                                        style={{
+                                                            backgroundColor:
+                                                                themeColors.secondary,
+                                                        }}
                                                     >
                                                         Save {discountPercent}%
                                                     </span>
@@ -208,10 +226,17 @@ function SliderSection() {
                                             <button
                                                 className="text-white text-sm sm:text-base lg:text-lg py-2.5 sm:py-3 px-8 sm:px-12 mt-4 sm:mt-6 rounded-lg hover:scale-105 active:scale-95 transition-transform duration-200 shadow-lg"
                                                 style={{
-                                                    backgroundColor: themeColors.primary,
+                                                    backgroundColor:
+                                                        themeColors.primary,
                                                 }}
-                                                onMouseOver={(e) => e.target.style.backgroundColor = themeColors.primaryHover}
-                                                onMouseOut={(e) => e.target.style.backgroundColor = themeColors.primary}
+                                                onMouseOver={(e) =>
+                                                    (e.target.style.backgroundColor =
+                                                        themeColors.primaryHover)
+                                                }
+                                                onMouseOut={(e) =>
+                                                    (e.target.style.backgroundColor =
+                                                        themeColors.primary)
+                                                }
                                             >
                                                 Shop Now
                                             </button>
@@ -222,7 +247,7 @@ function SliderSection() {
                                             <div
                                                 className="absolute w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 xl:w-96 xl:h-96 blur-2xl sm:blur-3xl rounded-full opacity-60"
                                                 style={{
-                                                    background: `linear-gradient(135deg, ${themeColors.primary}20, ${themeColors.primary}05)`
+                                                    background: `linear-gradient(135deg, ${themeColors.primary}20, ${themeColors.primary}05)`,
                                                 }}
                                             ></div>
                                             <img
@@ -262,9 +287,15 @@ function SliderSection() {
                                             : "bg-gray-300 hover:bg-gray-400"
                                     }`}
                                     style={{
-                                        backgroundColor: index === currentSlide ? themeColors.primary : undefined,
-                                        width: index === currentSlide ? '24px' : '10px',
-                                        height: '10px',
+                                        backgroundColor:
+                                            index === currentSlide
+                                                ? themeColors.primary
+                                                : undefined,
+                                        width:
+                                            index === currentSlide
+                                                ? "24px"
+                                                : "10px",
+                                        height: "10px",
                                     }}
                                     aria-label={`Go to slide ${index + 1}`}
                                 />

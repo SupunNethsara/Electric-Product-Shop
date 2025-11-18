@@ -14,12 +14,12 @@ function HomeSection() {
                 <div className="w-full lg:w-4/6 ]">
                     <SliderSection />
                 </div>
-                <TopProduct/>
+                <TopProduct />
             </div>
 
-            <CategoriesMarquee/>
+            <CategoriesMarquee />
 
-            <Products/>
+            <Products />
 
             <FeaturedCategories />
             <WhyChooseUs />
