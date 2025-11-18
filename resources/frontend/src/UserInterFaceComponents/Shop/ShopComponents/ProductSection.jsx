@@ -27,12 +27,12 @@ export default function ProductSection({
                         return (
                             <span
                                 key={categoryId}
-                                className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs"
+                                className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs border border-blue-200"
                             >
                                 {category ? category.name : `Category ${categoryId}`}
                                 <button
                                     onClick={() => toggleCategory(categoryId)}
-                                    className="hover:text-green-900 transition-colors"
+                                    className="hover:text-blue-900 transition-colors"
                                 >
                                     <X size={12} />
                                 </button>
@@ -44,7 +44,7 @@ export default function ProductSection({
 
             {loading ? (
                 <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
                     <p className="text-gray-600 mt-3">Loading products...</p>
                 </div>
             ) : filteredProducts.length === 0 ? (
@@ -60,7 +60,7 @@ export default function ProductSection({
                     </p>
                     <button
                         onClick={clearAllFilters}
-                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm"
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm"
                     >
                         Clear All Filters
                     </button>
