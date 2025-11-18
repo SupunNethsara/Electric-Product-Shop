@@ -133,7 +133,7 @@ const Products = () => {
         activeFilters.price !== "all";
 
     return (
-        <div className="max-w-10/12 mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-10/12 mx-auto py-12  ">
             <div className="mb-12">
                 <div
                     className="bg-white rounded-2xl shadow-sm border p-6"
