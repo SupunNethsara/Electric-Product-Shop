@@ -8,7 +8,6 @@ use App\Http\Requests\UploadProductRequest;
 use App\Http\Requests\ValidateFilesRequest;
 use App\Imports\ProductDetailsImport;
 use App\Imports\ProductPricingImport;
-use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductView;
 use Illuminate\Http\Request;
@@ -22,7 +21,7 @@ class ProductController extends Controller
         $perPage = $request->get('per_page', 15);
         $page = $request->get('page', 1);
 
-        $query = Product::query();
+        $query = Product::where('status', 'active');
 
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
@@ -31,10 +30,6 @@ class ProductController extends Controller
                     ->orWhere('item_code', 'like', "%{$search}%")
                     ->orWhere('model', 'like', "%{$search}%");
             });
-        }
-
-        if ($request->has('status') && $request->status != 'all') {
-            $query->where('status', $request->status);
         }
 
         if ($request->has('min_price') && $request->min_price != '') {
@@ -50,9 +45,11 @@ class ProductController extends Controller
                     ->orWhere('price', '<=', $request->max_price);
             });
         }
+
         if ($request->has('in_stock') && $request->in_stock) {
             $query->where('availability', '>', 0);
         }
+
         $query->orderBy('created_at', 'desc');
 
         $products = $query->paginate($perPage, ['*'], 'page', $page);
@@ -69,6 +66,7 @@ class ProductController extends Controller
             ]
         ]);
     }
+
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
@@ -94,14 +92,11 @@ class ProductController extends Controller
         ]);
     }
 
-
-
     public function getActiveProducts(Request $request)
     {
         $perPage = $request->get('per_page', 20);
         $page = $request->get('page', 1);
         $searchQuery = $request->get('search', '');
-        $categories = $request->get('categories', []);
         $minPrice = $request->get('min_price', 0);
         $maxPrice = $request->get('max_price', 300000);
         $availability = $request->get('availability', 'all');
@@ -109,7 +104,6 @@ class ProductController extends Controller
 
         $query = Product::where('status', 'active');
 
-        // Search filtering
         if (!empty($searchQuery)) {
             $query->where(function($q) use ($searchQuery) {
                 $q->where('name', 'like', "%{$searchQuery}%")
@@ -117,18 +111,14 @@ class ProductController extends Controller
                     ->orWhere('model', 'like', "%{$searchQuery}%");
             });
         }
-
-        // Price range filtering
         $query->whereBetween('price', [$minPrice, $maxPrice]);
 
-        // Availability filtering
         if ($availability === 'in-stock') {
             $query->where('availability', '>', 0);
         } elseif ($availability === 'out-of-stock') {
             $query->where('availability', 0);
         }
 
-        // Sorting
         switch ($sortBy) {
             case 'price-low':
                 $query->orderBy('price', 'asc');
@@ -161,7 +151,9 @@ class ProductController extends Controller
             ]
         ]);
     }
-    public function homeProducts(){
+
+    public function homeProducts()
+    {
         $products = Product::where('status', 'active')
             ->orderBy('created_at', 'desc')
             ->take(15)
@@ -169,6 +161,7 @@ class ProductController extends Controller
 
         return response()->json($products);
     }
+
     public function validateFiles(ValidateFilesRequest $request)
     {
         $request->validated();
@@ -278,10 +271,11 @@ class ProductController extends Controller
             ], 500);
         }
     }
+
     public function uploadImages(ImageUploadRequest $request)
     {
         try {
-          $request->validated();
+            $request->validated();
             $product = Product::find($request->product_id);
 
             if (!$product) {
@@ -319,18 +313,21 @@ class ProductController extends Controller
             ], 500);
         }
     }
+
     /**
      * Track product view
      */
     public function trackView(Request $request, $id)
     {
         try {
-            $product = Product::find($id);
+            $product = Product::where('id', $id)
+                ->where('status', 'active')
+                ->first();
 
             if (!$product) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Product not found'
+                    'message' => 'Product not found or not active'
                 ], 404);
             }
 
@@ -386,18 +383,21 @@ class ProductController extends Controller
             ], 500);
         }
     }
+
     /**
      * Get product view statistics
      */
     public function getViewStats($id)
     {
         try {
-            $product = Product::find($id);
+            $product = Product::where('id', $id)
+                ->where('status', 'active')
+                ->first();
 
             if (!$product) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Product not found'
+                    'message' => 'Product not found or not active'
                 ], 404);
             }
 
@@ -425,7 +425,8 @@ class ProductController extends Controller
 
     public function getMostViewedProducts()
     {
-        $products = Product::where('total_views', '>', 0)
+        $products = Product::where('status', 'active')
+            ->where('total_views', '>', 0)
             ->orderBy('total_views', 'desc')
             ->limit(10)
             ->get();
@@ -444,6 +445,4 @@ class ProductController extends Controller
             'total_views' => $products->sum('total_views')
         ]);
     }
-
-
 }
