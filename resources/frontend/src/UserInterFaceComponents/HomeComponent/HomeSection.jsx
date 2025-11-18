@@ -11,7 +11,7 @@ function HomeSection() {
     return (
         <div>
             <div className="max-w-10/12 mx-auto flex flex-col lg:flex-row gap-6 px-0">
-                <div className="w-full lg:w-4/6 lg:h-[500px]">
+                <div className="w-full lg:w-4/6 ]">
                     <SliderSection />
                 </div>
                 <TopProduct/>

@@ -1,4 +1,3 @@
-// Navbar.jsx
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { logoutUser } from "../../Store/slices/authSlice.js";
@@ -21,6 +20,16 @@ const Navbar = () => {
     });
     const [loading, setLoading] = useState(true);
     const dropdownRef = useRef(null);
+
+    // Theme colors
+    const themeColors = {
+        primary: '#0866ff', // Facebook blue
+        primaryHover: '#0759e0', // Darker blue for hover
+        secondary: '#e3251b', // Red color
+        secondaryHover: '#c91f16', // Darker red for hover
+        text: '#1f2937', // Gray-800 for text
+        lightBg: '#f0f7ff', // Light blue background for active states
+    };
 
     useEffect(() => {
         fetchSettings();
@@ -80,11 +89,11 @@ const Navbar = () => {
     };
 
     const navLinks = [
-        { path: "/", label: "Home",  },
-        { path: "/shop", label: "Shop",  },
-        { path: "/quotations", label: "Quotations",  },
-        { path: "/about", label: "About", },
-        { path: "/contact", label: "Contact",  },
+        { path: "/", label: "Home", icon: Home },
+        { path: "/shop", label: "Shop", icon: Store },
+        { path: "/quotations", label: "Quotations", icon: FileText },
+        { path: "/about", label: "About", icon: Info },
+        { path: "/contact", label: "Contact", icon: Phone },
     ];
 
     const getDashboardLink = () => {
@@ -121,8 +130,8 @@ const Navbar = () => {
         }
         return (
             <div className="text-2xl font-semibold text-slate-700">
-                <span className="text-green-600">go</span>cart
-                <span className="text-green-600 text-3xl">.</span>
+                <span style={{ color: themeColors.primary }}>go</span>cart
+                <span style={{ color: themeColors.primary }} className="text-3xl">.</span>
             </div>
         );
     };
@@ -150,9 +159,12 @@ const Navbar = () => {
         }
         return (
             <div className="relative float-left text-4xl font-semibold text-slate-700">
-                <span className="text-green-600">go</span>cart
-                <span className="text-green-600 text-5xl leading-0">.</span>
-                <p className="absolute text-xs font-semibold -top-1 -right-8 px-3 p-0.5 rounded-full flex items-center gap-2 text-white bg-green-500">
+                <span style={{ color: themeColors.primary }}>go</span>cart
+                <span style={{ color: themeColors.primary }} className="text-5xl leading-0">.</span>
+                <p
+                    className="absolute text-xs font-semibold -top-1 -right-8 px-3 p-0.5 rounded-full flex items-center gap-2 text-white"
+                    style={{ backgroundColor: themeColors.secondary }}
+                >
                     plus
                 </p>
             </div>
@@ -191,11 +203,15 @@ const Navbar = () => {
                                     <Link
                                         key={link.path}
                                         to={link.path}
-                                        className={`flex items-center gap-1.5 font-medium transition-colors duration-200 hover:text-green-600 px-3 py-2 rounded-lg ${
+                                        className={`flex items-center gap-1.5 font-medium transition-colors duration-200 hover:text-[${themeColors.primary}] px-3 py-2 rounded-lg ${
                                             isActiveRoute(link.path)
-                                                ? "text-green-600 bg-green-50"
-                                                : "text-slate-600 hover:bg-slate-50"
+                                                ? `text-[${themeColors.primary}] bg-[${themeColors.lightBg}]`
+                                                : `text-slate-600 hover:bg-slate-50`
                                         }`}
+                                        style={{
+                                            color: isActiveRoute(link.path) ? themeColors.primary : undefined,
+                                            backgroundColor: isActiveRoute(link.path) ? themeColors.lightBg : undefined,
+                                        }}
                                     >
                                         <span className="text-sm">{link.label}</span>
                                     </Link>
@@ -205,11 +221,18 @@ const Navbar = () => {
                             <div className="flex items-center gap-4">
                                 <Link
                                     to="/cart"
-                                    className="relative flex items-center gap-1.5 text-slate-600 hover:text-green-600 transition-colors duration-200 p-2 rounded-lg hover:bg-slate-50"
+                                    className="relative flex items-center gap-1.5 text-slate-600 hover:text-[#0866ff] transition-colors duration-200 p-2 rounded-lg hover:bg-slate-50"
+                                    style={{
+                                        color: themeColors.text,
+                                        '--hover-color': themeColors.primary
+                                    }}
                                 >
                                     <ShoppingCart size={18} />
                                     {cartCount > 0 && (
-                                        <span className="absolute -top-1 -right-1 text-[10px] text-white bg-green-500 size-4 rounded-full flex items-center justify-center font-medium">
+                                        <span
+                                            className="absolute -top-1 -right-1 text-[10px] text-white size-4 rounded-full flex items-center justify-center font-medium"
+                                            style={{ backgroundColor: themeColors.primary }}
+                                        >
                                             {cartCount}
                                         </span>
                                     )}
@@ -217,12 +240,19 @@ const Navbar = () => {
 
                                 <Link
                                     to="/quotationsPage"
-                                    className="relative flex items-center gap-1.5 text-slate-600 hover:text-green-600 transition-colors duration-200 p-2 rounded-lg hover:bg-slate-50"
+                                    className="relative flex items-center gap-1.5 text-slate-600 hover:text-[#0866ff] transition-colors duration-200 p-2 rounded-lg hover:bg-slate-50"
+                                    style={{
+                                        color: themeColors.text,
+                                        '--hover-color': themeColors.primary
+                                    }}
                                 >
                                     <FileText size={18} />
                                     <span className="text-sm">Quotes</span>
                                     {quotationCount > 0 && (
-                                        <span className="absolute -top-1 -right-1 text-[10px] text-white bg-[#e3251b] size-4 rounded-full flex items-center justify-center font-medium">
+                                        <span
+                                            className="absolute -top-1 -right-1 text-[10px] text-white size-4 rounded-full flex items-center justify-center font-medium"
+                                            style={{ backgroundColor: themeColors.secondary }}
+                                        >
                                             {quotationCount}
                                         </span>
                                     )}
@@ -235,7 +265,12 @@ const Navbar = () => {
                                                 onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                                                 className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-1.5 hover:border-slate-300 transition-all duration-300 min-w-0"
                                             >
-                                                <div className="w-7 h-7 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <div
+                                                    className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                                                    style={{
+                                                        background: `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.primaryHover})`
+                                                    }}
+                                                >
                                                     <span className="text-white text-xs font-medium">
                                                         {user?.name?.charAt(0)?.toUpperCase()}
                                                     </span>
@@ -306,13 +341,22 @@ const Navbar = () => {
                                     <div className="flex items-center gap-3">
                                         <button
                                             onClick={handleOpenLoginModal}
-                                            className="px-4 py-1.5 text-slate-700 hover:text-green-600 text-sm font-medium transition-colors duration-200"
+                                            className="px-4 py-1.5 text-slate-700 hover:text-[#0866ff] text-sm font-medium transition-colors duration-200"
+                                            style={{
+                                                '--hover-color': themeColors.primary
+                                            }}
                                         >
                                             Sign In
                                         </button>
                                         <button
                                             onClick={handleOpenRegisterModal}
-                                            className="px-4 py-1.5 bg-green-500 hover:bg-green-600 text-white text-sm rounded-full font-medium transition-colors duration-200"
+                                            className="px-4 py-1.5 text-white text-sm rounded-full font-medium transition-colors duration-200"
+                                            style={{
+                                                backgroundColor: themeColors.primary,
+                                                '--hover-bg': themeColors.primaryHover
+                                            }}
+                                            onMouseOver={(e) => e.target.style.backgroundColor = themeColors.primaryHover}
+                                            onMouseOut={(e) => e.target.style.backgroundColor = themeColors.primary}
                                         >
                                             Get Started
                                         </button>
@@ -324,11 +368,17 @@ const Navbar = () => {
                         <div className="lg:hidden flex items-center gap-4">
                             <Link
                                 to="/cart"
-                                className="relative p-2 text-slate-600 hover:text-green-600 transition-colors"
+                                className="relative p-2 text-slate-600 hover:text-[#0866ff] transition-colors"
+                                style={{
+                                    '--hover-color': themeColors.primary
+                                }}
                             >
                                 <ShoppingCart size={20} />
                                 {cartCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 text-[10px] text-white bg-green-500 size-4 rounded-full flex items-center justify-center font-medium">
+                                    <span
+                                        className="absolute -top-1 -right-1 text-[10px] text-white size-4 rounded-full flex items-center justify-center font-medium"
+                                        style={{ backgroundColor: themeColors.primary }}
+                                    >
                                         {cartCount}
                                     </span>
                                 )}
@@ -336,11 +386,17 @@ const Navbar = () => {
 
                             <Link
                                 to="/quotationsPage"
-                                className="relative p-2 text-slate-600 hover:text-green-600 transition-colors"
+                                className="relative p-2 text-slate-600 hover:text-[#0866ff] transition-colors"
+                                style={{
+                                    '--hover-color': themeColors.primary
+                                }}
                             >
                                 <FileText size={20} />
                                 {quotationCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 text-[10px] text-white bg-[#e3251b]size-4 rounded-full flex items-center justify-center font-medium">
+                                    <span
+                                        className="absolute -top-1 -right-1 text-[10px] text-white size-4 rounded-full flex items-center justify-center font-medium"
+                                        style={{ backgroundColor: themeColors.secondary }}
+                                    >
                                         {quotationCount}
                                     </span>
                                 )}
@@ -350,13 +406,22 @@ const Navbar = () => {
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={handleOpenLoginModal}
-                                        className="px-3 py-1.5 text-slate-700 hover:text-green-600 text-xs transition-colors duration-200 font-medium"
+                                        className="px-3 py-1.5 text-slate-700 hover:text-[#0866ff] text-xs transition-colors duration-200 font-medium"
+                                        style={{
+                                            '--hover-color': themeColors.primary
+                                        }}
                                     >
                                         Sign In
                                     </button>
                                     <button
                                         onClick={handleOpenRegisterModal}
-                                        className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-xs transition text-white rounded-full font-medium"
+                                        className="px-3 py-1.5 text-xs transition text-white rounded-full font-medium"
+                                        style={{
+                                            backgroundColor: themeColors.primary,
+                                            '--hover-bg': themeColors.primaryHover
+                                        }}
+                                        onMouseOver={(e) => e.target.style.backgroundColor = themeColors.primaryHover}
+                                        onMouseOut={(e) => e.target.style.backgroundColor = themeColors.primary}
                                     >
                                         Get Started
                                     </button>
@@ -365,7 +430,10 @@ const Navbar = () => {
 
                             <button
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                                className="p-2 text-slate-600 hover:text-green-600 transition-colors duration-300"
+                                className="p-2 text-slate-600 hover:text-[#0866ff] transition-colors duration-300"
+                                style={{
+                                    '--hover-color': themeColors.primary
+                                }}
                             >
                                 {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
                             </button>
@@ -383,9 +451,13 @@ const Navbar = () => {
                                         to={link.path}
                                         className={`flex items-center gap-3 py-3 px-4 font-medium transition-all duration-200 rounded-lg ${
                                             isActiveRoute(link.path)
-                                                ? "text-green-600 bg-green-50"
-                                                : "text-slate-600 hover:text-green-600 hover:bg-slate-50"
+                                                ? `text-[${themeColors.primary}] bg-[${themeColors.lightBg}]`
+                                                : "text-slate-600 hover:text-[#0866ff] hover:bg-slate-50"
                                         }`}
+                                        style={{
+                                            color: isActiveRoute(link.path) ? themeColors.primary : undefined,
+                                            backgroundColor: isActiveRoute(link.path) ? themeColors.lightBg : undefined,
+                                        }}
                                         onClick={() => setIsMobileMenuOpen(false)}
                                     >
                                         <link.icon size={18} />
@@ -398,7 +470,10 @@ const Navbar = () => {
                                         <div className="border-t border-slate-200 pt-3 mt-2">
                                             <Link
                                                 to={getDashboardLink()}
-                                                className="flex items-center gap-3 py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-slate-50 transition-all duration-200 rounded-lg"
+                                                className="flex items-center gap-3 py-3 px-4 font-medium text-slate-600 hover:text-[#0866ff] hover:bg-slate-50 transition-all duration-200 rounded-lg"
+                                                style={{
+                                                    '--hover-color': themeColors.primary
+                                                }}
                                                 onClick={() => setIsMobileMenuOpen(false)}
                                             >
                                                 <User size={18} />
@@ -409,7 +484,10 @@ const Navbar = () => {
                                                 <>
                                                     <Link
                                                         to="/admin/products"
-                                                        className="flex items-center gap-3 py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-slate-50 transition-all duration-200 rounded-lg"
+                                                        className="flex items-center gap-3 py-3 px-4 font-medium text-slate-600 hover:text-[#0866ff] hover:bg-slate-50 transition-all duration-200 rounded-lg"
+                                                        style={{
+                                                            '--hover-color': themeColors.primary
+                                                        }}
                                                         onClick={() => setIsMobileMenuOpen(false)}
                                                     >
                                                         <Store size={18} />
@@ -417,7 +495,10 @@ const Navbar = () => {
                                                     </Link>
                                                     <Link
                                                         to="/admin/user-manage"
-                                                        className="flex items-center gap-3 py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-slate-50 transition-all duration-200 rounded-lg"
+                                                        className="flex items-center gap-3 py-3 px-4 font-medium text-slate-600 hover:text-[#0866ff] hover:bg-slate-50 transition-all duration-200 rounded-lg"
+                                                        style={{
+                                                            '--hover-color': themeColors.primary
+                                                        }}
                                                         onClick={() => setIsMobileMenuOpen(false)}
                                                     >
                                                         <User size={18} />
@@ -449,7 +530,10 @@ const Navbar = () => {
                                                 handleOpenLoginModal();
                                                 setIsMobileMenuOpen(false);
                                             }}
-                                            className="flex items-center gap-3 w-full text-left py-3 px-4 font-medium text-slate-600 hover:text-green-600 hover:bg-slate-50 transition-all duration-200 rounded-lg"
+                                            className="flex items-center gap-3 w-full text-left py-3 px-4 font-medium text-slate-600 hover:text-[#0866ff] hover:bg-slate-50 transition-all duration-200 rounded-lg"
+                                            style={{
+                                                '--hover-color': themeColors.primary
+                                            }}
                                         >
                                             <User size={18} />
                                             Sign In
@@ -459,7 +543,12 @@ const Navbar = () => {
                                                 handleOpenRegisterModal();
                                                 setIsMobileMenuOpen(false);
                                             }}
-                                            className="flex items-center gap-3 w-full text-left py-3 px-4 font-medium text-green-600 hover:bg-green-50 transition-all duration-200 rounded-lg"
+                                            className="flex items-center gap-3 w-full text-left py-3 px-4 font-medium transition-all duration-200 rounded-lg"
+                                            style={{
+                                                color: themeColors.primary,
+                                                backgroundColor: themeColors.lightBg,
+                                                '--hover-bg': '#e6f0ff'
+                                            }}
                                         >
                                             <User size={18} />
                                             Get Started
