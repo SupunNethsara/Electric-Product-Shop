@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiMail, FiPhone, FiMapPin, FiClock, FiSend, FiMessageSquare } from 'react-icons/fi';
+import { FiMail, FiPhone, FiMapPin, FiClock, FiSend, FiMessageSquare, FiShield, FiVideo, FiHome } from 'react-icons/fi';
 
 const Contact = () => {
     const [formData, setFormData] = useState({
@@ -28,36 +28,53 @@ const Contact = () => {
         e.preventDefault();
         console.log('Form submitted:', formData);
         // Add form submission logic here
+        alert('Thank you for your inquiry! Our security experts will contact you shortly.');
+        setFormData({ name: '', email: '', subject: '', message: '' });
     };
 
     const contactItems = [
         {
             icon: <FiMapPin className="w-6 h-6" />,
-            title: "Our Location",
-            content: "123 Innovation Drive, San Francisco, CA 94107",
-            color: "text-purple-500",
-            bg: "bg-purple-50"
+            title: "Our Office",
+            content: "123 Security Plaza\nTech District, City 94107",
+            color: "text-blue-600",
+            bg: "bg-blue-50"
         },
         {
             icon: <FiMail className="w-6 h-6" />,
             title: "Email Us",
-            content: "hello@example.com\nsupport@example.com",
-            color: "text-blue-500",
-            bg: "bg-blue-50"
+            content: "security@cctvsolutions.com\nsupport@cctvsolutions.com",
+            color: "text-indigo-600",
+            bg: "bg-indigo-50"
         },
         {
             icon: <FiPhone className="w-6 h-6" />,
-            title: "Call Us",
-            content: "+1 (555) 123-4567\nMon-Fri: 9:00 AM - 6:00 PM",
-            color: "text-green-500",
+            title: "24/7 Support",
+            content: "+1 (555) 123-SAFE\nEmergency: +1 (555) 911-SECURE",
+            color: "text-green-600",
             bg: "bg-green-50"
         },
         {
             icon: <FiClock className="w-6 h-6" />,
-            title: "Working Hours",
-            content: "Monday - Friday: 9:00 - 18:00\nSaturday: 10:00 - 15:00\nSunday: Closed",
-            color: "text-amber-500",
+            title: "Business Hours",
+            content: "Monday - Friday: 8:00 - 18:00\nSaturday: 9:00 - 16:00\nEmergency: 24/7",
+            color: "text-amber-600",
             bg: "bg-amber-50"
+        }
+    ];
+
+    const securityServices = [
+        {
+            icon: <FiVideo className="w-5 h-5" />,
+            text: "4K CCTV System Installation"
+        },
+        {
+            icon: <FiHome className="w-5 h-5" />,
+            text: "Home Security Assessment"
+        },
+        {
+            icon: <FiShield className="w-5 h-5" />,
+            text: "Business Security Solutions"
         }
     ];
 
@@ -77,46 +94,65 @@ const Contact = () => {
     };
 
     return (
-        <div className="h-auto bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:px-3 lg:px-2">
+        <div className="min-h-screen  py-6 px-4 sm:px-6 lg:px-3">
             <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     <motion.div
                         initial={{ opacity: 0, x: -50 }}
                         animate={isVisible ? { opacity: 1, x: 0 } : {}}
                         transition={{ duration: 0.6, delay: 0.2 }}
-                        className="bg-white rounded-2xl shadow-2xl p-8 lg:p-10 backdrop-blur-sm bg-opacity-90"
+                        className="bg-white rounded-2xl shadow-xl p-8 lg:p-10 border border-gray-200"
                     >
                         <div className="flex items-center mb-8">
-                            <div className="p-3 rounded-xl bg-blue-50 text-green-500 mr-4">
+                            <div className="p-3 rounded-xl bg-blue-100 text-blue-600 mr-4">
                                 <FiMessageSquare className="w-6 h-6" />
                             </div>
-                            <h2 className="text-2xl font-bold text-gray-900">Send us a message</h2>
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-900">Get a Free Security Quote</h2>
+                                <p className="text-gray-600 mt-1">Fill out the form and our expert will contact you within 24 hours</p>
+                            </div>
                         </div>
 
-                        <form onSubmit={handleSubmit} className=" h-auto">
+                        <div className="mb-6 p-4 bg-blue-50 rounded-xl">
+                            <h3 className="font-semibold text-gray-900 mb-2">Services we offer:</h3>
+                            <div className="space-y-2">
+                                {securityServices.map((service, index) => (
+                                    <div key={index} className="flex items-center text-sm text-gray-700">
+                                        <span className="text-blue-600 mr-2">{service.icon}</span>
+                                        {service.text}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <motion.div variants={item}>
-                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                                        Your Name *
+                                    </label>
                                     <input
                                         type="text"
                                         id="name"
                                         name="name"
                                         value={formData.name}
                                         onChange={handleChange}
-                                        className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 hover:border-gray-300"
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
                                         placeholder="John Doe"
                                         required
                                     />
                                 </motion.div>
                                 <motion.div variants={item}>
-                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                                        Email Address *
+                                    </label>
                                     <input
                                         type="email"
                                         id="email"
                                         name="email"
                                         value={formData.email}
                                         onChange={handleChange}
-                                        className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-gray-300"
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
                                         placeholder="your@email.com"
                                         required
                                     />
@@ -124,29 +160,39 @@ const Contact = () => {
                             </div>
 
                             <motion.div variants={item}>
-                                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                                <input
-                                    type="text"
+                                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Service Interested In *
+                                </label>
+                                <select
                                     id="subject"
                                     name="subject"
                                     value={formData.subject}
                                     onChange={handleChange}
-                                    className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 hover:border-gray-300"
-                                    placeholder="How can we help you today?"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
                                     required
-                                />
+                                >
+                                    <option value="">Select a service</option>
+                                    <option value="4k-cctv">4K CCTV Systems</option>
+                                    <option value="home-security">Home Security Solutions</option>
+                                    <option value="wireless-cameras">Wireless Outdoor Cameras</option>
+                                    <option value="business-security">Business Security Systems</option>
+                                    <option value="consultation">Security Consultation</option>
+                                    <option value="other">Other</option>
+                                </select>
                             </motion.div>
 
                             <motion.div variants={item}>
-                                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">Your Message</label>
+                                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Project Details *
+                                </label>
                                 <textarea
                                     id="message"
                                     name="message"
                                     rows={5}
                                     value={formData.message}
                                     onChange={handleChange}
-                                    className="w-full px-5 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 hover:border-gray-300 resize-none"
-                                    placeholder="Tell us more about your project..."
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 resize-none"
+                                    placeholder="Tell us about your security needs, property size, and any specific concerns..."
                                     required
                                 ></textarea>
                             </motion.div>
@@ -155,11 +201,15 @@ const Contact = () => {
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 type="submit"
-                                className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-blue-100 flex items-center justify-center space-x-2"
+                                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2"
                             >
                                 <FiSend className="w-5 h-5" />
-                                <span>Send Message</span>
+                                <span>Get Free Security Assessment</span>
                             </motion.button>
+
+                            <p className="text-center text-sm text-gray-500">
+                                We respect your privacy. Your information is secure with us.
+                            </p>
                         </form>
                     </motion.div>
 
@@ -174,25 +224,39 @@ const Contact = () => {
                                 <motion.div
                                     key={index}
                                     variants={item}
-                                    className={`p-6 rounded-2xl ${contact.bg} hover:shadow-md transition-all duration-300`}
+                                    className={`p-6 rounded-2xl ${contact.bg} border border-gray-200 hover:shadow-md transition-all duration-300 hover:translate-y-[-2px]`}
                                 >
-                                    <div className={`w-12 h-12 rounded-xl ${contact.bg} flex items-center justify-center mb-4`}>
+                                    <div className={`w-12 h-12 rounded-xl ${contact.bg} flex items-center justify-center mb-4 border ${contact.color.replace('text', 'border')} border-opacity-20`}>
                                         <span className={contact.color}>
                                             {contact.icon}
                                         </span>
                                     </div>
                                     <h3 className="text-lg font-semibold text-gray-900 mb-2">{contact.title}</h3>
-                                    <p className="text-gray-600 whitespace-pre-line">{contact.content}</p>
+                                    <p className="text-gray-600 whitespace-pre-line leading-relaxed">{contact.content}</p>
                                 </motion.div>
                             ))}
                         </motion.div>
 
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={isVisible ? { opacity: 1, y: 0 } : {}}
+                            transition={{ duration: 0.6, delay: 0.3 }}
+                            className="bg-red-600 text-white p-6 rounded-2xl text-center"
+                        >
+                            <div className="flex items-center justify-center mb-2">
+                                <FiShield className="w-6 h-6 mr-2" />
+                                <h3 className="text-xl font-bold">24/7 Emergency Support</h3>
+                            </div>
+                            <p className="text-red-100">For urgent security issues, call our emergency line</p>
+                            <p className="text-2xl font-bold mt-2">+1 (555) 911-SECURE</p>
+                        </motion.div>
+
                         {/* Map */}
                         <motion.div
-                            initial={{ opacity: 0, y: 50 }}
+                            initial={{ opacity: 0, y: 30 }}
                             animate={isVisible ? { opacity: 1, y: 0 } : {}}
                             transition={{ duration: 0.6, delay: 0.4 }}
-                            className="rounded-2xl overflow-hidden shadow-2xl transform hover:scale-[1.01] transition-all duration-500"
+                            className="rounded-2xl overflow-hidden shadow-xl border border-gray-200 transform hover:scale-[1.01] transition-all duration-500"
                         >
                             <div className="aspect-w-16 aspect-h-9 w-full">
                                 <iframe
@@ -203,7 +267,7 @@ const Contact = () => {
                                     allowFullScreen=""
                                     loading="lazy"
                                     className="rounded-2xl h-80 w-full"
-                                    title="Our Location on Map"
+                                    title="Our Security Office Location"
                                 ></iframe>
                             </div>
                         </motion.div>
@@ -213,9 +277,5 @@ const Contact = () => {
         </div>
     );
 };
-
-
-
-
 
 export default Contact;
