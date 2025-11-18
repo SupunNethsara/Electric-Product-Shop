@@ -48,7 +48,7 @@ const UploadProgress = ({ uploadProgress, loading, onBack, onUpload }) => {
                     disabled={loading}
                     className="bg-green-600 text-white px-6 py-2 rounded-md font-medium hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                    {loading ? 'Uploading...' : `Upload Data `}
+                    {loading ? 'Uploading...' : `Upload Products `}
                 </button>
             </div>
         </div>

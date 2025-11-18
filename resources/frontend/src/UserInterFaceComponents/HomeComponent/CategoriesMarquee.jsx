@@ -1,6 +1,19 @@
 import React from "react";
 
-const categories = ["Headphones", "Speakers", "Watch", "Earbuds", "Mouse", "Decoration"];
+const categories = [
+    "Analog Camera",
+    "IP Camera",
+    "DVR System",
+    "NVR System",
+    "BNC Connectors",
+    "Power Supply",
+    "Access Control Terminal",
+    "Smart Door Lock",
+    "Door Lock",
+    "Exit Switch",
+    "Lock Bracket",
+    "DC Power"
+];
 
 const CategoriesMarquee = () => {
     return (

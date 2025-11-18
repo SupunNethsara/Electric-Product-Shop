@@ -117,6 +117,38 @@ const UploadProducts = ({ onUploadComplete }) => {
         setUploadStage('validate');
     };
 
+    const handleDownloadTemplate = (type) => {
+        let filename = '';
+        let templatePath = '';
+
+        if (type === 'details') {
+            filename = 'ProductDetails.xlsx';
+            templatePath = '/templates/ProductDetails.xlsx';
+        } else if (type === 'pricing') {
+            filename = 'ProductPricing.xlsx';
+            templatePath = '/templates/ProductPricing.xlsx';
+        } else {
+            console.error('Invalid template type');
+            return;
+        }
+
+        const url = new URL(templatePath, window.location.origin).toString();
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.target = '_blank';
+
+        link.onerror = () => {
+            console.error(`Failed to load template: ${url}`);
+            alert(`Error: Could not download the ${type} template. Please make sure the file exists at: ${url}`);
+        };
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="space-y-6">
             {uploadStage === 'validate' && (
@@ -125,6 +157,7 @@ const UploadProducts = ({ onUploadComplete }) => {
                         files={files}
                         onFileSelect={handleFileSelect}
                         onRemoveFile={removeFile}
+                        onDownloadTemplate={handleDownloadTemplate}
                     />
 
                     <ValidationResults validationResult={validationResult} />
