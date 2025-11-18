@@ -16,12 +16,12 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
+    public function Index(Request $request)
     {
         $perPage = $request->get('per_page', 15);
         $page = $request->get('page', 1);
 
-        $query = Product::where('status', 'active');
+        $query = Product::query();
 
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
@@ -30,6 +30,10 @@ class ProductController extends Controller
                     ->orWhere('item_code', 'like', "%{$search}%")
                     ->orWhere('model', 'like', "%{$search}%");
             });
+        }
+
+        if ($request->has('status') && $request->status != 'all') {
+            $query->where('status', $request->status);
         }
 
         if ($request->has('min_price') && $request->min_price != '') {
@@ -66,7 +70,6 @@ class ProductController extends Controller
             ]
         ]);
     }
-
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
