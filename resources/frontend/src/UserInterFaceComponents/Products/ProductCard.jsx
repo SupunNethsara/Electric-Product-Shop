@@ -11,13 +11,12 @@ const ProductCard = ({ product }) => {
     const [viewCount, setViewCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    // Professional color scheme
     const colors = {
-        primary: "#2563eb", // Professional blue
+        primary: "#2563eb",
         primaryHover: "#1d4ed8",
-        secondary: "#dc2626", // Professional red
+        secondary: "#dc2626",
         secondaryHover: "#b91c1c",
-        accent: "#059669", // Professional green
+        accent: "#059669",
         accentHover: "#047857",
         background: "#ffffff",
         surface: "#f8fafc",
