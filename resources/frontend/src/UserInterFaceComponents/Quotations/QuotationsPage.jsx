@@ -32,7 +32,6 @@ const QuotationsPage = () => {
 
     const { isAuthenticated } = useSelector((state) => state.auth);
 
-    // State for confirmation modals
     const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
     const [showClearConfirm, setShowClearConfirm] = useState(false);
     const [selectedItemId, setSelectedItemId] = useState(null);
@@ -81,14 +80,12 @@ const QuotationsPage = () => {
 
     const generateQuotationPDF = () => {
         const doc = new jsPDF();
-
         doc.setFillColor(227, 37, 27);
         doc.rect(0, 0, 210, 30, 'F');
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(20);
         doc.setFont('helvetica', 'bold');
         doc.text('QUOTATION', 105, 18, { align: 'center' });
-
         doc.setTextColor(100, 100, 100);
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
@@ -103,7 +100,6 @@ const QuotationsPage = () => {
         doc.text(`Quotation No: ${quotationNo}`, 150, 40);
         doc.text(`Date: ${quotationDate}`, 150, 45);
         doc.text(`Customer: Logged-in User`, 150, 50);
-
         doc.setFillColor(240, 240, 240);
         doc.rect(15, 70, 180, 10, 'F');
         doc.setTextColor(0, 0, 0);
@@ -111,45 +107,47 @@ const QuotationsPage = () => {
         doc.setFont('helvetica', 'bold');
         doc.text('Item', 20, 77);
         doc.text('Model', 70, 77);
-        doc.text('Price', 120, 77);
-        doc.text('Qty', 150, 77);
+        doc.text('Unit Price', 110, 77);
+        doc.text('Qty', 140, 77);
         doc.text('Amount', 170, 77);
 
         let yPosition = 85;
         doc.setFont('helvetica', 'normal');
 
-        items.forEach((item, index) => {
+        let grandTotal = 0;
+        const itemsWithTotals = items.map(item => {
+            const unitPrice = parseFloat(item.product.buy_now_price || item.product.price || 0);
+            const quantity = parseInt(item.quantity);
+            const itemTotal = unitPrice * quantity;
+            grandTotal += itemTotal;
+
+            return {
+                ...item,
+                unitPrice,
+                itemTotal
+            };
+        });
+
+        itemsWithTotals.forEach((item, index) => {
             if (yPosition > 250) {
                 doc.addPage();
                 yPosition = 20;
             }
 
-            const itemTotal = parseFloat(item.product.price) * item.quantity;
-
             doc.text(item.product.name.substring(0, 30), 20, yPosition);
-            doc.text(item.product.model, 70, yPosition);
-            doc.text(`Rs. ${parseFloat(item.product.price).toLocaleString()}`, 120, yPosition);
-            doc.text(item.quantity.toString(), 150, yPosition);
-            doc.text(`Rs. ${itemTotal.toLocaleString()}`, 170, yPosition);
+            doc.text(item.product.model || 'N/A', 70, yPosition);
+            doc.text(`Rs. ${item.unitPrice.toLocaleString()}`, 110, yPosition);
+            doc.text(item.quantity.toString(), 140, yPosition);
+            doc.text(`Rs. ${item.itemTotal.toLocaleString()}`, 170, yPosition);
 
             yPosition += 8;
         });
 
-        const tax = totalPrice * 0.1;
-        const grandTotal = totalPrice + tax;
-
         yPosition = Math.max(yPosition + 10, 260);
         doc.setFont('helvetica', 'bold');
-        doc.text('Subtotal:', 140, yPosition);
-        doc.text(`Rs. ${totalPrice.toLocaleString()}`, 170, yPosition);
-
-        doc.text('Tax (10%):', 140, yPosition + 5);
-        doc.text(`Rs. ${tax.toLocaleString()}`, 170, yPosition + 5);
-
         doc.setFontSize(11);
-        doc.text('Grand Total:', 140, yPosition + 12);
-        doc.text(`Rs. ${grandTotal.toLocaleString()}`, 170, yPosition + 12);
-
+        doc.text('Total Amount:', 140, yPosition);
+        doc.text(`Rs. ${grandTotal.toLocaleString()}`, 170, yPosition);
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(100, 100, 100);

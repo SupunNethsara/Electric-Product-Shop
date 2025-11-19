@@ -40,15 +40,6 @@ const QuoteProductCard = ({ product }) => {
 
             const data = await response.json();
 
-            if (response.ok) {
-                console.log('✅ View tracked successfully:', data);
-                if (data.debug) {
-                    console.log('🔍 Debug info:', data.debug);
-                }
-            } else {
-                console.error(' Failed to track view:', data);
-            }
-
         } catch (error) {
             console.error(' Network error tracking view:', error);
         }
