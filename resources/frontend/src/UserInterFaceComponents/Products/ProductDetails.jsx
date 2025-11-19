@@ -85,7 +85,7 @@ const groupSpecifications = (specs) => {
     });
     return Object.fromEntries(
         Object.entries(groups).filter(
-            ([_, categorySpecs]) => Object.keys(categorySpecs).length > 0,
+            ([, categorySpecs]) => Object.keys(categorySpecs).length > 0,
         ),
     );
 };
@@ -151,7 +151,7 @@ const ProductDetails = () => {
     const { cartLoading } = useSelector((state) => state.cart);
 
     const [product, setProduct] = useState(location.state?.product || null);
-    console.log(product, "click product");
+    console.log(product ,'product')
     const [loading, setLoading] = useState(!location.state?.product);
     const [error, setError] = useState(null);
     const [addingToCart, setAddingToCart] = useState(false);
@@ -177,9 +177,6 @@ const ProductDetails = () => {
         page: 1,
         per_page: 10,
     });
-
-    console.log(product, "Select product");
-
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);

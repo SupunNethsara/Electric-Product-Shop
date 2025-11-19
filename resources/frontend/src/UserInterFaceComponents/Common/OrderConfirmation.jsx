@@ -6,7 +6,35 @@ function OrderConfirmation() {
     const location = useLocation();
     const { order, user, orderSummary, items, deliveryOption } =
     location.state || {};
+    console.log(order , 'order sumary')
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+    const getProductPrice = (product) => {
+        return parseFloat(product?.buy_now_price || product?.price || 0);
+    };
+
+    const hasDiscount = (product) => {
+        return product?.buy_now_price &&
+            product?.price &&
+            parseFloat(product.buy_now_price) < parseFloat(product.price);
+    };
+
+    const getProductSavings = (product, quantity = 1) => {
+        if (!hasDiscount(product)) return 0;
+        const originalPrice = parseFloat(product.price);
+        const discountedPrice = parseFloat(product.buy_now_price);
+        return (originalPrice - discountedPrice) * quantity;
+    };
+
+    const calculateTotalSavings = () => {
+        if (!items || items.length === 0) return 0;
+
+        return items.reduce((total, item) => {
+            return total + getProductSavings(item.product, item.quantity);
+        }, 0);
+    };
+
+    const totalSavings = calculateTotalSavings();
 
     if (!order || !user) {
         return (
@@ -112,6 +140,11 @@ function OrderConfirmation() {
                                     const mainImage =
                                         images[0] || item.product?.image;
 
+                                    const productPrice = getProductPrice(item.product);
+                                    const itemTotal = productPrice * item.quantity;
+                                    const productHasDiscount = hasDiscount(item.product);
+                                    const itemSavings = getProductSavings(item.product, item.quantity);
+
                                     return (
                                         <div
                                             key={item.id || index}
@@ -141,26 +174,32 @@ function OrderConfirmation() {
                                                         Qty: {item.quantity}
                                                     </span>
                                                     <span>•</span>
-                                                    <span>
-                                                        Rs.{" "}
-                                                        {item.product?.price
-                                                            ? parseFloat(
-                                                                item.product
-                                                                    .price,
-                                                            ).toFixed(2)
-                                                            : "0.00"}
-                                                    </span>
+                                                    {productHasDiscount ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-gray-500 line-through">
+                                                                Rs. {parseFloat(item.product.price).toFixed(2)}
+                                                            </span>
+                                                            <span className="font-semibold text-green-600">
+                                                                Rs. {productPrice.toFixed(2)}
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="font-semibold text-gray-900">
+                                                            Rs. {productPrice.toFixed(2)}
+                                                        </span>
+                                                    )}
                                                 </div>
+                                                {productHasDiscount && itemSavings > 0 && (
+                                                    <div className="mt-2">
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                            You saved Rs. {itemSavings.toFixed(2)}
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="text-right">
                                                 <p className="font-semibold text-gray-900 text-lg">
-                                                    Rs.{" "}
-                                                    {(
-                                                        parseFloat(
-                                                            item.product
-                                                                ?.price || 0,
-                                                        ) * item.quantity
-                                                    ).toFixed(2)}
+                                                    Rs. {itemTotal.toFixed(2)}
                                                 </p>
                                                 <p className="text-sm text-green-600 mt-1">
                                                     In Stock
@@ -176,6 +215,17 @@ function OrderConfirmation() {
                                 Order Summary
                             </h2>
                             <div className="space-y-4">
+                                {totalSavings > 0 && (
+                                    <div className="flex justify-between items-center py-2 bg-green-50 px-4 rounded-lg">
+                                        <span className="text-green-700 font-medium">
+                                            Total Savings
+                                        </span>
+                                        <span className="font-bold text-green-700">
+                                            -Rs. {totalSavings.toFixed(2)}
+                                        </span>
+                                    </div>
+                                )}
+
                                 <div className="flex justify-between items-center py-2">
                                     <span className="text-gray-600">
                                         Items Total ({orderSummary.itemCount}{" "}
