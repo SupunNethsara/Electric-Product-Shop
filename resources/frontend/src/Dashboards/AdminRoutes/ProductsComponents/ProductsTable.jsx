@@ -102,7 +102,6 @@ const ProductsTable = ({ refreshTrigger }) => {
         fetchProducts(1);
     }, [refreshTrigger]);
 
-    // Debounced filter effect
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             fetchProducts(1);
@@ -416,8 +415,8 @@ const ProductsTable = ({ refreshTrigger }) => {
                                     onImagesUpload={handleImagesUpload}
                                     onViewDetails={handleViewDetails}
                                     onStatusToggle={handleStatusToggle}
-                                    getStockStatusBadge={getStockStatusBadge} // Pass the badge function
-                                    isOutOfStock={isOutOfStock} // Pass the check function
+                                    getStockStatusBadge={getStockStatusBadge}
+                                    isOutOfStock={isOutOfStock}
                                 />
                             ))
                         ) : (

@@ -43,166 +43,260 @@ console.log(product)
         setGeneratingPDF(true);
         try {
             const { jsPDF } = await import('jspdf');
-         (await import('html2canvas')).default;
 
+            // Create PDF in A4 format
             const doc = new jsPDF('p', 'mm', 'a4');
             const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-            let yPosition = 20;
+            const margin = 15;
+            let yPosition = margin;
 
-            doc.setFillColor(37, 99, 235);
-            doc.rect(0, 0, pageWidth, 40, 'F');
+            // Add company header
+            doc.setFillColor(59, 130, 246); // Blue-500
+            doc.rect(0, 0, pageWidth, 25, 'F');
+
+            // Company logo and name
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(24);
-            doc.setFont(undefined, 'bold');
-            doc.text('PRODUCT CATALOG', pageWidth / 2, 20, { align: 'center' });
-            doc.setFontSize(10);
-            doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, 30, { align: 'center' });
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text('E-SUPPORT STORE', margin, 12);
 
-            yPosition = 50;
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Product Catalog Sheet', margin, 18);
+            doc.text(`Generated: ${new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            })}`, pageWidth - margin, 18, { align: 'right' });
+
+            yPosition = 35;
+
+            // Product Title Section
             doc.setTextColor(0, 0, 0);
-
             doc.setFontSize(18);
-            doc.setFont(undefined, 'bold');
-            doc.text(product.name, 15, yPosition);
+            doc.setFont('helvetica', 'bold');
+            const productNameLines = doc.splitTextToSize(product.name, pageWidth - (2 * margin));
+            doc.text(productNameLines, margin, yPosition);
+            yPosition += productNameLines.length * 6 + 5;
+
+            // Product Code and Model
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Item Code: ${product.item_code}`, margin, yPosition);
+            doc.text(`Model: ${product.model || 'N/A'}`, pageWidth / 2, yPosition);
+            yPosition += 8;
+
+            // Status and Availability
+            const statusColor = product.status === 'active' ? [34, 197, 94] : [156, 163, 175];
+            const stockColor = product.availability > 0 ? [34, 197, 94] : [239, 68, 68];
+
+            doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
+            doc.text(`Status: ${product.status.toUpperCase()}`, margin, yPosition);
+
+            doc.setTextColor(stockColor[0], stockColor[1], stockColor[2]);
+            doc.text(`Stock: ${product.availability} units`, pageWidth / 2, yPosition);
+
+            doc.setTextColor(0, 0, 0);
             yPosition += 10;
 
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.text(`Item Code: ${product.item_code} | Model: ${product.model}`, 15, yPosition);
-            yPosition += 15;
+            // Pricing Section
+            doc.setFillColor(240, 253, 244); // Light green background
+            doc.roundedRect(margin, yPosition, pageWidth - (2 * margin), 25, 3, 3, 'F');
 
-            doc.setFillColor(220, 252, 231);
-            doc.rect(15, yPosition - 5, pageWidth - 30, 25, 'F');
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'bold');
-            doc.text('PRICING', 20, yPosition + 3);
-            doc.setFont(undefined, 'normal');
-            doc.setFontSize(10);
-            doc.text(`Regular Price: Rs. ${parseFloat(product.price).toLocaleString()}`, 20, yPosition + 10);
-            doc.setTextColor(22, 163, 74);
             doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
-            doc.text(`Buy Now: Rs. ${parseFloat(product.buy_now_price).toLocaleString()}`, 20, yPosition + 18);
+            doc.setFont('helvetica', 'bold');
+            doc.text('PRICING INFORMATION', margin + 5, yPosition + 8);
+
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Regular Price:`, margin + 5, yPosition + 16);
+            doc.text(`Rs. ${parseFloat(product.price).toLocaleString()}`, margin + 40, yPosition + 16);
+
+            doc.setTextColor(22, 163, 74); // Green color for buy now price
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Buy Now Price:`, margin + 5, yPosition + 22);
+            doc.text(`Rs. ${parseFloat(product.buy_now_price).toLocaleString()}`, margin + 45, yPosition + 22);
+
+            // Calculate and display discount
+            const discount = product.price > 0 ? (((product.price - product.buy_now_price) / product.price) * 100).toFixed(1) : 0;
+            if (discount > 0) {
+                doc.setTextColor(239, 68, 68); // Red color for discount
+                doc.text(`You Save: ${discount}%`, pageWidth - margin - 5, yPosition + 22, { align: 'right' });
+            }
+
             doc.setTextColor(0, 0, 0);
-            const discount = (((product.price - product.buy_now_price) / product.price) * 100).toFixed(1);
-            doc.setFontSize(10);
-            doc.text(`Save ${discount}%`, 120, yPosition + 18);
             yPosition += 35;
 
+            // Product Details Section
             doc.setFontSize(12);
-            doc.setFont(undefined, 'bold');
-            doc.text('PRODUCT INFORMATION', 15, yPosition);
-            yPosition += 7;
-            doc.setFont(undefined, 'normal');
-            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('PRODUCT DETAILS', margin, yPosition);
+            yPosition += 8;
 
-            const info = [
-                [`Brand: ${product.category_2 || 'N/A'}`, `Type: ${product.category_3 || 'N/A'}`],
-                [`Stock: ${product.availability} units`, `Status: ${product.status}`],
-                [`Warranty: ${product.warranty || 'No warranty'}`, `Views: ${product.total_views}`]
+            // Category Information
+            const details = [
+                [`Category: ${product.category_1 || 'N/A'}`, `Brand: ${product.category_2 || 'N/A'}`],
+                [`Type: ${product.category_3 || 'N/A'}`, `Warranty: ${product.warranty || 'No warranty'}`],
+                [`Total Views: ${product.total_views || 0}`, `Rating: ${product.average_rating || 'N/A'}/5`]
             ];
 
-            info.forEach(row => {
-                doc.text(row[0], 20, yPosition);
-                doc.text(row[1], 110, yPosition);
-                yPosition += 6;
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            details.forEach(row => {
+                doc.text(row[0], margin + 5, yPosition);
+                doc.text(row[1], pageWidth / 2, yPosition);
+                yPosition += 5;
             });
-            yPosition += 5;
+            yPosition += 8;
 
-            doc.setFillColor(254, 243, 199);
-            doc.rect(15, yPosition - 5, pageWidth - 30, 30, 'F');
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'bold');
-            doc.text('RATINGS & REVIEWS', 20, yPosition + 3);
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.text(`Average Rating: ${product.average_rating || 0}/5`, 20, yPosition + 11);
-            doc.text(`Total Reviews: ${product.reviews_count || 0}`, 20, yPosition + 18);
+            // Check for page break
+            if (yPosition > 200) {
+                doc.addPage();
+                yPosition = margin;
+            }
 
-            let barX = 80;
-            [5, 4, 3, 2, 1].forEach((star, idx) => {
-                const count = product.rating_distribution?.[star] || 0;
-                const total = product.reviews_count || 1;
-                const percentage = (count / total) * 100;
-
-                doc.setFontSize(8);
-                doc.text(`${star}★`, barX, yPosition + 11 + (idx * 4));
-                doc.setFillColor(229, 231, 235);
-                doc.rect(barX + 8, yPosition + 8 + (idx * 4), 30, 2, 'F');
-                doc.setFillColor(251, 191, 36);
-                doc.rect(barX + 8, yPosition + 8 + (idx * 4), (30 * percentage) / 100, 2, 'F');
-                doc.setFontSize(7);
-                doc.text(`${count}`, barX + 40, yPosition + 11 + (idx * 4));
-            });
-            yPosition += 40;
-
+            // Description Section
             if (product.hedding || product.description) {
                 doc.setFontSize(12);
-                doc.setFont(undefined, 'bold');
-                doc.text('DESCRIPTION', 15, yPosition);
-                yPosition += 7;
+                doc.setFont('helvetica', 'bold');
+                doc.text('DESCRIPTION', margin, yPosition);
+                yPosition += 8;
+
                 doc.setFontSize(9);
-                doc.setFont(undefined, 'normal');
+                doc.setFont('helvetica', 'normal');
 
                 if (product.hedding) {
-                    const headingLines = doc.splitTextToSize(product.hedding, pageWidth - 30);
-                    doc.text(headingLines, 20, yPosition);
-                    yPosition += headingLines.length * 5;
+                    doc.setFont('helvetica', 'bold');
+                    const headingLines = doc.splitTextToSize(product.hedding, pageWidth - (2 * margin));
+                    doc.text(headingLines, margin + 5, yPosition);
+                    yPosition += headingLines.length * 4 + 3;
                 }
 
                 if (product.description) {
-                    const descLines = doc.splitTextToSize(product.description, pageWidth - 30);
-                    doc.text(descLines, 20, yPosition);
-                    yPosition += descLines.length * 5 + 5;
+                    doc.setFont('helvetica', 'normal');
+                    const descLines = doc.splitTextToSize(product.description, pageWidth - (2 * margin));
+                    doc.text(descLines, margin + 5, yPosition);
+                    yPosition += descLines.length * 4 + 8;
                 }
             }
 
-            if (yPosition > pageHeight - 60) {
+            // Check for page break
+            if (yPosition > 200) {
                 doc.addPage();
-                yPosition = 20;
+                yPosition = margin;
             }
 
+            // Specifications Section
             if (product.specification) {
                 doc.setFontSize(12);
-                doc.setFont(undefined, 'bold');
-                doc.text('SPECIFICATIONS', 15, yPosition);
-                yPosition += 7;
+                doc.setFont('helvetica', 'bold');
+                doc.text('SPECIFICATIONS', margin, yPosition);
+                yPosition += 8;
+
                 doc.setFontSize(8);
-                doc.setFont(undefined, 'normal');
-                const specLines = doc.splitTextToSize(product.specification, pageWidth - 30);
-                const maxLines = Math.min(specLines.length, 20); // Limit lines
-                doc.text(specLines.slice(0, maxLines), 20, yPosition);
-                yPosition += maxLines * 4 + 5;
-            }
+                doc.setFont('helvetica', 'normal');
 
-            if (product.tags && product.tags.trim()) {
-                if (yPosition > pageHeight - 30) {
-                    doc.addPage();
-                    yPosition = 20;
+                // Clean and format specifications
+                const cleanSpec = product.specification
+                    .replace(/[{}"\[\]]/g, '')
+                    .replace(/,/g, ', ')
+                    .replace(/:/g, ': ')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+
+                const specLines = doc.splitTextToSize(cleanSpec, pageWidth - (2 * margin));
+                const maxLines = Math.min(specLines.length, 35);
+
+                doc.text(specLines.slice(0, maxLines), margin + 5, yPosition);
+                yPosition += maxLines * 3 + 5;
+
+                if (specLines.length > maxLines) {
+                    doc.setTextColor(59, 130, 246);
+                    doc.text('[...specifications continue]', margin + 5, yPosition);
+                    doc.setTextColor(0, 0, 0);
+                    yPosition += 5;
                 }
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'bold');
-                doc.text('TAGS', 15, yPosition);
-                yPosition += 7;
-                doc.setFontSize(9);
-                doc.setFont(undefined, 'normal');
-                const tags = product.tags.split(',').map(t => t.trim()).filter(Boolean).join(', ');
-                const tagLines = doc.splitTextToSize(tags, pageWidth - 30);
-                doc.text(tagLines, 20, yPosition);
-                yPosition += tagLines.length * 5 + 10;
             }
 
+            // Check for page break
+            if (yPosition > 200) {
+                doc.addPage();
+                yPosition = margin;
+            }
+
+            // Tags Section
+            if (product.tags && product.tags.trim()) {
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('PRODUCT TAGS', margin, yPosition);
+                yPosition += 8;
+
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+
+                const tags = product.tags.split(',').map(t => t.trim()).filter(Boolean);
+                const tagsText = tags.join(' • ');
+                const tagLines = doc.splitTextToSize(tagsText, pageWidth - (2 * margin));
+
+                doc.text(tagLines, margin + 5, yPosition);
+                yPosition += tagLines.length * 3 + 8;
+            }
+
+            // Rating Distribution (if available)
+            if (product.rating_distribution && product.reviews_count > 0) {
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('RATING BREAKDOWN', margin, yPosition);
+                yPosition += 8;
+
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+
+                const ratingStartX = margin + 5;
+                [5, 4, 3, 2, 1].forEach((star, index) => {
+                    const count = product.rating_distribution[star] || 0;
+                    const total = product.reviews_count || 1;
+                    const percentage = (count / total) * 100;
+                    const barWidth = 40;
+
+                    doc.text(`${star}★:`, ratingStartX, yPosition + (index * 4));
+                    doc.setFillColor(229, 231, 235); // Gray background
+                    doc.rect(ratingStartX + 15, yPosition - 1.5 + (index * 4), barWidth, 2, 'F');
+                    doc.setFillColor(251, 191, 36); // Yellow progress
+                    doc.rect(ratingStartX + 15, yPosition - 1.5 + (index * 4), (barWidth * percentage) / 100, 2, 'F');
+                    doc.text(`${count} (${percentage.toFixed(1)}%)`, ratingStartX + 60, yPosition + (index * 4));
+                });
+                yPosition += 25;
+            }
+
+            // Footer on all pages
             const pageCount = doc.internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
+
+                // Page number
                 doc.setFontSize(8);
-                doc.setTextColor(128, 128, 128);
-                doc.text(`Page ${i} of ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
-                doc.text(`Product ID: ${product.id}`, 15, pageHeight - 10);
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Page ${i} of ${pageCount}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, {
+                    align: 'center'
+                });
+
+                // Confidential footer
+                doc.text('CONFIDENTIAL - For Internal Use Only', margin, doc.internal.pageSize.getHeight() - 10);
+                doc.text(`Product ID: ${product.id}`, pageWidth - margin, doc.internal.pageSize.getHeight() - 10, {
+                    align: 'right'
+                });
+
+                // Add border to entire page
+                doc.setDrawColor(200, 200, 200);
+                doc.rect(5, 5, pageWidth - 10, doc.internal.pageSize.getHeight() - 10);
             }
 
-            doc.save(`${product.item_code}-${product.name.replace(/[^a-z0-9]/gi, '-')}.pdf`);
+            // Save the PDF
+            const fileName = `${product.item_code}_${product.name.replace(/[^a-zA-Z0-9]/g, '_')}_product_sheet.pdf`;
+            doc.save(fileName);
 
         } catch (error) {
             console.error('Error generating PDF:', error);
