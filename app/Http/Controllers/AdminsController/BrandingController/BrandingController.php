@@ -24,24 +24,19 @@ class BrandingController extends Controller
             'price' => 'required|string',
             'original_price' => 'required|string',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'background_gradient' => 'nullable|string',
-            'gradient_from' => 'nullable|string',
-            'gradient_via' => 'nullable|string',
-            'gradient_to' => 'nullable|string',
-            'text_color' => 'nullable|string',
-            'button_color' => 'nullable|string',
-            'button_text_color' => 'nullable|string',
-            'badge_text' => 'nullable|string',
-            'badge_color' => 'nullable|string',
-            'promotion_text' => 'nullable|string',
-            'call_to_action' => 'nullable|string',
-            'is_active' => 'sometimes',
+            'is_active' => 'sometimes|boolean',
             'order' => 'integer'
         ]);
 
-        if (isset($validated['is_active'])) {
-            $validated['is_active'] = $this->convertToBoolean($validated['is_active']);
-        }
+        $validated['theme_colors'] = json_encode([
+            'primary' => '#0866ff',
+            'primaryHover' => '#0759e0',
+            'secondary' => '#e3251b',
+            'secondaryHover' => '#c91f16',
+            'gradientFrom' => '#e6f0ff',
+            'gradientVia' => '#f0f7ff',
+            'gradientTo' => '#e6f0ff'
+        ]);
 
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('slides', 'public');
@@ -65,29 +60,16 @@ class BrandingController extends Controller
             'price' => 'sometimes|required|string',
             'original_price' => 'sometimes|required|string',
             'image' => 'sometimes|required',
-            'background_gradient' => 'nullable|string',
-            'gradient_from' => 'nullable|string',
-            'gradient_via' => 'nullable|string',
-            'gradient_to' => 'nullable|string',
-            'text_color' => 'nullable|string',
-            'button_color' => 'nullable|string',
-            'button_text_color' => 'nullable|string',
-            'badge_text' => 'nullable|string',
-            'badge_color' => 'nullable|string',
-            'promotion_text' => 'nullable|string',
-            'call_to_action' => 'nullable|string',
-            'is_active' => 'sometimes',
+            'is_active' => 'sometimes|boolean',
             'order' => 'integer'
         ]);
-
-        if (isset($validated['is_active'])) {
-            $validated['is_active'] = $this->convertToBoolean($validated['is_active']);
-        }
 
         if ($request->hasFile('image')) {
             $request->validate([
                 'image' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048'
             ]);
+
+            // Delete old image
             if ($slide->image && Storage::disk('public')->exists(str_replace('/storage/', '', $slide->image))) {
                 Storage::disk('public')->delete(str_replace('/storage/', '', $slide->image));
             }
@@ -131,25 +113,5 @@ class BrandingController extends Controller
     {
         $slide->update(['is_active' => !$slide->is_active]);
         return response()->json($slide);
-    }
-
-    /**
-     * Convert various boolean representations to actual boolean
-     */
-    private function convertToBoolean($value)
-    {
-        if (is_bool($value)) {
-            return $value;
-        }
-
-        if (is_string($value)) {
-            return $value === 'true' || $value === '1';
-        }
-
-        if (is_numeric($value)) {
-            return (bool)$value;
-        }
-
-        return false;
     }
 }

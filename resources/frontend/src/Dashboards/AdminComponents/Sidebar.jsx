@@ -38,12 +38,6 @@ const Sidebar = () => {
             current: location.pathname.includes('/admin/orders')
         },
         {
-            name: 'Quotations',
-            href: '/admin/quotations',
-            icon: FileText,
-            current: location.pathname.includes('/admin/quotations')
-        },
-        {
             name: 'Users',
             href: '/admin/user-manage',
             icon: Users,

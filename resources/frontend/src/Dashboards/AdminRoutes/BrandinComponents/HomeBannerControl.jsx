@@ -31,20 +31,9 @@ function HomeBannerControl() {
         const newSlide = {
             title: "New Product",
             description: "Product description here...",
-            price: "$99.99",
-            original_price: "$129.99",
+            price: "Rs299.99",
+            original_price: "Rs374.99",
             image: null,
-            background_gradient: "from-green-200 via-green-100 to-green-200",
-            gradient_from: "#dcfce7",
-            gradient_via: "#f0fdf4",
-            gradient_to: "#dcfce7",
-            text_color: "text-slate-800",
-            button_color: "bg-slate-800",
-            button_text_color: "text-white",
-            badge_text: "NEWS",
-            badge_color: "bg-green-600",
-            promotion_text: "Free Shipping on Orders Above $50!",
-            call_to_action: "SHOP NOW",
             is_active: true,
             order: slides.length + 1
         };
@@ -60,30 +49,60 @@ function HomeBannerControl() {
     const handleSaveSlide = async (updatedSlide) => {
         try {
             setIsLoading(true);
+            const formData = new FormData();
+
+            Object.keys(updatedSlide).forEach(key => {
+                if (key === 'image' && updatedSlide[key] instanceof File) {
+                    formData.append('image', updatedSlide[key]);
+                } else if (key === 'is_active') {
+                    formData.append(key, updatedSlide[key] ? '1' : '0');
+                } else if (key !== 'image' || (key === 'image' && typeof updatedSlide[key] === 'string')) {
+                    formData.append(key, updatedSlide[key]);
+                }
+            });
+
             if (isAddingNew) {
-                const response = await axios.post(`${API_BASE_URL}/slides`, updatedSlide);
+                const response = await axios.post(`${API_BASE_URL}/slides`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'Accept': 'application/json'
+                    }
+                });
                 setSlides(prev => [...prev, response.data]);
             } else {
-                const response = await axios.put(`${API_BASE_URL}/slides/${updatedSlide.id}`, updatedSlide);
+                const response = await axios.post(`${API_BASE_URL}/slides/${updatedSlide.id}?_method=PUT`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'Accept': 'application/json'
+                    }
+                });
                 setSlides(prev => prev.map(slide =>
                     slide.id === updatedSlide.id ? response.data : slide
                 ));
             }
             setEditingSlide(null);
             setIsAddingNew(false);
+            fetchSlides();
         } catch (error) {
             console.error('Error saving slide:', error);
+            console.error('Error response:', error.response?.data);
+            alert('Error saving slide: ' + (error.response?.data?.message || error.message));
         } finally {
             setIsLoading(false);
         }
     };
 
     const handleDeleteSlide = async (slideId) => {
+        if (!window.confirm('Are you sure you want to delete this slide?')) {
+            return;
+        }
+
         try {
             await axios.delete(`${API_BASE_URL}/slides/${slideId}`);
             setSlides(prev => prev.filter(slide => slide.id !== slideId));
         } catch (error) {
             console.error('Error deleting slide:', error);
+            alert('Error deleting slide');
         }
     };
 

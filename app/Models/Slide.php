@@ -1,5 +1,4 @@
 <?php
-// app/Models/Slide.php
 
 namespace App\Models;
 
@@ -16,22 +15,13 @@ class Slide extends Model
         'price',
         'original_price',
         'image',
-        'background_gradient',
-        'gradient_from',
-        'gradient_via',
-        'gradient_to',
-        'text_color',
-        'button_color',
-        'button_text_color',
-        'badge_text',
-        'badge_color',
-        'promotion_text',
-        'call_to_action',
+        'theme_colors',
         'is_active',
         'order'
     ];
 
     protected $casts = [
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
+        'theme_colors' => 'array'
     ];
 }
