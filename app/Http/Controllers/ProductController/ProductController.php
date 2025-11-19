@@ -240,18 +240,19 @@ class ProductController extends Controller
                         'hedding' => $detailRow[7] ?? null,
                         'warranty' => $detailRow[8] ?? null,
                         'specification' => $detailRow[9] ?? null,
-                        'tags' => $detailRow[10] ?? null,
-                        'youtube_video_id' => $detailRow[11] ?? null,
+                        'specification_pdf_id' => $detailRow[10] ?? null,
+                        'tags' => $detailRow[11] ?? null,
+                        'youtube_video_id' => $detailRow[12] ?? null,
                         'price' => is_numeric($priceRow[1] ?? 0) ? (float)$priceRow[1] : 0,
                         'buy_now_price' => is_numeric($priceRow[2] ?? 0) ? (float)$priceRow[2] : 0,
                         'availability' => is_numeric($priceRow[3] ?? 0) ? (int)$priceRow[3] : 0,
                         'status' => $existingProduct && $existingProduct->images ? 'active' : 'disabled'
-
                     ];
 
                     $productData = array_map(function($value) {
                         return is_string($value) ? trim($value) : $value;
                     }, $productData);
+
                     Product::updateOrCreate(
                         ['item_code' => $itemCode],
                         $productData
@@ -468,6 +469,7 @@ class ProductController extends Controller
             'hedding',
             'warranty',
             'specification',
+            'specification_pdf_id',
             'tags',
             'youtube_video_id'
         ];
@@ -487,7 +489,7 @@ class ProductController extends Controller
             ]
         ];
 
-        $sheet->getStyle('A1:L1')->applyFromArray($headerStyle);
+        $sheet->getStyle('A1:M1')->applyFromArray($headerStyle);
 
         $sheet->getColumnDimension('A')->setWidth(15);
         $sheet->getColumnDimension('B')->setWidth(30);
@@ -500,7 +502,8 @@ class ProductController extends Controller
         $sheet->getColumnDimension('I')->setWidth(15);
         $sheet->getColumnDimension('J')->setWidth(40);
         $sheet->getColumnDimension('K')->setWidth(25);
-        $sheet->getColumnDimension('L')->setWidth(20);
+        $sheet->getColumnDimension('L')->setWidth(25);
+        $sheet->getColumnDimension('M')->setWidth(20);
 
         $exampleData = [
             'PROD001',
@@ -513,6 +516,7 @@ class ProductController extends Controller
             'Main Heading',
             '1 Year',
             'Sample specifications here',
+            'https://example.com/specification.pdf',
             'tag1,tag2,tag3',
             'abc123def45'
         ];
@@ -644,8 +648,6 @@ class ProductController extends Controller
                     'message' => 'Product not found'
                 ], 404);
             }
-
-            // Soft delete the product
             $product->delete();
 
             return response()->json([
@@ -716,7 +718,6 @@ class ProductController extends Controller
                 ], 404);
             }
 
-            // Permanently delete the product
             $product->forceDelete();
 
             return response()->json([

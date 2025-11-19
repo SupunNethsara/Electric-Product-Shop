@@ -20,6 +20,7 @@ class Product extends Model
         'model',
         'description',
         'specification',
+        'specification_pdf_id',
         'tags',
         'youtube_video_id',
         'price',

@@ -515,7 +515,7 @@ const ProductDetails = () => {
                             <div className="bg-gray-50 rounded-xl p-5 border border-blue-100">
                                 <div className="flex items-baseline gap-3 mb-1">
                                     <span className="text-3xl font-bold text-gray-600">
-                                        Rs. {currentPrice.toLocaleString()}
+                                        Rs. {currentPrice.toLocaleString()}/=
                                     </span>
                                     {product.price && product.buy_now_price && product.price > product.buy_now_price && (
                                         <>
