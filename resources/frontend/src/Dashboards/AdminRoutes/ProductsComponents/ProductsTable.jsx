@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProductRow from './ProductRow';
-import { Search, Filter, Eye, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Search, Filter, Eye, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Package } from 'lucide-react';
 import useToast from "../../../UserInterFaceComponents/Common/useToast.jsx";
 import {ProductDetailsModal} from "./ProductDetailsModal.jsx";
 
@@ -26,7 +26,8 @@ const ProductsTable = ({ refreshTrigger }) => {
         status: 'all',
         minPrice: '',
         maxPrice: '',
-        inStock: false
+        inStock: false,
+        outOfStock: false
     });
 
     const handleStatusToggle = async (productId, newStatus) => {
@@ -63,7 +64,8 @@ const ProductsTable = ({ refreshTrigger }) => {
                 ...(filters.status !== 'all' && { status: filters.status }),
                 ...(filters.minPrice && { min_price: filters.minPrice }),
                 ...(filters.maxPrice && { max_price: filters.maxPrice }),
-                ...(filters.inStock && { in_stock: true })
+                ...(filters.inStock && { in_stock: true }),
+                ...(filters.outOfStock && { availability: 0 })
             });
 
             const response = await axios.get(`http://127.0.0.1:8000/api/products?${params}`);
@@ -182,7 +184,8 @@ const ProductsTable = ({ refreshTrigger }) => {
             status: 'all',
             minPrice: '',
             maxPrice: '',
-            inStock: false
+            inStock: false,
+            outOfStock: false
         });
     };
 
@@ -218,6 +221,28 @@ const ProductsTable = ({ refreshTrigger }) => {
         if (last > 1) pages.push(last);
 
         return pages;
+    };
+
+    const isOutOfStock = (product) => {
+        return product.availability === 0 || product.availability === '0' || !product.availability;
+    };
+
+    const getStockStatusBadge = (product) => {
+        if (isOutOfStock(product)) {
+            return (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-100 text-red-800 border border-red-200">
+                    <Package className="w-3 h-3 mr-1" />
+                    Out of Stock
+                </span>
+            );
+        } else {
+            return (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 border border-green-200">
+                    <Package className="w-3 h-3 mr-1" />
+                    In Stock ({product.availability})
+                </span>
+            );
+        }
     };
 
     const filteredProducts = Array.isArray(products) ? products : [];
@@ -289,7 +314,17 @@ const ProductsTable = ({ refreshTrigger }) => {
                         <span className="text-sm text-gray-700">In Stock</span>
                     </label>
 
-                    {(filters.search || filters.status !== 'all' || filters.minPrice || filters.maxPrice || filters.inStock) && (
+                    <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input
+                            type="checkbox"
+                            checked={filters.outOfStock}
+                            onChange={(e) => handleFilterChange('outOfStock', e.target.checked)}
+                            className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                        />
+                        <span className="text-sm text-gray-700">Out of Stock</span>
+                    </label>
+
+                    {(filters.search || filters.status !== 'all' || filters.minPrice || filters.maxPrice || filters.inStock || filters.outOfStock) && (
                         <button
                             onClick={clearFilters}
                             className="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -300,7 +335,7 @@ const ProductsTable = ({ refreshTrigger }) => {
                 </div>
             </div>
 
-            {(filters.search || filters.status !== 'all' || filters.minPrice || filters.maxPrice || filters.inStock) && (
+            {(filters.search || filters.status !== 'all' || filters.minPrice || filters.maxPrice || filters.inStock || filters.outOfStock) && (
                 <div className="flex flex-wrap gap-2">
                     {filters.search && (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
@@ -325,6 +360,11 @@ const ProductsTable = ({ refreshTrigger }) => {
                     {filters.inStock && (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-teal-100 text-teal-800">
                             In Stock Only
+                        </span>
+                    )}
+                    {filters.outOfStock && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
+                            Out of Stock Only
                         </span>
                     )}
                 </div>
@@ -354,7 +394,7 @@ const ProductsTable = ({ refreshTrigger }) => {
                                 Price
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
-                                Stock
+                                Stock Status
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Actions
@@ -376,6 +416,8 @@ const ProductsTable = ({ refreshTrigger }) => {
                                     onImagesUpload={handleImagesUpload}
                                     onViewDetails={handleViewDetails}
                                     onStatusToggle={handleStatusToggle}
+                                    getStockStatusBadge={getStockStatusBadge} // Pass the badge function
+                                    isOutOfStock={isOutOfStock} // Pass the check function
                                 />
                             ))
                         ) : (
@@ -392,7 +434,7 @@ const ProductsTable = ({ refreshTrigger }) => {
                                                 : 'No products available in the system.'
                                             }
                                         </p>
-                                        {(filters.search || filters.status !== 'all' || filters.minPrice || filters.maxPrice || filters.inStock) && (
+                                        {(filters.search || filters.status !== 'all' || filters.minPrice || filters.maxPrice || filters.inStock || filters.outOfStock) && (
                                             <button
                                                 onClick={clearFilters}
                                                 className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
@@ -461,9 +503,7 @@ const ProductsTable = ({ refreshTrigger }) => {
                                                 ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
                                                 : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                                         } ${page === '...' ? 'cursor-default' : 'cursor-pointer'}`}
-                                    >
-                                        {page}
-                                    </button>
+                                    />
                                 ))}
 
                                 <button
@@ -491,6 +531,7 @@ const ProductsTable = ({ refreshTrigger }) => {
                 <ProductDetailsModal
                     product={selectedProduct}
                     onClose={() => setShowModal(false)}
+                    isOutOfStock={isOutOfStock(selectedProduct)}
                 />
             )}
         </div>
