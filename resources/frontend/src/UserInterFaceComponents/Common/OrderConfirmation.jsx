@@ -6,7 +6,6 @@ function OrderConfirmation() {
     const location = useLocation();
     const { order, user, orderSummary, items, deliveryOption } =
     location.state || {};
-    console.log(order , 'order sumary')
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
     const getProductPrice = (product) => {

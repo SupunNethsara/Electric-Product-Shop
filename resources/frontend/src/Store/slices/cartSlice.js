@@ -111,6 +111,11 @@ export const clearServerCart = createAsyncThunk(
     }
 );
 
+// Helper function to get product price (buy_now_price first, then price)
+const getProductPrice = (product) => {
+    return parseFloat(product?.buy_now_price || product?.price || 0);
+};
+
 const cartSlice = createSlice({
     name: 'cart',
     initialState: {
@@ -144,7 +149,8 @@ const cartSlice = createSlice({
                 state.items = action.payload;
                 state.totalItems = action.payload.reduce((total, item) => total + item.quantity, 0);
                 state.totalPrice = action.payload.reduce((total, item) => {
-                    return total + (parseFloat(item.product.price) * item.quantity);
+                    const productPrice = getProductPrice(item.product);
+                    return total + (productPrice * item.quantity);
                 }, 0);
             })
             .addCase(fetchCartItems.rejected, (state, action) => {
@@ -170,7 +176,8 @@ const cartSlice = createSlice({
 
                 state.totalItems = state.items.reduce((total, item) => total + item.quantity, 0);
                 state.totalPrice = state.items.reduce((total, item) => {
-                    return total + (parseFloat(item.product.price) * item.quantity);
+                    const productPrice = getProductPrice(item.product);
+                    return total + (productPrice * item.quantity);
                 }, 0);
             })
             .addCase(addToCart.rejected, (state, action) => {
@@ -195,9 +202,8 @@ const cartSlice = createSlice({
 
                 state.totalItems = state.items.reduce((total, item) => total + item.quantity, 0);
                 state.totalPrice = state.items.reduce((total, item) => {
-                    return item.product ?
-                        total + (parseFloat(item.product.price) * item.quantity) :
-                        total;
+                    const productPrice = getProductPrice(item.product);
+                    return total + (productPrice * item.quantity);
                 }, 0);
             })
             .addCase(updateCartItem.rejected, (state, action) => {
@@ -215,7 +221,8 @@ const cartSlice = createSlice({
 
                 state.totalItems = state.items.reduce((total, item) => total + item.quantity, 0);
                 state.totalPrice = state.items.reduce((total, item) => {
-                    return total + (parseFloat(item.product.price) * item.quantity);
+                    const productPrice = getProductPrice(item.product);
+                    return total + (productPrice * item.quantity);
                 }, 0);
             })
             .addCase(removeFromCart.rejected, (state, action) => {
