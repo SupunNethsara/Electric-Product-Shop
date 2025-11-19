@@ -16,3 +16,7 @@ Route::post('/products/{id}/track-view', [ProductController::class, 'trackView']
 Route::get('/products/{id}/view-stats', [ProductController::class, 'getViewStats']);
 Route::get('/products/most-viewed', [ProductController::class, 'getMostViewedProducts']);
 
+//Excel Files
+Route::get('/products/download/details-template', [ProductController::class, 'downloadProductDetailsTemplate']);
+Route::get('/products/download/pricing-template', [ProductController::class, 'downloadProductPricingTemplate']);
+Route::get('/products/download/all-templates', [ProductController::class, 'downloadAllTemplates']);

@@ -13,6 +13,9 @@ use App\Models\ProductView;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProductController extends Controller
 {
@@ -448,4 +451,186 @@ class ProductController extends Controller
             'total_views' => $products->sum('total_views')
         ]);
     }
+    public function downloadProductDetailsTemplate(): StreamedResponse
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $headers = [
+            'item_code',
+            'name',
+            'category_1',
+            'category_2',
+            'category_3',
+            'model',
+            'description',
+            'hedding',
+            'warranty',
+            'specification',
+            'tags',
+            'youtube_video_id'
+        ];
+
+        foreach ($headers as $index => $header) {
+            $sheet->setCellValueByColumnAndRow($index + 1, 1, $header);
+        }
+
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF']
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '2E86C1']
+            ]
+        ];
+
+        $sheet->getStyle('A1:L1')->applyFromArray($headerStyle);
+
+        $sheet->getColumnDimension('A')->setWidth(15);
+        $sheet->getColumnDimension('B')->setWidth(30);
+        $sheet->getColumnDimension('C')->setWidth(20);
+        $sheet->getColumnDimension('D')->setWidth(20);
+        $sheet->getColumnDimension('E')->setWidth(20);
+        $sheet->getColumnDimension('F')->setWidth(15);
+        $sheet->getColumnDimension('G')->setWidth(40);
+        $sheet->getColumnDimension('H')->setWidth(20);
+        $sheet->getColumnDimension('I')->setWidth(15);
+        $sheet->getColumnDimension('J')->setWidth(40);
+        $sheet->getColumnDimension('K')->setWidth(25);
+        $sheet->getColumnDimension('L')->setWidth(20);
+
+        $exampleData = [
+            'PROD001',
+            'Sample Product Name',
+            'Electronics',
+            'Mobile Phones',
+            'Smartphones',
+            'MODEL-X1',
+            'This is a sample product description',
+            'Main Heading',
+            '1 Year',
+            'Sample specifications here',
+            'tag1,tag2,tag3',
+            'abc123def45'
+        ];
+
+        foreach ($exampleData as $index => $value) {
+            $sheet->setCellValueByColumnAndRow($index + 1, 2, $value);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function() use ($writer) {
+            $writer->save('php://output');
+        }, 'product_details_template.xlsx');
+    }
+
+    /**
+     * Download Product Pricing Excel template
+     */
+    public function downloadProductPricingTemplate(): StreamedResponse
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $headers = [
+            'item_code',
+            'price',
+            'buy_now_price',
+            'availability'
+        ];
+
+        foreach ($headers as $index => $header) {
+            $sheet->setCellValueByColumnAndRow($index + 1, 1, $header);
+        }
+
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF']
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '27AE60']
+            ]
+        ];
+
+        $sheet->getStyle('A1:D1')->applyFromArray($headerStyle);
+
+        $sheet->getColumnDimension('A')->setWidth(15);
+        $sheet->getColumnDimension('B')->setWidth(15);
+        $sheet->getColumnDimension('C')->setWidth(15);
+        $sheet->getColumnDimension('D')->setWidth(15);
+
+        $exampleData = [
+            'PROD001',
+            99.99,
+            89.99,
+            50
+        ];
+
+        foreach ($exampleData as $index => $value) {
+            $sheet->setCellValueByColumnAndRow($index + 1, 2, $value);
+        }
+
+        $sheet->getStyle('B2:D2')->getNumberFormat()->setFormatCode('#,##0.00');
+
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function() use ($writer) {
+            $writer->save('php://output');
+        }, 'product_pricing_template.xlsx');
+    }
+
+    /**
+     * Download both templates as a zip file (optional)
+     */
+    public function downloadAllTemplates(): StreamedResponse
+    {
+
+        $tempDir = sys_get_temp_dir();
+        $detailsFile = $tempDir . '/product_details_template.xlsx';
+        $pricingFile = $tempDir . '/product_pricing_template.xlsx';
+
+        $detailsSpreadsheet = new Spreadsheet();
+        $detailsSheet = $detailsSpreadsheet->getActiveSheet();
+        $detailsHeaders = ['item_code', 'name', 'category_1', 'category_2', 'category_3', 'model', 'description', 'hedding', 'warranty', 'specification', 'tags', 'youtube_video_id'];
+
+        foreach ($detailsHeaders as $index => $header) {
+            $detailsSheet->setCellValueByColumnAndRow($index + 1, 1, $header);
+        }
+
+        $detailsWriter = new Xlsx($detailsSpreadsheet);
+        $detailsWriter->save($detailsFile);
+
+        $pricingSpreadsheet = new Spreadsheet();
+        $pricingSheet = $pricingSpreadsheet->getActiveSheet();
+        $pricingHeaders = ['item_code', 'price', 'buy_now_price', 'availability'];
+
+        foreach ($pricingHeaders as $index => $header) {
+            $pricingSheet->setCellValueByColumnAndRow($index + 1, 1, $header);
+        }
+
+        $pricingWriter = new Xlsx($pricingSpreadsheet);
+        $pricingWriter->save($pricingFile);
+
+
+        $zipFile = $tempDir . '/product_templates.zip';
+        $zip = new \ZipArchive();
+        $zip->open($zipFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+        $zip->addFile($detailsFile, 'product_details_template.xlsx');
+        $zip->addFile($pricingFile, 'product_pricing_template.xlsx');
+        $zip->close();
+
+        unlink($detailsFile);
+        unlink($pricingFile);
+
+        return response()->streamDownload(function() use ($zipFile) {
+            readfile($zipFile);
+            unlink($zipFile);
+        }, 'product_templates.zip');
+    }
+
 }
