@@ -47,14 +47,23 @@ class SystemSettingController extends Controller
             'items_per_page' => $validated['itemsPerPage'],
         ];
 
-        if ($request->hasFile('logo')) {
-            if ($settings->logo && Storage::exists($settings->logo)) {
-                Storage::delete($settings->logo);
+        $shouldRemoveLogo = $request->has('remove_logo') && $request->input('remove_logo') === 'true';
+
+        if ($shouldRemoveLogo) {
+            if ($settings->logo && Storage::disk('public')->exists($settings->logo)) {
+                Storage::disk('public')->delete($settings->logo);
             }
+            $updateData['logo'] = null;
+            $updateData['logo_url'] = null;
+        }
+        else if ($request->hasFile('logo')) {
+            if ($settings->logo && Storage::disk('public')->exists($settings->logo)) {
+                Storage::disk('public')->delete($settings->logo);
+            }
+
             $logoPath = $request->file('logo')->store('logos', 'public');
             $updateData['logo'] = $logoPath;
             $updateData['logo_url'] = Storage::url($logoPath);
-
         }
 
         $settings->update($updateData);

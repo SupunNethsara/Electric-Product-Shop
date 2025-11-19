@@ -17,6 +17,7 @@ function SystemSettings() {
     const [message, setMessage] = useState('');
     const [logoPreview, setLogoPreview] = useState(null);
     const [logoFile, setLogoFile] = useState(null);
+    const [removeLogoFlag, setRemoveLogoFlag] = useState(false);
     const token = localStorage.getItem('token');
 
     useEffect(() => {
@@ -50,7 +51,12 @@ function SystemSettings() {
 
             if (data.logo_url) {
                 setLogoPreview(data.logo_url);
+            } else {
+                setLogoPreview(null);
             }
+
+            setRemoveLogoFlag(false);
+            setLogoFile(null);
         } catch (error) {
             console.error('Error fetching settings:', error);
             setMessage('Error loading settings');
@@ -79,6 +85,7 @@ function SystemSettings() {
             }
 
             setLogoFile(file);
+            setRemoveLogoFlag(false);
             const reader = new FileReader();
             reader.onload = (e) => {
                 setLogoPreview(e.target.result);
@@ -90,11 +97,12 @@ function SystemSettings() {
     const removeLogo = () => {
         setLogoFile(null);
         setLogoPreview(null);
-        setSettings(prev => ({
-            ...prev,
-            logo: null,
-            logoUrl: null
-        }));
+        setRemoveLogoFlag(true);
+
+        const fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) {
+            fileInput.value = '';
+        }
     };
 
     const saveSettings = async () => {
@@ -111,6 +119,9 @@ function SystemSettings() {
             formData.append('siteDescription', settings.siteDescription || '');
             formData.append('itemsPerPage', settings.itemsPerPage.toString());
 
+            if (removeLogoFlag) {
+                formData.append('remove_logo', 'true');
+            }
             if (logoFile) {
                 formData.append('logo', logoFile);
             }
@@ -138,9 +149,12 @@ function SystemSettings() {
 
             if (updatedData.logo_url) {
                 setLogoPreview(updatedData.logo_url);
+            } else {
+                setLogoPreview(null);
             }
 
             setLogoFile(null);
+            setRemoveLogoFlag(false);
 
         } catch (error) {
             console.error('Error saving settings:', error);
@@ -172,6 +186,7 @@ function SystemSettings() {
             });
             setLogoPreview(null);
             setLogoFile(null);
+            setRemoveLogoFlag(false);
         }
     };
 
@@ -272,7 +287,7 @@ function SystemSettings() {
                                                                 PNG format only. Maximum file size: 2MB
                                                             </p>
                                                         </div>
-                                                        {logoPreview && (
+                                                        {(logoPreview || settings.logoUrl) && (
                                                             <button
                                                                 type="button"
                                                                 onClick={removeLogo}
@@ -282,6 +297,11 @@ function SystemSettings() {
                                                             </button>
                                                         )}
                                                     </div>
+                                                    {(removeLogoFlag || logoFile) && (
+                                                        <p className="text-sm text-blue-600">
+                                                            {removeLogoFlag ? 'Logo will be removed when you save settings' : 'New logo will be uploaded when you save settings'}
+                                                        </p>
+                                                    )}
                                                 </div>
 
                                                 <div className="space-y-2">

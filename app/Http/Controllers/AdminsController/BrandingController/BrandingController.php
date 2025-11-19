@@ -69,7 +69,6 @@ class BrandingController extends Controller
                 'image' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048'
             ]);
 
-            // Delete old image
             if ($slide->image && Storage::disk('public')->exists(str_replace('/storage/', '', $slide->image))) {
                 Storage::disk('public')->delete(str_replace('/storage/', '', $slide->image));
             }
