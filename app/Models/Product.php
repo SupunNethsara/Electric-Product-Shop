@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $fillable = [
         'item_code',
@@ -32,17 +33,14 @@ class Product extends Model
         'total_views'
     ];
 
-
     protected $casts = [
         'images' => 'array'
     ];
-
 
     protected $appends = [
         'average_rating',
         'reviews_count',
         'rating_distribution',
-
     ];
 
     public function category()

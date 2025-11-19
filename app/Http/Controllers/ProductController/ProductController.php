@@ -633,5 +633,140 @@ class ProductController extends Controller
             unlink($zipFile);
         }, 'product_templates.zip');
     }
+    public function destroy($id)
+    {
+        try {
+            $product = Product::find($id);
 
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product not found'
+                ], 404);
+            }
+
+            // Soft delete the product
+            $product->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product deleted successfully',
+                'data' => [
+                    'id' => $product->id,
+                    'item_code' => $product->item_code,
+                    'name' => $product->name,
+                    'deleted_at' => $product->deleted_at
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to delete product: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete product',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function restore($id)
+    {
+        try {
+            $product = Product::withTrashed()->find($id);
+
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product not found'
+                ], 404);
+            }
+
+            if (!$product->trashed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product is not deleted'
+                ], 400);
+            }
+
+            $product->restore();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product restored successfully',
+                'data' => $product
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to restore product: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to restore product',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function forceDelete($id)
+    {
+        try {
+            $product = Product::withTrashed()->find($id);
+
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product not found'
+                ], 404);
+            }
+
+            // Permanently delete the product
+            $product->forceDelete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product permanently deleted',
+                'data' => [
+                    'id' => $id,
+                    'item_code' => $product->item_code,
+                    'name' => $product->name
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to permanently delete product: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to permanently delete product',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function trashed(Request $request)
+    {
+        $perPage = $request->get('per_page', 15);
+        $page = $request->get('page', 1);
+
+        $query = Product::onlyTrashed();
+
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('item_code', 'like', "%{$search}%")
+                    ->orWhere('model', 'like', "%{$search}%");
+            });
+        }
+
+        $products = $query->orderBy('deleted_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'data' => $products->items(),
+            'pagination' => [
+                'current_page' => $products->currentPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
+                'last_page' => $products->lastPage(),
+                'from' => $products->firstItem(),
+                'to' => $products->lastItem(),
+            ]
+        ]);
+    }
 }
