@@ -57,7 +57,8 @@ class ProductController extends Controller
             $query->where('availability', '>', 0);
         }
 
-        $query->orderBy('created_at', 'desc');
+        $query->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc');
 
         $products = $query->paginate($perPage, ['*'], 'page', $page);
 
