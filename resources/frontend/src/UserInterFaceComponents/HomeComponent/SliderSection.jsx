@@ -21,24 +21,24 @@ const defaultSlides = [
         id: 1,
         title: "CCTV Systems",
         description: "Advanced security solutions for your home and business.",
-        price: "Rs299.99",
-        original_price: "Rs374.99",
+        price: "Rs4500.00",
+        original_price: "Rs5000.00",
         image: "/CCTV.png",
     },
     {
         id: 2,
         title: "DSLR Cameras",
         description: "Professional photography equipment for stunning results.",
-        price: "Rs899.99",
-        original_price: "Rs1,199.99",
+        price: "Rs12899.99",
+        original_price: "Rs1,4499.99",
         image: "/CameraBlack.png",
     },
     {
         id: 3,
         title: "Power Supplies",
         description: "Reliable power solutions for all your devices.",
-        price: "Rs129.99",
-        original_price: "Rs159.99",
+        price: "Rs5000.00",
+        original_price: "Rs5500.00",
         image: "/powersuply.png",
     },
 ];
@@ -65,24 +65,18 @@ function SliderSection() {
     useEffect(() => {
         const fetchSlides = async () => {
             try {
-                console.log('Fetching slides from API...');
                 const response = await axios.get('http://localhost:8000/api/slides', {
-                    timeout: 5000 // 5 second timeout
+                    timeout: 5000
                 });
-                console.log('API Response:', response.data);
-
                 if (response.data && Array.isArray(response.data)) {
                     const activeSlides = response.data.filter(slide => slide.is_active);
-                    console.log('Active slides:', activeSlides);
 
                     if (activeSlides.length > 0) {
                         setSlides(activeSlides);
                     } else {
-                        console.log('No active slides found, using default slides');
                         setSlides(defaultSlides);
                     }
                 } else {
-                    console.log('Invalid API response, using default slides');
                     setSlides(defaultSlides);
                 }
             } catch (error) {
@@ -195,9 +189,109 @@ function SliderSection() {
     if (loading) {
         return (
             <section className="flex justify-center items-center">
-                <div className="w-full h-[400px] sm:h-[450px] lg:h-[500px] bg-gray-100 rounded-3xl flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                    <span className="ml-3 text-gray-600">Loading slides...</span>
+                <div className="w-full h-[400px] sm:h-[450px] lg:h-[500px]">
+                    <div
+                        className="relative rounded-3xl overflow-hidden shadow-xl h-full"
+                        style={{
+                            background: `linear-gradient(135deg, ${themeColors.gradientFrom}, ${themeColors.gradientVia}, ${themeColors.gradientTo})`,
+                        }}
+                    >
+                        <div className="relative h-full">
+                            <div className="w-full flex-shrink-0 h-full p-4 sm:p-8 lg:p-16 grid md:grid-cols-2 items-center">
+                                <div className="text-content space-y-3 sm:space-y-4 text-center md:text-left">
+                                    <div
+                                        className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm animate-pulse"
+                                        style={{
+                                            backgroundColor: `${themeColors.primary}15`,
+                                            color: themeColors.primary,
+                                        }}
+                                    >
+                                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500"></span>
+                                        Free Shipping Over Rs50
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <div
+                                            className="h-8 sm:h-10 lg:h-12 bg-gray-300 rounded-lg animate-pulse max-w-xs"
+                                            style={{ backgroundColor: `${themeColors.primary}20` }}
+                                        ></div>
+                                        <div
+                                            className="h-6 sm:h-8 bg-gray-300 rounded-lg animate-pulse max-w-sm"
+                                            style={{ backgroundColor: `${themeColors.primary}15` }}
+                                        ></div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <div
+                                            className="h-4 bg-gray-300 rounded animate-pulse max-w-md"
+                                            style={{ backgroundColor: `${themeColors.primary}10` }}
+                                        ></div>
+                                        <div
+                                            className="h-4 bg-gray-300 rounded animate-pulse max-w-lg"
+                                            style={{ backgroundColor: `${themeColors.primary}10` }}
+                                        ></div>
+                                        <div
+                                            className="h-4 bg-gray-300 rounded animate-pulse max-w-sm"
+                                            style={{ backgroundColor: `${themeColors.primary}10` }}
+                                        ></div>
+                                    </div>
+                                    <div className="flex items-center gap-3 sm:gap-4 mt-4 sm:mt-6 flex-wrap">
+                                        <div
+                                            className="h-8 w-24 bg-gray-300 rounded-lg animate-pulse"
+                                            style={{ backgroundColor: `${themeColors.primary}20` }}
+                                        ></div>
+                                        <div
+                                            className="h-6 w-20 bg-gray-300 rounded-lg animate-pulse"
+                                            style={{ backgroundColor: `${themeColors.primary}15` }}
+                                        ></div>
+                                        <div
+                                            className="h-8 w-20 bg-gray-300 rounded-full animate-pulse"
+                                            style={{ backgroundColor: `${themeColors.secondary}30` }}
+                                        ></div>
+                                    </div>
+                                    <div
+                                        className="h-12 w-32 bg-gray-300 rounded-lg animate-pulse mt-4 sm:mt-6"
+                                        style={{ backgroundColor: `${themeColors.primary}30` }}
+                                    ></div>
+                                </div>
+                                <div className="image-content flex justify-center relative mt-4 md:mt-0">
+                                    <div
+                                        className="absolute w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 xl:w-96 xl:h-96 blur-2xl sm:blur-3xl rounded-full opacity-60 animate-pulse"
+                                        style={{
+                                            background: `linear-gradient(135deg, ${themeColors.primary}20, ${themeColors.primary}05)`,
+                                        }}
+                                    ></div>
+
+                                    <div
+                                        className="relative z-10 w-40 h-40 sm:w-56 sm:h-56 lg:w-72 lg:h-72 xl:w-96 xl:h-96 bg-gray-300 rounded-2xl animate-pulse flex items-center justify-center"
+                                        style={{ backgroundColor: `${themeColors.primary}15` }}
+                                    >
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="absolute bottom-3 sm:bottom-4 lg:bottom-6 left-1/2 transform -translate-x-1/2 flex gap-2 sm:gap-3 z-30">
+                                {[0, 1, 2].map((index) => (
+                                    <div
+                                        key={index}
+                                        className="rounded-full animate-pulse"
+                                        style={{
+                                            backgroundColor: `${themeColors.primary}30`,
+                                            width: "10px",
+                                            height: "10px",
+                                        }}
+                                    />
+                                ))}
+                            </div>
+
+                            <div className="absolute left-2 sm:left-4 lg:left-6 top-1/2 transform -translate-y-1/2 bg-white/70 text-gray-400 rounded-full p-2 sm:p-3 lg:p-4 shadow-xl animate-pulse">
+                                <FaChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
+                            </div>
+                            <div className="absolute right-2 sm:right-4 lg:right-6 top-1/2 transform -translate-y-1/2 bg-white/70 text-gray-400 rounded-full p-2 sm:p-3 lg:p-4 shadow-xl animate-pulse">
+                                <FaChevronRight className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
         );
@@ -206,10 +300,39 @@ function SliderSection() {
     if (slides.length === 0) {
         return (
             <section className="flex justify-center items-center">
-                <div className="w-full h-[400px] sm:h-[450px] lg:h-[500px] bg-gray-100 rounded-3xl flex items-center justify-center">
-                    <div className="text-center">
-                        <p className="text-gray-500 text-lg mb-2">No slides available</p>
-                        <p className="text-gray-400 text-sm">Please check your API connection</p>
+                <div
+                    className="w-full h-[400px] sm:h-[450px] lg:h-[500px] rounded-3xl overflow-hidden shadow-xl flex items-center justify-center"
+                    style={{
+                        background: `linear-gradient(135deg, ${themeColors.gradientFrom}, ${themeColors.gradientVia}, ${themeColors.gradientTo})`,
+                    }}
+                >
+                    <div className="text-center space-y-4">
+                        <div
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm mb-4"
+                            style={{
+                                backgroundColor: `${themeColors.primary}15`,
+                                color: themeColors.primary,
+                            }}
+                        >
+                            <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                            No Slides Available
+                        </div>
+                        <p className="text-gray-600 text-lg">Please check your API connection</p>
+                        <button
+                            className="text-white py-2 px-6 rounded-lg mt-4 hover:scale-105 transition-transform duration-200"
+                            style={{
+                                backgroundColor: themeColors.primary,
+                            }}
+                            onMouseOver={(e) =>
+                                (e.target.style.backgroundColor = themeColors.primaryHover)
+                            }
+                            onMouseOut={(e) =>
+                                (e.target.style.backgroundColor = themeColors.primary)
+                            }
+                            onClick={() => window.location.reload()}
+                        >
+                            Retry
+                        </button>
                     </div>
                 </div>
             </section>
