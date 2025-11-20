@@ -16,6 +16,7 @@ import {
     Info,
     Phone,
     User,
+    Search,
 } from "lucide-react";
 import axios from "axios";
 
@@ -32,42 +33,27 @@ const Navbar = () => {
     );
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
     const [settings, setSettings] = useState({
         logoUrl: null,
     });
     const [loading, setLoading] = useState(true);
     const dropdownRef = useRef(null);
+    const searchInputRef = useRef(null);
 
-    // Theme colors
     const themeColors = {
-        primary: "#0866ff", // Facebook blue
-        primaryHover: "#0759e0", // Darker blue for hover
-        secondary: "#e3251b", // Red color
-        secondaryHover: "#c91f16", // Darker red for hover
-        text: "#1f2937", // Gray-800 for text
-        lightBg: "#f0f7ff", // Light blue background for active states
+        primary: "#0866ff",
+        primaryHover: "#0759e0",
+        secondary: "#e3251b",
+        secondaryHover: "#c91f16",
+        text: "#1f2937",
+        lightBg: "#f0f7ff",
     };
 
     useEffect(() => {
         fetchSettings();
     }, []);
-
-    const fetchSettings = async () => {
-        try {
-            const response = await axios.get(
-                "http://127.0.0.1:8000/api/system-settings",
-            );
-            const data = response.data;
-
-            setSettings({
-                logoUrl: data.logo_url || null,
-            });
-        } catch (error) {
-            console.error("Error fetching settings:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -86,12 +72,34 @@ const Navbar = () => {
         };
     }, []);
 
+    useEffect(() => {
+        if (isSearchOpen && searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
+    }, [isSearchOpen]);
+
+    const fetchSettings = async () => {
+        try {
+            const response = await axios.get(
+                "http://127.0.0.1:8000/api/system-settings",
+            );
+            const data = response.data;
+
+            setSettings({
+                logoUrl: data.logo_url || null,
+            });
+        } catch (error) {
+            console.error("Error fetching settings:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleLogout = async () => {
         try {
             await dispatch(logoutUser()).unwrap();
             setIsUserDropdownOpen(false);
             setIsMobileMenuOpen(false);
-            // Force a full page reload to ensure all components get fresh state
             window.location.href = "/";
         } catch (error) {
             console.error("Logout failed:", error);
@@ -108,6 +116,28 @@ const Navbar = () => {
 
     const handleOpenRegisterModal = () => {
         dispatch(openRegisterModal());
+    };
+
+    const handleSearchToggle = () => {
+        setIsSearchOpen(!isSearchOpen);
+        if (!isSearchOpen) {
+            setSearchQuery("");
+        }
+    };
+
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+
+    };
+
+    const handleSearchInputChange = (e) => {
+        setSearchQuery(e.target.value);
+    };
+
+    const handleSearchKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSearchSubmit(e);
+        }
     };
 
     const navLinks = [
@@ -259,6 +289,17 @@ const Navbar = () => {
                             </div>
 
                             <div className="flex items-center gap-4">
+                                <button
+                                    onClick={handleSearchToggle}
+                                    className="relative flex items-center gap-1.5 text-slate-600 hover:text-[#0866ff] transition-colors duration-200 p-2 rounded-lg hover:bg-slate-50"
+                                    style={{
+                                        color: themeColors.text,
+                                        "--hover-color": themeColors.primary,
+                                    }}
+                                >
+                                    <Search size={18} />
+                                </button>
+
                                 <Link
                                     to="/cart"
                                     className="relative flex items-center gap-1.5 text-slate-600 hover:text-[#0866ff] transition-colors duration-200 p-2 rounded-lg hover:bg-slate-50"
@@ -273,7 +314,7 @@ const Navbar = () => {
                                             className="absolute -top-1 -right-1 text-[10px] text-white size-4 rounded-full flex items-center justify-center font-medium"
                                             style={{
                                                 backgroundColor:
-                                                    themeColors.primary,
+                                                themeColors.primary,
                                             }}
                                         >
                                             {cartCount}
@@ -296,7 +337,7 @@ const Navbar = () => {
                                             className="absolute -top-1 -right-1 text-[10px] text-white size-4 rounded-full flex items-center justify-center font-medium"
                                             style={{
                                                 backgroundColor:
-                                                    themeColors.secondary,
+                                                themeColors.secondary,
                                             }}
                                         >
                                             {quotationCount}
@@ -369,7 +410,7 @@ const Navbar = () => {
 
                                                     {(role === "admin" ||
                                                         role ===
-                                                            "super_admin") && (
+                                                        "super_admin") && (
                                                         <>
                                                             <Link
                                                                 to="/admin/products"
@@ -440,7 +481,7 @@ const Navbar = () => {
                                             className="px-4 py-1.5 text-slate-700 hover:text-[#0866ff] text-sm font-medium transition-colors duration-200"
                                             style={{
                                                 "--hover-color":
-                                                    themeColors.primary,
+                                                themeColors.primary,
                                             }}
                                         >
                                             Sign In
@@ -450,9 +491,9 @@ const Navbar = () => {
                                             className="px-4 py-1.5 text-white text-sm rounded-full font-medium transition-colors duration-200"
                                             style={{
                                                 backgroundColor:
-                                                    themeColors.primary,
+                                                themeColors.primary,
                                                 "--hover-bg":
-                                                    themeColors.primaryHover,
+                                                themeColors.primaryHover,
                                             }}
                                             onMouseOver={(e) =>
                                                 (e.target.style.backgroundColor =
@@ -471,6 +512,16 @@ const Navbar = () => {
                         </div>
 
                         <div className="lg:hidden flex items-center gap-4">
+                            <button
+                                onClick={handleSearchToggle}
+                                className="relative p-2 text-slate-600 hover:text-[#0866ff] transition-colors"
+                                style={{
+                                    "--hover-color": themeColors.primary,
+                                }}
+                            >
+                                <Search size={20} />
+                            </button>
+
                             <Link
                                 to="/cart"
                                 className="relative p-2 text-slate-600 hover:text-[#0866ff] transition-colors"
@@ -484,7 +535,7 @@ const Navbar = () => {
                                         className="absolute -top-1 -right-1 text-[10px] text-white size-4 rounded-full flex items-center justify-center font-medium"
                                         style={{
                                             backgroundColor:
-                                                themeColors.primary,
+                                            themeColors.primary,
                                         }}
                                     >
                                         {cartCount}
@@ -505,7 +556,7 @@ const Navbar = () => {
                                         className="absolute -top-1 -right-1 text-[10px] text-white size-4 rounded-full flex items-center justify-center font-medium"
                                         style={{
                                             backgroundColor:
-                                                themeColors.secondary,
+                                            themeColors.secondary,
                                         }}
                                     >
                                         {quotationCount}
@@ -520,7 +571,7 @@ const Navbar = () => {
                                         className="px-3 py-1.5 text-slate-700 hover:text-[#0866ff] text-xs transition-colors duration-200 font-medium"
                                         style={{
                                             "--hover-color":
-                                                themeColors.primary,
+                                            themeColors.primary,
                                         }}
                                     >
                                         Sign In
@@ -530,9 +581,9 @@ const Navbar = () => {
                                         className="px-3 py-1.5 text-xs transition text-white rounded-full font-medium"
                                         style={{
                                             backgroundColor:
-                                                themeColors.primary,
+                                            themeColors.primary,
                                             "--hover-bg":
-                                                themeColors.primaryHover,
+                                            themeColors.primaryHover,
                                         }}
                                         onMouseOver={(e) =>
                                             (e.target.style.backgroundColor =
@@ -566,6 +617,67 @@ const Navbar = () => {
                         </div>
                     </div>
                 </div>
+
+                {isSearchOpen && (
+                    <div
+                        className="bg-white shadow-lg animate-slideDown"
+                        style={{ animation: 'slideDown 0.3s ease-out' }}
+                    >
+                        <div className="max-w-7xl mx-auto px-6 py-4">
+                            <form onSubmit={handleSearchSubmit} className="relative">
+                                <div className="relative">
+                                    <Search
+                                        size={20}
+                                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"
+                                    />
+                                    <input
+                                        ref={searchInputRef}
+                                        type="text"
+                                        placeholder="Search for products, brands, or categories..."
+                                        value={searchQuery}
+                                        onChange={handleSearchInputChange}
+                                        onKeyPress={handleSearchKeyPress}
+                                        className="w-full pl-10 pr-24 py-4 bg-slate-50 rounded-xl focus:outline-none focus:bg-white focus:shadow-sm transition-all duration-200"
+                                    />
+                                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsSearchOpen(false);
+                                                setSearchQuery("");
+                                            }}
+                                            className="px-3 py-1 text-slate-600 hover:text-slate-800 text-sm font-medium transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={!searchQuery.trim()}
+                                            className="px-4 py-1 text-white text-sm rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            style={{
+                                                backgroundColor: searchQuery.trim()
+                                                    ? themeColors.primary
+                                                    : themeColors.primary + '80',
+                                            }}
+                                            onMouseOver={(e) => {
+                                                if (searchQuery.trim()) {
+                                                    e.target.style.backgroundColor = themeColors.primaryHover;
+                                                }
+                                            }}
+                                            onMouseOut={(e) => {
+                                                if (searchQuery.trim()) {
+                                                    e.target.style.backgroundColor = themeColors.primary;
+                                                }
+                                            }}
+                                        >
+                                            Search
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
 
                 {isMobileMenuOpen && (
                     <div className="lg:hidden border-t border-slate-200 bg-white">
@@ -607,7 +719,7 @@ const Navbar = () => {
                                                 className="flex items-center gap-3 py-3 px-4 font-medium text-slate-600 hover:text-[#0866ff] hover:bg-slate-50 transition-all duration-200 rounded-lg"
                                                 style={{
                                                     "--hover-color":
-                                                        themeColors.primary,
+                                                    themeColors.primary,
                                                 }}
                                                 onClick={() =>
                                                     setIsMobileMenuOpen(false)
@@ -625,7 +737,7 @@ const Navbar = () => {
                                                         className="flex items-center gap-3 py-3 px-4 font-medium text-slate-600 hover:text-[#0866ff] hover:bg-slate-50 transition-all duration-200 rounded-lg"
                                                         style={{
                                                             "--hover-color":
-                                                                themeColors.primary,
+                                                            themeColors.primary,
                                                         }}
                                                         onClick={() =>
                                                             setIsMobileMenuOpen(
@@ -641,7 +753,7 @@ const Navbar = () => {
                                                         className="flex items-center gap-3 py-3 px-4 font-medium text-slate-600 hover:text-[#0866ff] hover:bg-slate-50 transition-all duration-200 rounded-lg"
                                                         style={{
                                                             "--hover-color":
-                                                                themeColors.primary,
+                                                            themeColors.primary,
                                                         }}
                                                         onClick={() =>
                                                             setIsMobileMenuOpen(
@@ -691,7 +803,7 @@ const Navbar = () => {
                                             className="flex items-center gap-3 w-full text-left py-3 px-4 font-medium text-slate-600 hover:text-[#0866ff] hover:bg-slate-50 transition-all duration-200 rounded-lg"
                                             style={{
                                                 "--hover-color":
-                                                    themeColors.primary,
+                                                themeColors.primary,
                                             }}
                                         >
                                             <User size={18} />
@@ -706,7 +818,7 @@ const Navbar = () => {
                                             style={{
                                                 color: themeColors.primary,
                                                 backgroundColor:
-                                                    themeColors.lightBg,
+                                                themeColors.lightBg,
                                                 "--hover-bg": "#e6f0ff",
                                             }}
                                         >
@@ -720,6 +832,19 @@ const Navbar = () => {
                     </div>
                 )}
             </nav>
+
+            <style>{`
+                @keyframes slideDown {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+            `}</style>
         </>
     );
 };
