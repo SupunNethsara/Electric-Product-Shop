@@ -3,160 +3,69 @@ import {
     FiAward,
     FiUsers,
     FiShield,
-    FiEye,
     FiCheckCircle,
-    FiVideo,
-    FiHome,
-    FiLock,
+    FiShoppingBag,
+    FiTruck,
+    FiHeadphones,
+
 } from "react-icons/fi";
 import { motion } from "framer-motion";
-import { useInView } from "react-intersection-observer";
+
 
 const About = () => {
-    const [ref, inView] = useInView({
-        threshold: 0.1,
-        triggerOnce: true,
-    });
-
-    const container = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.2,
-            },
-        },
-    };
-
-    const item = {
-        hidden: { opacity: 0, y: 20 },
-        show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-    };
-
-    const stats = [
-        {
-            icon: <FiAward className="w-8 h-8" />,
-            value: "10+",
-            label: "Years in Security",
-        },
-        {
-            icon: <FiUsers className="w-8 h-8" />,
-            value: "5000+",
-            label: "Protected Homes",
-        },
-        {
-            icon: <FiCheckCircle className="w-8 h-8" />,
-            value: "15K+",
-            label: "Systems Installed",
-        },
-        {
-            icon: <FiShield className="w-8 h-8" />,
-            value: "24/7",
-            label: "Monitoring",
-        },
-    ];
 
     const values = [
         {
-            title: "Advanced Security",
+            title: "Quality Products",
             description:
-                "Providing cutting-edge CCTV and surveillance solutions to keep your property safe and secure.",
-            icon: <FiEye className="w-6 h-6" />,
-        },
-        {
-            title: "Quality Assurance",
-            description:
-                "Every product meets the highest standards of quality and reliability for your peace of mind.",
+                "We source only the highest quality products from trusted suppliers and brands to ensure your complete satisfaction.",
             icon: <FiAward className="w-6 h-6" />,
         },
         {
-            title: "Total Protection",
+            title: "Fast Delivery",
             description:
-                "Comprehensive security solutions that cover all aspects of home and business protection.",
+                "Quick and reliable shipping to get your favorite products to you as fast as possible, wherever you are.",
+            icon: <FiCheckCircle className="w-6 h-6" />,
+        },
+        {
+            title: "Secure Shopping",
+            description:
+                "Your data and payments are protected with advanced security measures for a worry-free shopping experience.",
             icon: <FiShield className="w-6 h-6" />,
         },
     ];
 
     const features = [
         {
-            icon: <FiVideo className="w-8 h-8" />,
-            title: "4K CCTV Systems",
+            icon: <FiShoppingBag className="w-8 h-8" />,
+            title: "Wide Selection",
             description:
-                "Crystal clear surveillance with night vision capabilities",
+                "Thousands of products across multiple categories to choose from, with new items added regularly",
         },
         {
-            icon: <FiHome className="w-8 h-8" />,
-            title: "Home Security",
+            icon: <FiTruck className="w-8 h-8" />,
+            title: "Fast Shipping",
             description:
-                "Complete protection solutions for residential properties",
+                "Quick delivery with multiple shipping options to get your orders to you when you need them",
         },
         {
-            icon: <FiLock className="w-8 h-8" />,
-            title: "Wireless Solutions",
-            description: "Weatherproof and battery-powered outdoor cameras",
+            icon: <FiHeadphones className="w-8 h-8" />,
+            title: "24/7 Support",
+            description: "Our dedicated customer service team is always here to help with any questions or concerns",
         },
     ];
 
     return (
         <div className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-            <div className="relative py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-                <div className="text-center">
-                    <motion.h1
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                        className="text-4xl md:text-5xl font-bold text-gray-900 mb-6"
-                    >
-                        About Our Security Solutions
-                    </motion.h1>
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                        className="text-xl text-gray-600 max-w-3xl mx-auto"
-                    >
-                        Delivering advanced security solutions since 2013. We
-                        specialize in state-of-the-art CCTV systems and
-                        comprehensive home security to protect what matters most
-                        to you.
-                    </motion.p>
-                </div>
 
-                <motion.div
-                    ref={ref}
-                    variants={container}
-                    initial="hidden"
-                    animate={inView ? "show" : "hidden"}
-                    className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6"
-                >
-                    {stats.map((stat, index) => (
-                        <motion.div
-                            key={index}
-                            variants={item}
-                            className="bg-white p-6 rounded-2xl shadow-lg text-center hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-300"
-                        >
-                            <div className="text-blue-600 mb-4 flex justify-center">
-                                {stat.icon}
-                            </div>
-                            <h3 className="text-3xl font-bold text-gray-900">
-                                {stat.value}
-                            </h3>
-                            <p className="text-gray-600 mt-2 font-medium">
-                                {stat.label}
-                            </p>
-                        </motion.div>
-                    ))}
-                </motion.div>
-            </div>
-
-            <div className="py-16 bg-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="py-8 bg-white">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
                     <div className="lg:text-center">
                         <h2 className="text-base text-blue-600 font-semibold tracking-wide uppercase">
                             Our Story
                         </h2>
                         <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-                            Protecting homes and businesses since 2013
+                            Your Trusted Shopping Partner Since 2018
                         </p>
                     </div>
 
@@ -164,19 +73,10 @@ const About = () => {
                         <div className="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10">
                             <div className="relative">
                                 <p className="text-lg text-gray-600 mb-6">
-                                    Founded in 2013, we started with a simple
-                                    mission: to make advanced security
-                                    accessible to everyone. From our first 4K
-                                    CCTV system installation to becoming a
-                                    trusted security partner for thousands of
-                                    homes and businesses.
+                                    Founded in 2018, we started with a simple mission: to make quality products accessible to everyone at affordable prices. From our first online store to becoming a trusted shopping destination for thousands of customers worldwide.
                                 </p>
                                 <p className="text-lg text-gray-600">
-                                    Our journey has been driven by innovation
-                                    and a commitment to keeping your properties
-                                    safe. We continuously evolve our technology
-                                    to stay ahead of security challenges and
-                                    provide peace of mind to our customers.
+                                    Our journey has been driven by innovation and a commitment to customer satisfaction. We continuously expand our product range and improve our services to provide the best possible shopping experience for our valued customers.
                                 </p>
                             </div>
                             <div className="relative">
@@ -185,10 +85,7 @@ const About = () => {
                                         Our Mission
                                     </h3>
                                     <p className="text-gray-600">
-                                        To provide cutting-edge security
-                                        solutions that empower homeowners and
-                                        businesses with reliable, advanced
-                                        protection systems at affordable prices.
+                                        To provide exceptional value through quality products, outstanding customer service, and a seamless shopping experience that exceeds expectations.
                                     </p>
                                 </div>
                                 <div className="mt-6 bg-gray-50 p-6 rounded-2xl border-l-4 border-gray-400">
@@ -196,11 +93,7 @@ const About = () => {
                                         Our Vision
                                     </h3>
                                     <p className="text-gray-600">
-                                        To create a safer world by making
-                                        professional-grade security technology
-                                        accessible to everyone, ensuring peace
-                                        of mind through innovative surveillance
-                                        solutions.
+                                        To become the most trusted and loved online shopping destination, known for our commitment to quality, value, and customer satisfaction.
                                     </p>
                                 </div>
                             </div>
@@ -213,10 +106,10 @@ const About = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
                         <h2 className="text-base text-blue-200 font-semibold tracking-wide uppercase">
-                            Our Solutions
+                            Why Choose Us
                         </h2>
                         <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-white sm:text-4xl">
-                            Advanced Security Features
+                            The Best Shopping Experience
                         </p>
                     </div>
 
@@ -255,7 +148,7 @@ const About = () => {
                             Our Values
                         </h2>
                         <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-                            Principles that protect you
+                            What We Stand For
                         </p>
                     </div>
 
@@ -297,18 +190,17 @@ const About = () => {
                         className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-12 text-white"
                     >
                         <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                            Ready to Secure Your Property?
+                            Ready to Start Shopping?
                         </h2>
                         <p className="text-blue-100 text-xl mb-8 max-w-2xl mx-auto">
-                            Join thousands of satisfied customers who trust us
-                            with their security needs.
+                            Join thousands of satisfied customers who trust us for their shopping needs. Experience the difference today!
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200">
-                                View Our Products
+                                Shop Now
                             </button>
                             <button className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors duration-200">
-                                Get Free Consultation
+                                Contact Us
                             </button>
                         </div>
                     </motion.div>
