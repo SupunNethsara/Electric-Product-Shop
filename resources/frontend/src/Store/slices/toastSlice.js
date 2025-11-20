@@ -1,7 +1,7 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 const toastSlice = createSlice({
-    name: 'toast',
+    name: "toast",
     initialState: {
         toasts: [],
     },
@@ -13,7 +13,9 @@ const toastSlice = createSlice({
             });
         },
         removeToast: (state, action) => {
-            state.toasts = state.toasts.filter(toast => toast.id !== action.payload);
+            state.toasts = state.toasts.filter(
+                (toast) => toast.id !== action.payload,
+            );
         },
         clearToasts: (state) => {
             state.toasts = [];

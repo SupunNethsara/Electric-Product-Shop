@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { gsap } from 'gsap';
-import { useRef } from 'react';
+import React, { useState, useEffect } from "react";
+import { gsap } from "gsap";
+import { useRef } from "react";
 
 function SliderSectionPreview({ slides }) {
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -8,8 +8,8 @@ function SliderSectionPreview({ slides }) {
     const containerRef = useRef(null);
 
     const calculateDiscount = (price, originalPrice) => {
-        const p = parseFloat(price.replace('Rs', '').replace(',', ''));
-        const op = parseFloat(originalPrice.replace('Rs', '').replace(',', ''));
+        const p = parseFloat(price.replace("Rs", "").replace(",", ""));
+        const op = parseFloat(originalPrice.replace("Rs", "").replace(",", ""));
         if (op <= p) return 0;
         const discount = ((op - p) / op) * 100;
         return Math.round(discount);
@@ -35,35 +35,42 @@ function SliderSectionPreview({ slides }) {
         const nextSlideEl = slideRefs.current[newIndex];
 
         if (currentSlideEl && nextSlideEl) {
-            gsap.to(currentSlideEl.querySelectorAll('.text-content, .image-content'), {
-                opacity: 0,
-                y: 20,
-                duration: 0.4,
-                ease: "power2.inOut"
-            });
+            gsap.to(
+                currentSlideEl.querySelectorAll(
+                    ".text-content, .image-content",
+                ),
+                {
+                    opacity: 0,
+                    y: 20,
+                    duration: 0.4,
+                    ease: "power2.inOut",
+                },
+            );
 
             setCurrentSlide(newIndex);
 
-            gsap.fromTo(nextSlideEl.querySelector('.text-content'),
+            gsap.fromTo(
+                nextSlideEl.querySelector(".text-content"),
                 { opacity: 0, y: 30 },
                 {
                     opacity: 1,
                     y: 0,
                     duration: 0.6,
                     ease: "power2.out",
-                    delay: 0.2
-                }
+                    delay: 0.2,
+                },
             );
 
-            gsap.fromTo(nextSlideEl.querySelector('.image-content'),
+            gsap.fromTo(
+                nextSlideEl.querySelector(".image-content"),
                 { scale: 0.9, opacity: 0 },
                 {
                     scale: 1,
                     opacity: 1,
                     duration: 0.8,
                     ease: "power2.out",
-                    delay: 0.4
-                }
+                    delay: 0.4,
+                },
             );
         }
     };
@@ -81,14 +88,17 @@ function SliderSectionPreview({ slides }) {
         return (
             <div className="flex items-center justify-center h-64 text-gray-500 bg-gray-100 rounded-lg">
                 <div className="text-center">
-                    <div className="text-lg font-medium mb-2">No active slides to display</div>
-                    <div className="text-sm text-gray-400">Add and activate slides to see preview</div>
+                    <div className="text-lg font-medium mb-2">
+                        No active slides to display
+                    </div>
+                    <div className="text-sm text-gray-400">
+                        Add and activate slides to see preview
+                    </div>
                 </div>
             </div>
         );
     }
 
-    // Default theme colors matching your design
     const themeColors = {
         primary: "#0866ff",
         primaryHover: "#0759e0",
@@ -105,7 +115,10 @@ function SliderSectionPreview({ slides }) {
             className="relative w-full max-w-6xl mx-auto aspect-[16/9] min-h-[400px] max-h-[600px] rounded-2xl overflow-hidden shadow-lg"
         >
             {slides.map((slide, index) => {
-                const discountPercent = calculateDiscount(slide.price, slide.original_price);
+                const discountPercent = calculateDiscount(
+                    slide.price,
+                    slide.original_price,
+                );
                 const isActive = index === currentSlide;
 
                 return (
@@ -113,7 +126,9 @@ function SliderSectionPreview({ slides }) {
                         key={slide.id}
                         ref={(el) => (slideRefs.current[index] = el)}
                         className={`absolute inset-0 transition-opacity duration-500 ${
-                            isActive ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                            isActive
+                                ? "opacity-100"
+                                : "opacity-0 pointer-events-none"
                         }`}
                         style={{
                             background: `linear-gradient(135deg, ${themeColors.gradientFrom}, ${themeColors.gradientVia}, ${themeColors.gradientTo})`,
@@ -152,7 +167,8 @@ function SliderSectionPreview({ slides }) {
                                         <span
                                             className="px-3 py-1.5 sm:px-4 sm:py-2 text-white text-xs sm:text-sm font-semibold rounded-full"
                                             style={{
-                                                backgroundColor: themeColors.secondary,
+                                                backgroundColor:
+                                                    themeColors.secondary,
                                             }}
                                         >
                                             Save {discountPercent}%
@@ -166,10 +182,12 @@ function SliderSectionPreview({ slides }) {
                                         backgroundColor: themeColors.primary,
                                     }}
                                     onMouseOver={(e) =>
-                                        (e.target.style.backgroundColor = themeColors.primaryHover)
+                                        (e.target.style.backgroundColor =
+                                            themeColors.primaryHover)
                                     }
                                     onMouseOut={(e) =>
-                                        (e.target.style.backgroundColor = themeColors.primary)
+                                        (e.target.style.backgroundColor =
+                                            themeColors.primary)
                                     }
                                 >
                                     Shop Now
@@ -189,7 +207,8 @@ function SliderSectionPreview({ slides }) {
                                     alt={slide.title}
                                     className="relative z-10 w-40 h-40 sm:w-56 sm:h-56 lg:w-72 lg:h-72 xl:w-96 xl:h-96 object-contain transform hover:scale-105 transition-transform duration-500"
                                     onError={(e) => {
-                                        e.target.src = 'https://via.placeholder.com/400x400?text=Image+Not+Found';
+                                        e.target.src =
+                                            "https://via.placeholder.com/400x400?text=Image+Not+Found";
                                     }}
                                 />
                             </div>
@@ -205,8 +224,17 @@ function SliderSectionPreview({ slides }) {
                         className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-slate-700 rounded-full p-2 sm:p-3 shadow-lg hover:shadow-xl transition-all duration-300 z-30 backdrop-blur-sm border border-gray-200"
                         aria-label="Previous slide"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 sm:h-5 sm:w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                        >
+                            <path
+                                fillRule="evenodd"
+                                d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                            />
                         </svg>
                     </button>
                     <button
@@ -214,8 +242,17 @@ function SliderSectionPreview({ slides }) {
                         className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-slate-700 rounded-full p-2 sm:p-3 shadow-lg hover:shadow-xl transition-all duration-300 z-30 backdrop-blur-sm border border-gray-200"
                         aria-label="Next slide"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 sm:h-5 sm:w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                        >
+                            <path
+                                fillRule="evenodd"
+                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                clipRule="evenodd"
+                            />
                         </svg>
                     </button>
                 </>

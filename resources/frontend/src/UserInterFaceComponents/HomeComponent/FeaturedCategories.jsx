@@ -1,6 +1,6 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import React from "react";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 const FeaturedCategories = () => {
     const categories = [
@@ -8,26 +8,26 @@ const FeaturedCategories = () => {
             id: 1,
             name: "DVR & NVR Systems",
             image: "/dvr.jpg",
-            count: "120+ Products"
+            count: "120+ Products",
         },
         {
             id: 2,
             name: "Access Control",
             image: "/accesscontroller.jpg",
-            count: "85+ Products"
+            count: "85+ Products",
         },
         {
             id: 3,
             name: "Network Solutions",
             image: "/nvr.jpg",
-            count: "45+ Products"
+            count: "45+ Products",
         },
         {
             id: 4,
             name: "Security Cameras",
             image: "/dvr2.jpg",
-            count: "200+ Products"
-        }
+            count: "200+ Products",
+        },
     ];
 
     return (
@@ -38,7 +38,8 @@ const FeaturedCategories = () => {
                         Security Solutions Categories
                     </h2>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        Explore our comprehensive range of security systems and solutions
+                        Explore our comprehensive range of security systems and
+                        solutions
                     </p>
                 </div>
 
@@ -61,8 +62,12 @@ const FeaturedCategories = () => {
                             </div>
 
                             <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                                <h3 className="text-xl font-bold mb-1">{category.name}</h3>
-                                <p className="text-sm opacity-90">{category.count}</p>
+                                <h3 className="text-xl font-bold mb-1">
+                                    {category.name}
+                                </h3>
+                                <p className="text-sm opacity-90">
+                                    {category.count}
+                                </p>
                             </div>
 
                             <div className="absolute top-4 right-4">

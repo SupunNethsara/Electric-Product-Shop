@@ -1,22 +1,22 @@
-import React from 'react';
-import dayjs from 'dayjs';
+import React from "react";
+import dayjs from "dayjs";
 
 class InvoiceGenerator {
     static generatePDF(orderData) {
-        // Check if jsPDF is available
-        if (typeof window === 'undefined') return;
+        if (typeof window === "undefined") return;
 
         try {
-            // Dynamically import jsPDF
-            import('jspdf').then((jsPDFModule) => {
-                const { jsPDF } = jsPDFModule;
-                this.createPDF(jsPDF, orderData);
-            }).catch(error => {
-                console.error('Error loading jsPDF:', error);
-                this.fallbackDownload(orderData);
-            });
+            import("jspdf")
+                .then((jsPDFModule) => {
+                    const { jsPDF } = jsPDFModule;
+                    this.createPDF(jsPDF, orderData);
+                })
+                .catch((error) => {
+                    console.error("Error loading jsPDF:", error);
+                    this.fallbackDownload(orderData);
+                });
         } catch (error) {
-            console.error('PDF generation error:', error);
+            console.error("PDF generation error:", error);
             this.fallbackDownload(orderData);
         }
     }
@@ -25,79 +25,108 @@ class InvoiceGenerator {
         const { order, items, user, profile } = orderData;
         const doc = new jsPDF();
 
-        // PDF styling
         const pageWidth = doc.internal.pageSize.getWidth();
         const margin = 20;
         let yPosition = margin;
 
-        // Add company header
         doc.setFontSize(20);
-        doc.setFont('helvetica', 'bold');
+        doc.setFont("helvetica", "bold");
         doc.setTextColor(0, 0, 128);
-        doc.text('TAX INVOICE', pageWidth / 2, yPosition, { align: 'center' });
+        doc.text("TAX INVOICE", pageWidth / 2, yPosition, { align: "center" });
         yPosition += 15;
 
-        // Company details
         doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
+        doc.setFont("helvetica", "normal");
         doc.setTextColor(0, 0, 0);
-        doc.text('Company: Tech Solutions Ltd.', margin, yPosition);
+        doc.text("Company: Tech Solutions Ltd.", margin, yPosition);
         yPosition += 5;
-        doc.text('Address: 123 Business Street, Colombo 01, Sri Lanka', margin, yPosition);
+        doc.text(
+            "Address: 123 Business Street, Colombo 01, Sri Lanka",
+            margin,
+            yPosition,
+        );
         yPosition += 5;
-        doc.text('Phone: +94 11 234 5678 | Email: accounts@techsolutions.lk', margin, yPosition);
+        doc.text(
+            "Phone: +94 11 234 5678 | Email: accounts@techsolutions.lk",
+            margin,
+            yPosition,
+        );
         yPosition += 5;
-        doc.text('VAT No: 123456789 | Business Reg: B123456789', margin, yPosition);
+        doc.text(
+            "VAT No: 123456789 | Business Reg: B123456789",
+            margin,
+            yPosition,
+        );
         yPosition += 15;
 
-        // Invoice details section
         const detailsStart = pageWidth - 80;
-        doc.setFont('helvetica', 'bold');
-        doc.text('INVOICE DETAILS', detailsStart, yPosition);
+        doc.setFont("helvetica", "bold");
+        doc.text("INVOICE DETAILS", detailsStart, yPosition);
         yPosition += 5;
-        doc.setFont('helvetica', 'normal');
+        doc.setFont("helvetica", "normal");
         doc.text(`Invoice No: ${order.order_code}`, detailsStart, yPosition);
         yPosition += 5;
-        doc.text(`Date: ${dayjs(order.created_at).format("DD/MM/YYYY")}`, detailsStart, yPosition);
+        doc.text(
+            `Date: ${dayjs(order.created_at).format("DD/MM/YYYY")}`,
+            detailsStart,
+            yPosition,
+        );
         yPosition += 5;
-        doc.text(`Time: ${dayjs(order.created_at).format("hh:mm A")}`, detailsStart, yPosition);
+        doc.text(
+            `Time: ${dayjs(order.created_at).format("hh:mm A")}`,
+            detailsStart,
+            yPosition,
+        );
         yPosition += 5;
-        doc.text(`Status: ${order.status.toUpperCase()}`, detailsStart, yPosition);
+        doc.text(
+            `Status: ${order.status.toUpperCase()}`,
+            detailsStart,
+            yPosition,
+        );
         yPosition += 15;
 
-        // Customer information - using user and profile data
-        doc.setFont('helvetica', 'bold');
-        doc.text('BILL TO:', margin, yPosition);
+        doc.setFont("helvetica", "bold");
+        doc.text("BILL TO:", margin, yPosition);
         yPosition += 5;
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Customer: ${user?.name || 'Walk-in Customer'}`, margin, yPosition);
+        doc.setFont("helvetica", "normal");
+        doc.text(
+            `Customer: ${user?.name || "Walk-in Customer"}`,
+            margin,
+            yPosition,
+        );
         yPosition += 5;
-        doc.text(`Email: ${user?.email || 'N/A'}`, margin, yPosition);
+        doc.text(`Email: ${user?.email || "N/A"}`, margin, yPosition);
         yPosition += 5;
-        doc.text(`Phone: ${profile?.phone || 'N/A'}`, margin, yPosition);
+        doc.text(`Phone: ${profile?.phone || "N/A"}`, margin, yPosition);
         yPosition += 5;
-        doc.text(`Address: ${profile?.address || 'N/A'}`, margin, yPosition);
+        doc.text(`Address: ${profile?.address || "N/A"}`, margin, yPosition);
         yPosition += 5;
-        doc.text(`City: ${profile?.city || 'N/A'}, ${profile?.country || 'N/A'}`, margin, yPosition);
+        doc.text(
+            `City: ${profile?.city || "N/A"}, ${profile?.country || "N/A"}`,
+            margin,
+            yPosition,
+        );
         yPosition += 5;
-        doc.text(`Payment Method: ${order.payment_method?.replace(/_/g, ' ') || 'N/A'}`, margin, yPosition);
+        doc.text(
+            `Payment Method: ${order.payment_method?.replace(/_/g, " ") || "N/A"}`,
+            margin,
+            yPosition,
+        );
         yPosition += 10;
 
-        // Order items table header
         doc.setFillColor(240, 240, 240);
-        doc.rect(margin, yPosition, pageWidth - 2 * margin, 8, 'F');
-        doc.setFont('helvetica', 'bold');
+        doc.rect(margin, yPosition, pageWidth - 2 * margin, 8, "F");
+        doc.setFont("helvetica", "bold");
         doc.setTextColor(0, 0, 0);
 
-        doc.text('#', margin + 5, yPosition + 5);
-        doc.text('Item Description', margin + 15, yPosition + 5);
-        doc.text('Qty', pageWidth - 60, yPosition + 5);
-        doc.text('Unit Price', pageWidth - 45, yPosition + 5);
-        doc.text('Amount', pageWidth - 20, yPosition + 5);
+        doc.text("#", margin + 5, yPosition + 5);
+        doc.text("Item Description", margin + 15, yPosition + 5);
+        doc.text("Qty", pageWidth - 60, yPosition + 5);
+        doc.text("Unit Price", pageWidth - 45, yPosition + 5);
+        doc.text("Amount", pageWidth - 20, yPosition + 5);
         yPosition += 12;
 
-        // Order items
-        doc.setFont('helvetica', 'normal');
+        doc.setFont("helvetica", "normal");
         let itemNumber = 1;
 
         items?.forEach((item) => {
@@ -106,26 +135,32 @@ class InvoiceGenerator {
                 yPosition = margin;
             }
 
-            const itemName = item.product?.name || 'Product';
-            const model = item.product?.model || '';
-            const itemCode = item.product?.item_code || '';
+            const itemName = item.product?.name || "Product";
+            const model = item.product?.model || "";
+            const itemCode = item.product?.item_code || "";
             const quantity = item.quantity;
             const price = parseFloat(item.price || 0);
             const total = price * quantity;
 
-            // Item number
             doc.text(itemNumber.toString(), margin + 5, yPosition + 5);
 
-            // Item description (with model and item code if available)
-            const description = model || itemCode ?
-                `${itemName} (${model}${itemCode ? ` - ${itemCode}` : ''})` :
-                itemName;
+            const description =
+                model || itemCode
+                    ? `${itemName} (${model}${itemCode ? ` - ${itemCode}` : ""})`
+                    : itemName;
             doc.text(description.substring(0, 35), margin + 15, yPosition + 5);
 
-            // Quantity, price, and total
             doc.text(quantity.toString(), pageWidth - 60, yPosition + 5);
-            doc.text(`Rs. ${price.toLocaleString()}`, pageWidth - 45, yPosition + 5);
-            doc.text(`Rs. ${total.toLocaleString()}`, pageWidth - 20, yPosition + 5);
+            doc.text(
+                `Rs. ${price.toLocaleString()}`,
+                pageWidth - 45,
+                yPosition + 5,
+            );
+            doc.text(
+                `Rs. ${total.toLocaleString()}`,
+                pageWidth - 20,
+                yPosition + 5,
+            );
 
             yPosition += 8;
             itemNumber++;
@@ -133,65 +168,86 @@ class InvoiceGenerator {
 
         yPosition += 10;
 
-        // Summary section
-        const subtotal = parseFloat(order.total_amount) - parseFloat(order.delivery_fee || 0);
+        const subtotal =
+            parseFloat(order.total_amount) -
+            parseFloat(order.delivery_fee || 0);
         const deliveryFee = parseFloat(order.delivery_fee || 0);
         const totalAmount = parseFloat(order.total_amount || 0);
 
-        doc.setFont('helvetica', 'normal');
+        doc.setFont("helvetica", "normal");
         doc.text(`Subtotal:`, pageWidth - 60, yPosition);
         doc.text(`Rs. ${subtotal.toLocaleString()}`, pageWidth - 20, yPosition);
         yPosition += 6;
 
         doc.text(`Delivery Fee:`, pageWidth - 60, yPosition);
-        doc.text(`Rs. ${deliveryFee.toLocaleString()}`, pageWidth - 20, yPosition);
+        doc.text(
+            `Rs. ${deliveryFee.toLocaleString()}`,
+            pageWidth - 20,
+            yPosition,
+        );
         yPosition += 6;
 
-        doc.setFont('helvetica', 'bold');
+        doc.setFont("helvetica", "bold");
         doc.text(`Total Amount:`, pageWidth - 60, yPosition);
-        doc.text(`Rs. ${totalAmount.toLocaleString()}`, pageWidth - 20, yPosition);
+        doc.text(
+            `Rs. ${totalAmount.toLocaleString()}`,
+            pageWidth - 20,
+            yPosition,
+        );
         yPosition += 10;
 
-        // Footer notes
-        doc.setFont('helvetica', 'italic');
+        doc.setFont("helvetica", "italic");
         doc.setFontSize(8);
         doc.setTextColor(100, 100, 100);
-        doc.text('Thank you for your business!', pageWidth / 2, yPosition, { align: 'center' });
+        doc.text("Thank you for your business!", pageWidth / 2, yPosition, {
+            align: "center",
+        });
         yPosition += 4;
-        doc.text('This is a computer-generated invoice. No signature required.', pageWidth / 2, yPosition, { align: 'center' });
+        doc.text(
+            "This is a computer-generated invoice. No signature required.",
+            pageWidth / 2,
+            yPosition,
+            { align: "center" },
+        );
         yPosition += 4;
-        doc.text('For queries, contact accounts@techsolutions.lk or call +94 11 234 5678', pageWidth / 2, yPosition, { align: 'center' });
+        doc.text(
+            "For queries, contact accounts@techsolutions.lk or call +94 11 234 5678",
+            pageWidth / 2,
+            yPosition,
+            { align: "center" },
+        );
 
-        // Save the PDF
-        doc.save(`invoice-${order.order_code}-${dayjs().format('YYYY-MM-DD')}.pdf`);
+        doc.save(
+            `invoice-${order.order_code}-${dayjs().format("YYYY-MM-DD")}.pdf`,
+        );
     }
 
     static fallbackDownload(orderData) {
         const { order, items, user, profile } = orderData;
 
-        // Create a simple text invoice as fallback
         let invoiceText = `TAX INVOICE\n`;
         invoiceText += `Company: Tech Solutions Ltd.\n`;
         invoiceText += `Invoice No: ${order.order_code}\n`;
         invoiceText += `Date: ${dayjs(order.created_at).format("DD/MM/YYYY hh:mm A")}\n`;
         invoiceText += `Status: ${order.status}\n\n`;
         invoiceText += `BILL TO:\n`;
-        invoiceText += `Customer: ${user?.name || 'Walk-in Customer'}\n`;
-        invoiceText += `Email: ${user?.email || 'N/A'}\n`;
-        invoiceText += `Phone: ${profile?.phone || 'N/A'}\n`;
-        invoiceText += `Address: ${profile?.address || 'N/A'}\n`;
-        invoiceText += `Payment: ${order.payment_method?.replace(/_/g, ' ') || 'N/A'}\n\n`;
+        invoiceText += `Customer: ${user?.name || "Walk-in Customer"}\n`;
+        invoiceText += `Email: ${user?.email || "N/A"}\n`;
+        invoiceText += `Phone: ${profile?.phone || "N/A"}\n`;
+        invoiceText += `Address: ${profile?.address || "N/A"}\n`;
+        invoiceText += `Payment: ${order.payment_method?.replace(/_/g, " ") || "N/A"}\n\n`;
         invoiceText += `ITEMS:\n`;
 
         items?.forEach((item, index) => {
             const total = parseFloat(item.price || 0) * item.quantity;
-            const itemName = item.product?.name || 'Product';
-            const model = item.product?.model || '';
-            const itemCode = item.product?.item_code || '';
+            const itemName = item.product?.name || "Product";
+            const model = item.product?.model || "";
+            const itemCode = item.product?.item_code || "";
 
-            const description = model || itemCode ?
-                `${itemName} (${model}${itemCode ? ` - ${itemCode}` : ''})` :
-                itemName;
+            const description =
+                model || itemCode
+                    ? `${itemName} (${model}${itemCode ? ` - ${itemCode}` : ""})`
+                    : itemName;
 
             invoiceText += `${index + 1}. ${description} - Qty: ${item.quantity} - Rs. ${total.toLocaleString()}\n`;
         });
@@ -201,9 +257,9 @@ class InvoiceGenerator {
         invoiceText += `TOTAL: Rs. ${parseFloat(order.total_amount || 0).toLocaleString()}\n\n`;
         invoiceText += `Thank you for your business!`;
 
-        const blob = new Blob([invoiceText], { type: 'text/plain' });
+        const blob = new Blob([invoiceText], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
         link.download = `invoice-${order.order_code}.txt`;
         link.click();
@@ -211,9 +267,9 @@ class InvoiceGenerator {
     }
 
     static printInvoice(orderData) {
-        const printWindow = window.open('', '_blank');
+        const printWindow = window.open("", "_blank");
         if (!printWindow) {
-            alert('Please allow popups to print invoice');
+            alert("Please allow popups to print invoice");
             return;
         }
 
@@ -230,7 +286,9 @@ class InvoiceGenerator {
 
     static generatePrintHTML(orderData) {
         const { order, items, user, profile } = orderData;
-        const subtotal = parseFloat(order.total_amount) - parseFloat(order.delivery_fee || 0);
+        const subtotal =
+            parseFloat(order.total_amount) -
+            parseFloat(order.delivery_fee || 0);
         const deliveryFee = parseFloat(order.delivery_fee || 0);
         const totalAmount = parseFloat(order.total_amount || 0);
 
@@ -276,12 +334,12 @@ class InvoiceGenerator {
     <div class="section">
         <div class="customer-info">
             <strong>BILL TO:</strong><br>
-            Customer: ${user?.name || 'Walk-in Customer'}<br>
-            Email: ${user?.email || 'N/A'}<br>
-            Phone: ${profile?.phone || 'N/A'}<br>
-            Address: ${profile?.address || 'N/A'}<br>
-            City: ${profile?.city || 'N/A'}, ${profile?.country || 'N/A'}<br>
-            Payment: ${order.payment_method?.replace(/_/g, ' ') || 'N/A'}
+            Customer: ${user?.name || "Walk-in Customer"}<br>
+            Email: ${user?.email || "N/A"}<br>
+            Phone: ${profile?.phone || "N/A"}<br>
+            Address: ${profile?.address || "N/A"}<br>
+            City: ${profile?.city || "N/A"}, ${profile?.country || "N/A"}<br>
+            Payment: ${order.payment_method?.replace(/_/g, " ") || "N/A"}
         </div>
     </div>
 
@@ -296,17 +354,19 @@ class InvoiceGenerator {
             </tr>
         </thead>
         <tbody>
-            ${items?.map((item, index) => {
-            const total = parseFloat(item.price || 0) * item.quantity;
-            const itemName = item.product?.name || 'Product';
-            const model = item.product?.model || '';
-            const itemCode = item.product?.item_code || '';
+            ${items
+                ?.map((item, index) => {
+                    const total = parseFloat(item.price || 0) * item.quantity;
+                    const itemName = item.product?.name || "Product";
+                    const model = item.product?.model || "";
+                    const itemCode = item.product?.item_code || "";
 
-            const description = model || itemCode ?
-                `${itemName} (${model}${itemCode ? ` - ${itemCode}` : ''})` :
-                itemName;
+                    const description =
+                        model || itemCode
+                            ? `${itemName} (${model}${itemCode ? ` - ${itemCode}` : ""})`
+                            : itemName;
 
-            return `
+                    return `
                 <tr>
                     <td>${index + 1}</td>
                     <td>${description}</td>
@@ -314,7 +374,8 @@ class InvoiceGenerator {
                     <td>Rs. ${parseFloat(item.price || 0).toLocaleString()}</td>
                     <td>Rs. ${total.toLocaleString()}</td>
                 </tr>`;
-        }).join('')}
+                })
+                .join("")}
         </tbody>
     </table>
 

@@ -1,4 +1,3 @@
-// Helper function to format dates for display
 const formatDateForDisplay = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -9,7 +8,6 @@ const formatDateForDisplay = (dateString) => {
 
 export const exportOrdersPDF = async (orders, dateRange, showSuccess, showError) => {
     try {
-        // Calculate statistics for the PDF based on filtered orders
         const filteredOrders = orders.filter(order => {
             const orderDate = new Date(order.created_at).toISOString().split('T')[0];
             return orderDate >= dateRange.start && orderDate <= dateRange.end;
@@ -71,14 +69,12 @@ export const exportOrdersPDF = async (orders, dateRange, showSuccess, showError)
         const { jsPDF } = await import('jspdf');
         const autoTable = (await import('jspdf-autotable')).default;
 
-        // Create PDF with better settings
         const doc = new jsPDF({
             orientation: 'portrait',
             unit: 'mm',
             format: 'a4'
         });
 
-        // Set document properties
         doc.setProperties({
             title: `Ecommerce Report - ${pdfData.dateRange}`,
             subject: 'Sales and Order Analytics',
@@ -87,23 +83,19 @@ export const exportOrdersPDF = async (orders, dateRange, showSuccess, showError)
             creator: 'Ecommerce System'
         });
 
-        // Add header with logo and title
         doc.setFillColor(59, 130, 246);
         doc.rect(0, 0, 210, 30, 'F');
 
-        // Title
         doc.setFontSize(20);
         doc.setTextColor(255, 255, 255);
         doc.setFont('helvetica', 'bold');
         doc.text('ECOMMERCE ANALYTICS REPORT', 105, 15, { align: 'center' });
 
-        // Subtitle
         doc.setFontSize(10);
         doc.setTextColor(255, 255, 255);
         doc.setFont('helvetica', 'normal');
         doc.text('Comprehensive Sales and Order Analysis', 105, 22, { align: 'center' });
 
-        // Report details section
         let yPosition = 40;
 
         doc.setFontSize(12);
@@ -122,7 +114,6 @@ export const exportOrdersPDF = async (orders, dateRange, showSuccess, showError)
         yPosition += 5;
         doc.text(`Total Records: ${pdfData.summary.totalOrders} orders`, 105, yPosition);
 
-        // Summary section with boxes
         yPosition += 15;
         doc.setFontSize(11);
         doc.setTextColor(40, 40, 40);
@@ -134,7 +125,6 @@ export const exportOrdersPDF = async (orders, dateRange, showSuccess, showError)
         const summaryBoxHeight = 20;
         const summarySpacing = 10;
 
-        // Total Revenue Box
         doc.setFillColor(34, 197, 94);
         doc.roundedRect(14, yPosition, summaryBoxWidth, summaryBoxHeight, 2, 2, 'F');
         doc.setTextColor(255, 255, 255);
@@ -144,7 +134,6 @@ export const exportOrdersPDF = async (orders, dateRange, showSuccess, showError)
         doc.setFont('helvetica', 'bold');
         doc.text(`Rs. ${pdfData.summary.totalRevenue.toLocaleString()}`, 34, yPosition + 12, { align: 'center' });
 
-        // Total Orders Box
         doc.setFillColor(59, 130, 246);
         doc.roundedRect(14 + summaryBoxWidth + summarySpacing, yPosition, summaryBoxWidth, summaryBoxHeight, 2, 2, 'F');
         doc.setTextColor(255, 255, 255);
@@ -154,7 +143,6 @@ export const exportOrdersPDF = async (orders, dateRange, showSuccess, showError)
         doc.setFont('helvetica', 'bold');
         doc.text(pdfData.summary.totalOrders.toString(), 34 + summaryBoxWidth + summarySpacing, yPosition + 12, { align: 'center' });
 
-        // Avg Order Value Box
         doc.setFillColor(168, 85, 247);
         doc.roundedRect(14 + (summaryBoxWidth + summarySpacing) * 2, yPosition, summaryBoxWidth, summaryBoxHeight, 2, 2, 'F');
         doc.setTextColor(255, 255, 255);
@@ -164,7 +152,6 @@ export const exportOrdersPDF = async (orders, dateRange, showSuccess, showError)
         doc.setFont('helvetica', 'bold');
         doc.text(`Rs. ${pdfData.summary.averageOrderValue.toFixed(2)}`, 34 + (summaryBoxWidth + summarySpacing) * 2, yPosition + 12, { align: 'center' });
 
-        // Completion Rate Box
         doc.setFillColor(234, 179, 8);
         doc.roundedRect(14 + (summaryBoxWidth + summarySpacing) * 3, yPosition, summaryBoxWidth, summaryBoxHeight, 2, 2, 'F');
         doc.setTextColor(255, 255, 255);
@@ -174,7 +161,6 @@ export const exportOrdersPDF = async (orders, dateRange, showSuccess, showError)
         doc.setFont('helvetica', 'bold');
         doc.text(`${pdfData.summary.completionRate.toFixed(1)}%`, 34 + (summaryBoxWidth + summarySpacing) * 3, yPosition + 12, { align: 'center' });
 
-        // Order Status Breakdown
         yPosition += summaryBoxHeight + 15;
         doc.setFontSize(11);
         doc.setTextColor(40, 40, 40);
@@ -209,7 +195,6 @@ export const exportOrdersPDF = async (orders, dateRange, showSuccess, showError)
             doc.text(item.count.toString(), xPos + 22.5, yPosition + 12, { align: 'center' });
         });
 
-        // Orders Table
         yPosition += 25;
         doc.setFontSize(11);
         doc.setTextColor(40, 40, 40);

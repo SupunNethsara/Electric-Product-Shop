@@ -1,5 +1,5 @@
-import React from 'react';
-import { BarChart3, ShoppingCart, FileText, Eye } from 'lucide-react';
+import React from "react";
+import { BarChart3, ShoppingCart, FileText, Eye } from "lucide-react";
 
 const TabNavigation = ({ activeTab, onTabChange }) => {
     const tabs = [

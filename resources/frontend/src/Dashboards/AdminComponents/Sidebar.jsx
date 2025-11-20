@@ -1,4 +1,3 @@
-// Sidebar.jsx
 import {
     LayoutDashboard,
     Package,
@@ -9,8 +8,8 @@ import {
     FileText,
     Image,
     Upload,
-    LogOut
-} from 'lucide-react';
+    LogOut,
+} from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -20,41 +19,41 @@ const Sidebar = () => {
 
     const navigationItems = [
         {
-            name: 'Dashboard',
-            href: '/admin',
+            name: "Dashboard",
+            href: "/admin",
             icon: LayoutDashboard,
-            current: location.pathname === '/admin'
+            current: location.pathname === "/admin",
         },
         {
-            name: 'Products',
-            href: '/admin/products',
+            name: "Products",
+            href: "/admin/products",
             icon: Package,
-            current: location.pathname.includes('/admin/products')
+            current: location.pathname.includes("/admin/products"),
         },
         {
-            name: 'Orders',
-            href: '/admin/orders',
+            name: "Orders",
+            href: "/admin/orders",
             icon: ShoppingCart,
-            current: location.pathname.includes('/admin/orders')
+            current: location.pathname.includes("/admin/orders"),
         },
         {
-            name: 'Users',
-            href: '/admin/user-manage',
+            name: "Users",
+            href: "/admin/user-manage",
             icon: Users,
-            current: location.pathname.includes('/admin/users')
+            current: location.pathname.includes("/admin/users"),
         },
         {
-            name: 'Branding',
-            href: '/admin/branding',
+            name: "Branding",
+            href: "/admin/branding",
             icon: Image,
-            current: location.pathname.includes('/admin/branding')
+            current: location.pathname.includes("/admin/branding"),
         },
         {
-            name: 'Reports',
-            href: '/admin/reports',
+            name: "Reports",
+            href: "/admin/reports",
             icon: BarChart3,
-            current: location.pathname.includes('/admin/reports')
-        }
+            current: location.pathname.includes("/admin/reports"),
+        },
     ];
 
     return (
@@ -77,7 +76,6 @@ const Sidebar = () => {
                 </div>
             </div>
 
-            {/* Navigation - Scrollable */}
             <div className="flex-1 overflow-y-auto">
                 <nav className="px-4 py-6 space-y-1">
                     {navigationItems.map((item) => {
@@ -88,10 +86,11 @@ const Sidebar = () => {
                                 to={item.href}
                                 className={`
                                     flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200
-                                    ${item.current
-                                    ? 'bg-green-50 text-green-700 border border-green-200'
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                }
+                                    ${
+                                        item.current
+                                            ? "bg-green-50 text-green-700 border border-green-200"
+                                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                    }
                                 `}
                             >
                                 <Icon size={20} className="mr-3" />

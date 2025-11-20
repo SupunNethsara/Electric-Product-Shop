@@ -12,10 +12,9 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 const About = () => {
-
     useEffect(() => {
         window.scrollTo(0, 0);
-    }, [])
+    }, []);
 
     const values = [
         {

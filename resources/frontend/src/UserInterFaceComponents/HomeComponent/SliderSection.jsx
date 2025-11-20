@@ -9,7 +9,9 @@ const calculateDiscount = (price, originalPrice) => {
     if (!price || !originalPrice) return 0;
 
     const p = parseFloat(price.toString().replace("Rs", "").replace(",", ""));
-    const op = parseFloat(originalPrice.toString().replace("Rs", "").replace(",", ""));
+    const op = parseFloat(
+        originalPrice.toString().replace("Rs", "").replace(",", ""),
+    );
 
     if (isNaN(p) || isNaN(op) || op <= p) return 0;
 
@@ -66,11 +68,16 @@ function SliderSection() {
     useEffect(() => {
         const fetchSlides = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/api/slides', {
-                    timeout: 5000
-                });
+                const response = await axios.get(
+                    "http://localhost:8000/api/slides",
+                    {
+                        timeout: 5000,
+                    },
+                );
                 if (response.data && Array.isArray(response.data)) {
-                    const activeSlides = response.data.filter(slide => slide.is_active);
+                    const activeSlides = response.data.filter(
+                        (slide) => slide.is_active,
+                    );
 
                     if (activeSlides.length > 0) {
                         setSlides(activeSlides);
@@ -81,8 +88,7 @@ function SliderSection() {
                     setSlides(defaultSlides);
                 }
             } catch (error) {
-                console.error('Error fetching slides:', error);
-                console.log('Using default slides due to error');
+                console.error("Error fetching slides:", error);
                 setSlides(defaultSlides);
             } finally {
                 setLoading(false);
@@ -214,45 +220,63 @@ function SliderSection() {
                                     <div className="space-y-2">
                                         <div
                                             className="h-8 sm:h-10 lg:h-12 bg-gray-300 rounded-lg animate-pulse max-w-xs"
-                                            style={{ backgroundColor: `${themeColors.primary}20` }}
+                                            style={{
+                                                backgroundColor: `${themeColors.primary}20`,
+                                            }}
                                         ></div>
                                         <div
                                             className="h-6 sm:h-8 bg-gray-300 rounded-lg animate-pulse max-w-sm"
-                                            style={{ backgroundColor: `${themeColors.primary}15` }}
+                                            style={{
+                                                backgroundColor: `${themeColors.primary}15`,
+                                            }}
                                         ></div>
                                     </div>
 
                                     <div className="space-y-2">
                                         <div
                                             className="h-4 bg-gray-300 rounded animate-pulse max-w-md"
-                                            style={{ backgroundColor: `${themeColors.primary}10` }}
+                                            style={{
+                                                backgroundColor: `${themeColors.primary}10`,
+                                            }}
                                         ></div>
                                         <div
                                             className="h-4 bg-gray-300 rounded animate-pulse max-w-lg"
-                                            style={{ backgroundColor: `${themeColors.primary}10` }}
+                                            style={{
+                                                backgroundColor: `${themeColors.primary}10`,
+                                            }}
                                         ></div>
                                         <div
                                             className="h-4 bg-gray-300 rounded animate-pulse max-w-sm"
-                                            style={{ backgroundColor: `${themeColors.primary}10` }}
+                                            style={{
+                                                backgroundColor: `${themeColors.primary}10`,
+                                            }}
                                         ></div>
                                     </div>
                                     <div className="flex items-center gap-3 sm:gap-4 mt-4 sm:mt-6 flex-wrap">
                                         <div
                                             className="h-8 w-24 bg-gray-300 rounded-lg animate-pulse"
-                                            style={{ backgroundColor: `${themeColors.primary}20` }}
+                                            style={{
+                                                backgroundColor: `${themeColors.primary}20`,
+                                            }}
                                         ></div>
                                         <div
                                             className="h-6 w-20 bg-gray-300 rounded-lg animate-pulse"
-                                            style={{ backgroundColor: `${themeColors.primary}15` }}
+                                            style={{
+                                                backgroundColor: `${themeColors.primary}15`,
+                                            }}
                                         ></div>
                                         <div
                                             className="h-8 w-20 bg-gray-300 rounded-full animate-pulse"
-                                            style={{ backgroundColor: `${themeColors.secondary}30` }}
+                                            style={{
+                                                backgroundColor: `${themeColors.secondary}30`,
+                                            }}
                                         ></div>
                                     </div>
                                     <div
                                         className="h-12 w-32 bg-gray-300 rounded-lg animate-pulse mt-4 sm:mt-6"
-                                        style={{ backgroundColor: `${themeColors.primary}30` }}
+                                        style={{
+                                            backgroundColor: `${themeColors.primary}30`,
+                                        }}
                                     ></div>
                                 </div>
                                 <div className="image-content flex justify-center relative mt-4 md:mt-0">
@@ -265,9 +289,10 @@ function SliderSection() {
 
                                     <div
                                         className="relative z-10 w-40 h-40 sm:w-56 sm:h-56 lg:w-72 lg:h-72 xl:w-96 xl:h-96 bg-gray-300 rounded-2xl animate-pulse flex items-center justify-center"
-                                        style={{ backgroundColor: `${themeColors.primary}15` }}
-                                    >
-                                    </div>
+                                        style={{
+                                            backgroundColor: `${themeColors.primary}15`,
+                                        }}
+                                    ></div>
                                 </div>
                             </div>
 
@@ -318,17 +343,21 @@ function SliderSection() {
                             <span className="w-2 h-2 rounded-full bg-red-500"></span>
                             No Slides Available
                         </div>
-                        <p className="text-gray-600 text-lg">Please check your API connection</p>
+                        <p className="text-gray-600 text-lg">
+                            Please check your API connection
+                        </p>
                         <button
                             className="text-white py-2 px-6 rounded-lg mt-4 hover:scale-105 transition-transform duration-200"
                             style={{
                                 backgroundColor: themeColors.primary,
                             }}
                             onMouseOver={(e) =>
-                                (e.target.style.backgroundColor = themeColors.primaryHover)
+                                (e.target.style.backgroundColor =
+                                    themeColors.primaryHover)
                             }
                             onMouseOut={(e) =>
-                                (e.target.style.backgroundColor = themeColors.primary)
+                                (e.target.style.backgroundColor =
+                                    themeColors.primary)
                             }
                             onClick={() => window.location.reload()}
                         >
@@ -400,7 +429,8 @@ function SliderSection() {
                                                     <span
                                                         className="px-3 py-1.5 sm:px-4 sm:py-2 text-white text-xs sm:text-sm font-semibold rounded-full"
                                                         style={{
-                                                            backgroundColor: themeColors.secondary,
+                                                            backgroundColor:
+                                                                themeColors.secondary,
                                                         }}
                                                     >
                                                         Save {discountPercent}%
@@ -409,16 +439,21 @@ function SliderSection() {
                                             </div>
 
                                             <button
-                                                onClick={()=>navigate('/shop')}
+                                                onClick={() =>
+                                                    navigate("/shop")
+                                                }
                                                 className="text-white text-sm sm:text-base lg:text-lg py-2.5 sm:py-3 px-8 sm:px-12 mt-4 sm:mt-6 rounded-lg hover:scale-105 active:scale-95 transition-transform duration-200 shadow-lg"
                                                 style={{
-                                                    backgroundColor: themeColors.primary,
+                                                    backgroundColor:
+                                                        themeColors.primary,
                                                 }}
                                                 onMouseOver={(e) =>
-                                                    (e.target.style.backgroundColor = themeColors.primaryHover)
+                                                    (e.target.style.backgroundColor =
+                                                        themeColors.primaryHover)
                                                 }
                                                 onMouseOut={(e) =>
-                                                    (e.target.style.backgroundColor = themeColors.primary)
+                                                    (e.target.style.backgroundColor =
+                                                        themeColors.primary)
                                                 }
                                             >
                                                 Shop Now
@@ -437,8 +472,12 @@ function SliderSection() {
                                                 alt={slide.title}
                                                 className="relative z-10 w-40 h-40 sm:w-56 sm:h-56 lg:w-72 lg:h-72 xl:w-96 xl:h-96 object-contain transform hover:scale-105 transition-transform duration-500"
                                                 onError={(e) => {
-                                                    console.error('Image failed to load:', slide.image);
-                                                    e.target.src = 'https://via.placeholder.com/400x400?text=Image+Not+Found';
+                                                    console.error(
+                                                        "Image failed to load:",
+                                                        slide.image,
+                                                    );
+                                                    e.target.src =
+                                                        "https://via.placeholder.com/400x400?text=Image+Not+Found";
                                                 }}
                                             />
                                         </div>

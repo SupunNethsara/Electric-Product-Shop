@@ -1,36 +1,43 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, { useEffect, useState, useCallback } from "react";
 import ShopHeader from "./ShopComponents/ShopHeader.jsx";
 import FillterSidebar from "./ShopComponents/FillterSidebar.jsx";
 import ProductSection from "./ShopComponents/ProductSection.jsx";
 import MobileFilterDrawer from "./ShopComponents/MobileFilterDrawer.jsx";
 import axios from "axios";
-import { useLocation } from 'react-router-dom';
+import { useLocation } from "react-router-dom";
 
 function ProductShop() {
     const location = useLocation();
     const [allProducts, setAllProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [categories, setCategories] = useState([]);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [priceRange, setPriceRange] = useState([0, 300000]);
-    const [availability, setAvailability] = useState('all');
-    const [sortBy, setSortBy] = useState('featured');
+    const [availability, setAvailability] = useState("all");
+    const [sortBy, setSortBy] = useState("featured");
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [isSortOpen, setIsSortOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(12);
     const [totalProducts, setTotalProducts] = useState(0);
     const [loading, setLoading] = useState(false);
-    const [searchInput, setSearchInput] = useState('');
+    const [searchInput, setSearchInput] = useState("");
     const [initialLoad, setInitialLoad] = useState(true);
+
+    const sortOptions = [
+        { value: "featured", label: "Featured" },
+        { value: "price-low", label: "Price: Low to High" },
+        { value: "price-high", label: "Price: High to Low" },
+        { value: "rating", label: "Highest Rated" },
+        { value: "name", label: "Name A-Z" },
+    ];
 
     useEffect(() => {
         const urlParams = new URLSearchParams(location.search);
-        const searchParam = urlParams.get('search');
+        const searchParam = urlParams.get("search");
 
         if (searchParam) {
-            console.log('🔗 URL search parameter detected:', searchParam);
             setSearchQuery(searchParam);
             setSearchInput(searchParam);
         }
@@ -39,10 +46,9 @@ function ProductShop() {
     }, [location.search]);
 
     const extractCategoriesFromProducts = (products) => {
-        const categorySet = new Set();
         const categoryMap = {};
 
-        products.forEach(product => {
+        products.forEach((product) => {
             if (product.category_1) {
                 const key1 = `cat1_${product.category_1}`;
                 if (!categoryMap[key1]) {
@@ -50,12 +56,13 @@ function ProductShop() {
                         id: key1,
                         name: product.category_1,
                         level: 0,
-                        type: 'category_1'
+                        type: "category_1",
+                        fullPath: product.category_1,
                     };
                 }
             }
 
-            if (product.category_2) {
+            if (product.category_2 && product.category_1) {
                 const key2 = `cat2_${product.category_1}_${product.category_2}`;
                 if (!categoryMap[key2]) {
                     categoryMap[key2] = {
@@ -63,12 +70,17 @@ function ProductShop() {
                         name: product.category_2,
                         level: 1,
                         parent: product.category_1,
-                        type: 'category_2'
+                        type: "category_2",
+                        fullPath: `${product.category_1} > ${product.category_2}`,
                     };
                 }
             }
 
-            if (product.category_3) {
+            if (
+                product.category_3 &&
+                product.category_2 &&
+                product.category_1
+            ) {
                 const key3 = `cat3_${product.category_1}_${product.category_2}_${product.category_3}`;
                 if (!categoryMap[key3]) {
                     categoryMap[key3] = {
@@ -76,7 +88,9 @@ function ProductShop() {
                         name: product.category_3,
                         level: 2,
                         parent: product.category_2,
-                        type: 'category_3'
+                        grandParent: product.category_1,
+                        type: "category_3",
+                        fullPath: `${product.category_1} > ${product.category_2} > ${product.category_3}`,
                     };
                 }
             }
@@ -85,42 +99,141 @@ function ProductShop() {
         return Object.values(categoryMap);
     };
 
-    const productMatchesCategories = (product, selectedCats) => {
-        if (selectedCats.length === 0) return true;
+    const getChildCategoryIds = useCallback(
+        (categoryId) => {
+            const category = categories.find((c) => c.id === categoryId);
+            if (!category) return [categoryId];
 
-        return selectedCats.some(catId => {
-            const category = categories.find(c => c.id === catId);
-            if (!category) return false;
+            const childIds = [categoryId];
 
-            switch (category.type) {
-                case 'category_1':
-                    return product.category_1 === category.name;
-                case 'category_2':
-                    return product.category_2 === category.name &&
-                        product.category_1 === category.parent;
-                case 'category_3':
-                    return product.category_3 === category.name &&
-                        product.category_2 === category.parent;
-                default:
-                    return false;
+            if (category.level === 0) {
+                const level1Children = categories.filter(
+                    (c) => c.level === 1 && c.parent === category.name,
+                );
+
+                level1Children.forEach((level1Cat) => {
+                    childIds.push(level1Cat.id);
+
+                    const level2Children = categories.filter(
+                        (c) =>
+                            c.level === 2 &&
+                            c.parent === level1Cat.name &&
+                            c.grandParent === category.name,
+                    );
+
+                    level2Children.forEach((level2Cat) => {
+                        childIds.push(level2Cat.id);
+                        const level3Children = categories.filter(
+                            (c) =>
+                                c.level === 3 &&
+                                c.parent === level2Cat.name &&
+                                c.grandParent === level1Cat.name,
+                        );
+
+                        level3Children.forEach((level3Cat) => {
+                            childIds.push(level3Cat.id);
+                        });
+                    });
+                });
+            } else if (category.level === 1) {
+                const level2Children = categories.filter(
+                    (c) =>
+                        c.level === 2 &&
+                        c.parent === category.name &&
+                        c.grandParent === category.parent,
+                );
+
+                level2Children.forEach((level2Cat) => {
+                    childIds.push(level2Cat.id);
+                    const level3Children = categories.filter(
+                        (c) =>
+                            c.level === 3 &&
+                            c.parent === level2Cat.name &&
+                            c.grandParent === category.name,
+                    );
+
+                    level3Children.forEach((level3Cat) => {
+                        childIds.push(level3Cat.id);
+                    });
+                });
+            } else if (category.level === 2) {
+                const level3Children = categories.filter(
+                    (c) =>
+                        c.level === 3 &&
+                        c.parent === category.name &&
+                        c.grandParent === category.grandParent,
+                );
+
+                level3Children.forEach((level3Cat) => {
+                    childIds.push(level3Cat.id);
+                });
             }
-        });
-    };
+            return [...new Set(childIds)];
+        },
+        [categories],
+    );
+
+    const productMatchesCategories = useCallback(
+        (product, selectedCats) => {
+            if (selectedCats.length === 0) return true;
+
+            const allCategoryIds = selectedCats.flatMap((catId) =>
+                getChildCategoryIds(catId),
+            );
+
+            return allCategoryIds.some((catId) => {
+                const category = categories.find((c) => c.id === catId);
+                if (!category) {
+                    return false;
+                }
+
+                let matches = false;
+
+                switch (category.type) {
+                    case "category_1":
+                        matches = product.category_1 === category.name;
+                        break;
+                    case "category_2":
+                        matches =
+                            product.category_2 === category.name &&
+                            product.category_1 === category.parent;
+                        break;
+                    case "category_3":
+                        matches =
+                            product.category_3 === category.name &&
+                            product.category_2 === category.parent &&
+                            product.category_1 === category.grandParent;
+                        break;
+                    default:
+                        matches = false;
+                }
+
+                return matches;
+            });
+        },
+        [categories, getChildCategoryIds],
+    );
 
     useEffect(() => {
         const fetchAllProducts = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get('http://127.0.0.1:8000/api/products/active', {
-                    params: { per_page: 1000 }
-                });
+                const response = await axios.get(
+                    "http://127.0.0.1:8000/api/products/active",
+                    {
+                        params: { per_page: 1000 },
+                    },
+                );
 
                 const products = response.data.data || [];
                 setAllProducts(products);
-                const extractedCategories = extractCategoriesFromProducts(products);
+                const extractedCategories =
+                    extractCategoriesFromProducts(products);
                 setCategories(extractedCategories);
+
+                products.slice(0, 3).forEach((product, index) => {});
             } catch (error) {
-                console.error('Error fetching products:', error);
+                console.error("Error fetching products:", error);
                 setAllProducts([]);
                 setCategories([]);
             } finally {
@@ -135,7 +248,14 @@ function ProductShop() {
     useEffect(() => {
         if (initialLoad) return;
         applyFilters();
-    }, [searchQuery, selectedCategories, priceRange, availability, sortBy, allProducts]);
+    }, [
+        searchQuery,
+        selectedCategories,
+        priceRange,
+        availability,
+        sortBy,
+        allProducts,
+    ]);
 
     const applyFilters = useCallback(() => {
         if (allProducts.length === 0) {
@@ -148,9 +268,8 @@ function ProductShop() {
 
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase().trim();
-            console.log('🔍 Applying search filter:', query);
 
-            filtered = filtered.filter(product => {
+            filtered = filtered.filter((product) => {
                 const matches =
                     product.name?.toLowerCase().includes(query) ||
                     product.description?.toLowerCase().includes(query) ||
@@ -166,25 +285,25 @@ function ProductShop() {
         }
 
         if (selectedCategories.length > 0) {
-            filtered = filtered.filter(product =>
-                productMatchesCategories(product, selectedCategories)
+            filtered = filtered.filter((product) =>
+                productMatchesCategories(product, selectedCategories),
             );
         }
 
-        filtered = filtered.filter(product => {
+        filtered = filtered.filter((product) => {
             const price = parseFloat(product.price) || 0;
             const inRange = price >= priceRange[0] && price <= priceRange[1];
             return inRange;
         });
 
-        if (availability !== 'all') {
-            if (availability === 'in-stock') {
-                filtered = filtered.filter(product => {
+        if (availability !== "all") {
+            if (availability === "in-stock") {
+                filtered = filtered.filter((product) => {
                     const isInStock = parseInt(product.availability) > 0;
                     return isInStock;
                 });
-            } else if (availability === 'out-of-stock') {
-                filtered = filtered.filter(product => {
+            } else if (availability === "out-of-stock") {
+                filtered = filtered.filter((product) => {
                     const isOutOfStock = parseInt(product.availability) === 0;
                     return isOutOfStock;
                 });
@@ -195,22 +314,45 @@ function ProductShop() {
         setFilteredProducts(filtered);
         setTotalProducts(filtered.length);
         setCurrentPage(1);
-    }, [allProducts, searchQuery, selectedCategories, priceRange, availability, sortBy, categories]);
+    }, [
+        allProducts,
+        searchQuery,
+        selectedCategories,
+        priceRange,
+        availability,
+        sortBy,
+        productMatchesCategories,
+        categories,
+    ]);
 
     const sortProducts = (products, sortType) => {
         const sorted = [...products];
 
         switch (sortType) {
-            case 'price-low':
-                return sorted.sort((a, b) => (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0));
-            case 'price-high':
-                return sorted.sort((a, b) => (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0));
-            case 'rating':
-                return sorted.sort((a, b) => (parseFloat(b.average_rating) || 0) - (parseFloat(a.average_rating) || 0));
-            case 'name':
-                return sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            case "price-low":
+                return sorted.sort(
+                    (a, b) =>
+                        (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0),
+                );
+            case "price-high":
+                return sorted.sort(
+                    (a, b) =>
+                        (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0),
+                );
+            case "rating":
+                return sorted.sort(
+                    (a, b) =>
+                        (parseFloat(b.average_rating) || 0) -
+                        (parseFloat(a.average_rating) || 0),
+                );
+            case "name":
+                return sorted.sort((a, b) =>
+                    (a.name || "").localeCompare(b.name || ""),
+                );
             default:
-                return sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                return sorted.sort(
+                    (a, b) => new Date(b.created_at) - new Date(a.created_at),
+                );
         }
     };
 
@@ -221,31 +363,26 @@ function ProductShop() {
     };
 
     const toggleCategory = (categoryId) => {
-        setSelectedCategories(prev =>
+        const category = categories.find((c) => c.id === categoryId);
+        setSelectedCategories((prev) =>
             prev.includes(categoryId)
-                ? prev.filter(id => id !== categoryId)
-                : [...prev, categoryId]
+                ? prev.filter((id) => id !== categoryId)
+                : [...prev, categoryId],
         );
     };
 
     const clearAllFilters = () => {
-        setSearchInput('');
-        setSearchQuery('');
+        setSearchInput("");
+        setSearchQuery("");
         setSelectedCategories([]);
         setPriceRange([0, 300000]);
-        setAvailability('all');
-        setSortBy('featured');
+        setAvailability("all");
+        setSortBy("featured");
         setCurrentPage(1);
     };
 
     const handleSearch = () => {
         const trimmedInput = searchInput.trim();
-        console.log('🔍 Handle search called:', {
-            searchInput,
-            trimmedInput,
-            currentSearchQuery: searchQuery
-        });
-
         if (trimmedInput !== searchQuery) {
             setSearchQuery(trimmedInput);
         } else {
@@ -254,15 +391,14 @@ function ProductShop() {
     };
 
     const handleKeyPress = (e) => {
-        if (e.key === 'Enter') {
-            console.log('⌨️ Enter key pressed');
+        if (e.key === "Enter") {
             handleSearch();
         }
     };
 
     const handlePageChange = (page) => {
         setCurrentPage(page);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     const handleItemsPerPageChange = (value) => {
@@ -271,18 +407,9 @@ function ProductShop() {
     };
 
     const handleClearSearch = () => {
-        console.log('🗑️ Clearing search');
-        setSearchInput('');
-        setSearchQuery('');
+        setSearchInput("");
+        setSearchQuery("");
     };
-
-    const sortOptions = [
-        { value: 'featured', label: 'Featured' },
-        { value: 'price-low', label: 'Price: Low to High' },
-        { value: 'price-high', label: 'Price: High to Low' },
-        { value: 'rating', label: 'Highest Rated' },
-        { value: 'name', label: 'Name A-Z' }
-    ];
 
     return (
         <div className="min-h-screen bg-gray-50 pt-0">

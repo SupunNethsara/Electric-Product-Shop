@@ -1,13 +1,13 @@
-import React from 'react';
-import { Star } from 'lucide-react';
+import React from "react";
+import { Star } from "lucide-react";
 
 const StarRating = ({
-                        rating,
-                        onRatingChange,
-                        size = 20,
-                        readonly = false,
-                        showLabel = false
-                    }) => {
+    rating,
+    onRatingChange,
+    size = 20,
+    readonly = false,
+    showLabel = false,
+}) => {
     const handleClick = (newRating) => {
         if (!readonly && onRatingChange) {
             onRatingChange(newRating);
@@ -22,17 +22,17 @@ const StarRating = ({
                 type="button"
                 onClick={() => handleClick(i)}
                 disabled={readonly}
-                className={`${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'} transition-transform`}
+                className={`${readonly ? "cursor-default" : "cursor-pointer hover:scale-110"} transition-transform`}
             >
                 <Star
                     size={size}
                     className={`${
                         i <= rating
-                            ? 'fill-yellow-400 text-yellow-400'
-                            : 'text-gray-300'
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-gray-300"
                     } transition-colors`}
                 />
-            </button>
+            </button>,
         );
     }
 
@@ -40,9 +40,7 @@ const StarRating = ({
         <div className="flex items-center gap-1">
             <div className="flex">{stars}</div>
             {showLabel && (
-                <span className="ml-2 text-sm text-gray-600">
-          {rating}/5
-        </span>
+                <span className="ml-2 text-sm text-gray-600">{rating}/5</span>
             )}
         </div>
     );

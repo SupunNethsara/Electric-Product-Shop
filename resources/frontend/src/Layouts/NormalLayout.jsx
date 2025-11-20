@@ -6,7 +6,7 @@ const NormalLayout = ({ children }) => {
         <div className="min-h-screen bg-gray-50">
             <Navbar />
             <main>{children}</main>
-            <Footer/>
+            <Footer />
         </div>
     );
 };

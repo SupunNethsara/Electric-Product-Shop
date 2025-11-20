@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import SuperAdminSidebar from "../Dashboards/SuperAdminComponents/SuperAdminSidebar.jsx";
 import Header from "../Dashboards/AdminComponents/Header.jsx";
 
@@ -12,9 +12,7 @@ function SuperAdminLayout({ children }) {
             <div className="flex-1 ml-64 p-4">
                 <Header />
                 <div className="pt-12 mt-8">
-                    <div className="">
-                        {children}
-                    </div>
+                    <div className="">{children}</div>
                 </div>
             </div>
         </div>

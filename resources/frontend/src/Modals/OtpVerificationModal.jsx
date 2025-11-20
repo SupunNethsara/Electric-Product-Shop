@@ -10,7 +10,7 @@ const OtpVerificationModal = ({
                                   onVerificationSuccess
                               }) => {
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
-    const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
+    const [timeLeft, setTimeLeft] = useState(600);
     const [localError, setLocalError] = useState('');
 
     const inputRefs = useRef([]);
@@ -104,10 +104,10 @@ const OtpVerificationModal = ({
 
         dispatch(clearOtpState());
         setLocalError('');
-        
-        const result = await dispatch(verifyOtp({ 
-            email: email, 
-            otp: otpString 
+
+        const result = await dispatch(verifyOtp({
+            email: email,
+            otp: otpString
         }));
 
         if (verifyOtp.fulfilled.match(result)) {

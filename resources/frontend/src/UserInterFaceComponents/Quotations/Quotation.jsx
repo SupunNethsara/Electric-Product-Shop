@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, { useEffect, useState, useCallback } from "react";
 import ShopHeader from "../Shop/ShopComponents/ShopHeader.jsx";
 import FillterSidebar from "../Shop/ShopComponents/FillterSidebar.jsx";
 import MobileFilterDrawer from "../Shop/ShopComponents/MobileFilterDrawer.jsx";
@@ -9,18 +9,18 @@ function Quotation() {
     const [allProducts, setAllProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [categories, setCategories] = useState([]);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [priceRange, setPriceRange] = useState([0, 300000]);
-    const [availability, setAvailability] = useState('all');
-    const [sortBy, setSortBy] = useState('featured');
+    const [availability, setAvailability] = useState("all");
+    const [sortBy, setSortBy] = useState("featured");
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [isSortOpen, setIsSortOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(12);
     const [totalProducts, setTotalProducts] = useState(0);
     const [loading, setLoading] = useState(false);
-    const [searchInput, setSearchInput] = useState('');
+    const [searchInput, setSearchInput] = useState("");
     const [initialLoad, setInitialLoad] = useState(true);
 
     useEffect(() => {
@@ -31,7 +31,7 @@ function Quotation() {
         const categorySet = new Set();
         const categoryMap = {};
 
-        products.forEach(product => {
+        products.forEach((product) => {
             if (product.category_1) {
                 const key1 = `cat1_${product.category_1}`;
                 if (!categoryMap[key1]) {
@@ -39,7 +39,7 @@ function Quotation() {
                         id: key1,
                         name: product.category_1,
                         level: 0,
-                        type: 'category_1'
+                        type: "category_1",
                     };
                 }
             }
@@ -52,7 +52,7 @@ function Quotation() {
                         name: product.category_2,
                         level: 1,
                         parent: product.category_1,
-                        type: 'category_2'
+                        type: "category_2",
                     };
                 }
             }
@@ -65,7 +65,7 @@ function Quotation() {
                         name: product.category_3,
                         level: 2,
                         parent: product.category_2,
-                        type: 'category_3'
+                        type: "category_3",
                     };
                 }
             }
@@ -77,19 +77,23 @@ function Quotation() {
     const productMatchesCategories = (product, selectedCats) => {
         if (selectedCats.length === 0) return true;
 
-        return selectedCats.some(catId => {
-            const category = categories.find(c => c.id === catId);
+        return selectedCats.some((catId) => {
+            const category = categories.find((c) => c.id === catId);
             if (!category) return false;
 
             switch (category.type) {
-                case 'category_1':
+                case "category_1":
                     return product.category_1 === category.name;
-                case 'category_2':
-                    return product.category_2 === category.name &&
-                        product.category_1 === category.parent;
-                case 'category_3':
-                    return product.category_3 === category.name &&
-                        product.category_2 === category.parent;
+                case "category_2":
+                    return (
+                        product.category_2 === category.name &&
+                        product.category_1 === category.parent
+                    );
+                case "category_3":
+                    return (
+                        product.category_3 === category.name &&
+                        product.category_2 === category.parent
+                    );
                 default:
                     return false;
             }
@@ -100,20 +104,20 @@ function Quotation() {
         const fetchAllProducts = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get('http://127.0.0.1:8000/api/products/active', {
-                    params: { per_page: 1000 }
-                });
+                const response = await axios.get(
+                    "http://127.0.0.1:8000/api/products/active",
+                    {
+                        params: { per_page: 1000 },
+                    },
+                );
 
                 const products = response.data.data || [];
                 setAllProducts(products);
-                const extractedCategories = extractCategoriesFromProducts(products);
+                const extractedCategories =
+                    extractCategoriesFromProducts(products);
                 setCategories(extractedCategories);
-                console.log('📂 Loaded products and categories:', {
-                    productsCount: products.length,
-                    categoriesCount: extractedCategories.length
-                });
             } catch (error) {
-                console.error('Error fetching products:', error);
+                console.error("Error fetching products:", error);
                 setAllProducts([]);
                 setCategories([]);
             } finally {
@@ -128,7 +132,14 @@ function Quotation() {
     useEffect(() => {
         if (initialLoad) return;
         applyFilters();
-    }, [searchQuery, selectedCategories, priceRange, availability, sortBy, allProducts]);
+    }, [
+        searchQuery,
+        selectedCategories,
+        priceRange,
+        availability,
+        sortBy,
+        allProducts,
+    ]);
 
     const applyFilters = useCallback(() => {
         if (allProducts.length === 0) {
@@ -141,9 +152,7 @@ function Quotation() {
 
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase().trim();
-            console.log('🔍 Applying search filter:', query);
-
-            filtered = filtered.filter(product => {
+            filtered = filtered.filter((product) => {
                 const matches =
                     product.name?.toLowerCase().includes(query) ||
                     product.description?.toLowerCase().includes(query) ||
@@ -159,26 +168,25 @@ function Quotation() {
         }
 
         if (selectedCategories.length > 0) {
-            console.log('🎯 Applying category filter:', selectedCategories);
-            filtered = filtered.filter(product =>
-                productMatchesCategories(product, selectedCategories)
+            filtered = filtered.filter((product) =>
+                productMatchesCategories(product, selectedCategories),
             );
         }
 
-        filtered = filtered.filter(product => {
+        filtered = filtered.filter((product) => {
             const price = parseFloat(product.price) || 0;
             const inRange = price >= priceRange[0] && price <= priceRange[1];
             return inRange;
         });
 
-        if (availability !== 'all') {
-            if (availability === 'in-stock') {
-                filtered = filtered.filter(product => {
+        if (availability !== "all") {
+            if (availability === "in-stock") {
+                filtered = filtered.filter((product) => {
                     const isInStock = parseInt(product.availability) > 0;
                     return isInStock;
                 });
-            } else if (availability === 'out-of-stock') {
-                filtered = filtered.filter(product => {
+            } else if (availability === "out-of-stock") {
+                filtered = filtered.filter((product) => {
                     const isOutOfStock = parseInt(product.availability) === 0;
                     return isOutOfStock;
                 });
@@ -189,22 +197,44 @@ function Quotation() {
         setFilteredProducts(filtered);
         setTotalProducts(filtered.length);
         setCurrentPage(1);
-    }, [allProducts, searchQuery, selectedCategories, priceRange, availability, sortBy, categories]);
+    }, [
+        allProducts,
+        searchQuery,
+        selectedCategories,
+        priceRange,
+        availability,
+        sortBy,
+        categories,
+    ]);
 
     const sortProducts = (products, sortType) => {
         const sorted = [...products];
 
         switch (sortType) {
-            case 'price-low':
-                return sorted.sort((a, b) => (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0));
-            case 'price-high':
-                return sorted.sort((a, b) => (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0));
-            case 'rating':
-                return sorted.sort((a, b) => (parseFloat(b.average_rating) || 0) - (parseFloat(a.average_rating) || 0));
-            case 'name':
-                return sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            case "price-low":
+                return sorted.sort(
+                    (a, b) =>
+                        (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0),
+                );
+            case "price-high":
+                return sorted.sort(
+                    (a, b) =>
+                        (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0),
+                );
+            case "rating":
+                return sorted.sort(
+                    (a, b) =>
+                        (parseFloat(b.average_rating) || 0) -
+                        (parseFloat(a.average_rating) || 0),
+                );
+            case "name":
+                return sorted.sort((a, b) =>
+                    (a.name || "").localeCompare(b.name || ""),
+                );
             default:
-                return sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                return sorted.sort(
+                    (a, b) => new Date(b.created_at) - new Date(a.created_at),
+                );
         }
     };
 
@@ -215,32 +245,25 @@ function Quotation() {
     };
 
     const toggleCategory = (categoryId) => {
-        setSelectedCategories(prev =>
+        setSelectedCategories((prev) =>
             prev.includes(categoryId)
-                ? prev.filter(id => id !== categoryId)
-                : [...prev, categoryId]
+                ? prev.filter((id) => id !== categoryId)
+                : [...prev, categoryId],
         );
     };
 
     const clearAllFilters = () => {
-        console.log('🧹 Clearing all filters');
-        setSearchInput('');
-        setSearchQuery('');
+        setSearchInput("");
+        setSearchQuery("");
         setSelectedCategories([]);
         setPriceRange([0, 300000]);
-        setAvailability('all');
-        setSortBy('featured');
+        setAvailability("all");
+        setSortBy("featured");
         setCurrentPage(1);
     };
 
     const handleSearch = () => {
         const trimmedInput = searchInput.trim();
-        console.log('🔍 Handle search called:', {
-            searchInput,
-            trimmedInput,
-            currentSearchQuery: searchQuery
-        });
-
         if (trimmedInput !== searchQuery) {
             setSearchQuery(trimmedInput);
         } else {
@@ -249,15 +272,14 @@ function Quotation() {
     };
 
     const handleKeyPress = (e) => {
-        if (e.key === 'Enter') {
-            console.log('⌨️ Enter key pressed');
+        if (e.key === "Enter") {
             handleSearch();
         }
     };
 
     const handlePageChange = (page) => {
         setCurrentPage(page);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     const handleItemsPerPageChange = (value) => {
@@ -266,17 +288,16 @@ function Quotation() {
     };
 
     const handleClearSearch = () => {
-        console.log('🗑️ Clearing search');
-        setSearchInput('');
-        setSearchQuery('');
+        setSearchInput("");
+        setSearchQuery("");
     };
 
     const sortOptions = [
-        { value: 'featured', label: 'Featured' },
-        { value: 'price-low', label: 'Price: Low to High' },
-        { value: 'price-high', label: 'Price: High to Low' },
-        { value: 'rating', label: 'Highest Rated' },
-        { value: 'name', label: 'Name A-Z' }
+        { value: "featured", label: "Featured" },
+        { value: "price-low", label: "Price: Low to High" },
+        { value: "price-high", label: "Price: High to Low" },
+        { value: "rating", label: "Highest Rated" },
+        { value: "name", label: "Name A-Z" },
     ];
 
     return (

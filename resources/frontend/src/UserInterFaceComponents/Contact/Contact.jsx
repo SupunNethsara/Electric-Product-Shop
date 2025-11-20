@@ -1,18 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { FiMail, FiPhone, FiMapPin, FiClock, FiSend, FiMessageSquare, FiShoppingBag, FiTruck, FiHeadphones } from 'react-icons/fi';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import {
+    FiMail,
+    FiPhone,
+    FiMapPin,
+    FiClock,
+    FiSend,
+    FiMessageSquare,
+    FiShoppingBag,
+    FiTruck,
+    FiHeadphones,
+} from "react-icons/fi";
+import axios from "axios";
 
 const Contact = () => {
     const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        subject: '',
-        message: ''
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
     });
     const [isVisible, setIsVisible] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [submitStatus, setSubmitStatus] = useState('');
+    const [submitStatus, setSubmitStatus] = useState("");
 
     useEffect(() => {
         setIsVisible(true);
@@ -20,38 +30,47 @@ const Contact = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
-            [name]: value
+            [name]: value,
         }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
-        setSubmitStatus('');
+        setSubmitStatus("");
 
         try {
-            const response = await axios.post('http://localhost:8000/api/send-contact-email', {
-                name: formData.name,
-                email: formData.email,
-                subject: formData.subject,
-                message: formData.message,
-                inquiry_type: formData.subject
-            });
+            const response = await axios.post(
+                "http://localhost:8000/api/send-contact-email",
+                {
+                    name: formData.name,
+                    email: formData.email,
+                    subject: formData.subject,
+                    message: formData.message,
+                    inquiry_type: formData.subject,
+                },
+            );
 
             if (response.data.success) {
-                setSubmitStatus('success');
-                alert('Thank you for your message! We will contact you shortly.');
-                setFormData({ name: '', email: '', subject: '', message: '' });
+                setSubmitStatus("success");
+                alert(
+                    "Thank you for your message! We will contact you shortly.",
+                );
+                setFormData({ name: "", email: "", subject: "", message: "" });
             } else {
-                setSubmitStatus('error');
-                alert('Sorry, there was an error sending your message. Please try again.');
+                setSubmitStatus("error");
+                alert(
+                    "Sorry, there was an error sending your message. Please try again.",
+                );
             }
         } catch (error) {
-            console.error('Error sending email:', error);
-            setSubmitStatus('error');
-            alert('Sorry, there was an error sending your message. Please try again.');
+            console.error("Error sending email:", error);
+            setSubmitStatus("error");
+            alert(
+                "Sorry, there was an error sending your message. Please try again.",
+            );
         } finally {
             setIsSubmitting(false);
         }
@@ -63,44 +82,45 @@ const Contact = () => {
             title: "Our Store",
             content: "123 Shopping Plaza\nBusiness District, City 94107",
             color: "text-blue-600",
-            bg: "bg-blue-50"
+            bg: "bg-blue-50",
         },
         {
             icon: <FiMail className="w-6 h-6" />,
             title: "Email Us",
             content: "hello@yourstore.com\nsupport@yourstore.com",
             color: "text-indigo-600",
-            bg: "bg-indigo-50"
+            bg: "bg-indigo-50",
         },
         {
             icon: <FiPhone className="w-6 h-6" />,
             title: "Call Us",
             content: "+1 (555) 123-SHOP\nSupport: +1 (555) 123-HELP",
             color: "text-green-600",
-            bg: "bg-green-50"
+            bg: "bg-green-50",
         },
         {
             icon: <FiClock className="w-6 h-6" />,
             title: "Store Hours",
-            content: "Monday - Friday: 9:00 - 20:00\nSaturday: 10:00 - 18:00\nSunday: 12:00 - 16:00",
+            content:
+                "Monday - Friday: 9:00 - 20:00\nSaturday: 10:00 - 18:00\nSunday: 12:00 - 16:00",
             color: "text-amber-600",
-            bg: "bg-amber-50"
-        }
+            bg: "bg-amber-50",
+        },
     ];
 
     const storeServices = [
         {
             icon: <FiShoppingBag className="w-5 h-5" />,
-            text: "Product Information & Availability"
+            text: "Product Information & Availability",
         },
         {
             icon: <FiTruck className="w-5 h-5" />,
-            text: "Shipping & Delivery Questions"
+            text: "Shipping & Delivery Questions",
         },
         {
             icon: <FiHeadphones className="w-5 h-5" />,
-            text: "Customer Support & Returns"
-        }
+            text: "Customer Support & Returns",
+        },
     ];
 
     const container = {
@@ -108,14 +128,14 @@ const Contact = () => {
         show: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.1
-            }
-        }
+                staggerChildren: 0.1,
+            },
+        },
     };
 
     const item = {
         hidden: { opacity: 0, y: 20 },
-        show: { opacity: 1, y: 0 }
+        show: { opacity: 1, y: 0 },
     };
 
     useEffect(() => {
@@ -137,17 +157,29 @@ const Contact = () => {
                                 <FiMessageSquare className="w-6 h-6" />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-900">Contact Our Team</h2>
-                                <p className="text-gray-600 mt-1">Fill out the form and we'll get back to you within 24 hours</p>
+                                <h2 className="text-2xl font-bold text-gray-900">
+                                    Contact Our Team
+                                </h2>
+                                <p className="text-gray-600 mt-1">
+                                    Fill out the form and we'll get back to you
+                                    within 24 hours
+                                </p>
                             </div>
                         </div>
 
                         <div className="mb-6 p-4 bg-blue-50 rounded-xl">
-                            <h3 className="font-semibold text-gray-900 mb-2">How we can help:</h3>
+                            <h3 className="font-semibold text-gray-900 mb-2">
+                                How we can help:
+                            </h3>
                             <div className="space-y-2">
                                 {storeServices.map((service, index) => (
-                                    <div key={index} className="flex items-center text-sm text-gray-700">
-                                        <span className="text-blue-600 mr-2">{service.icon}</span>
+                                    <div
+                                        key={index}
+                                        className="flex items-center text-sm text-gray-700"
+                                    >
+                                        <span className="text-blue-600 mr-2">
+                                            {service.icon}
+                                        </span>
                                         {service.text}
                                     </div>
                                 ))}
@@ -157,7 +189,10 @@ const Contact = () => {
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <motion.div variants={item}>
-                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label
+                                        htmlFor="name"
+                                        className="block text-sm font-medium text-gray-700 mb-2"
+                                    >
                                         Your Name *
                                     </label>
                                     <input
@@ -173,7 +208,10 @@ const Contact = () => {
                                     />
                                 </motion.div>
                                 <motion.div variants={item}>
-                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                                    <label
+                                        htmlFor="email"
+                                        className="block text-sm font-medium text-gray-700 mb-2"
+                                    >
                                         Email Address *
                                     </label>
                                     <input
@@ -191,7 +229,10 @@ const Contact = () => {
                             </div>
 
                             <motion.div variants={item}>
-                                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                                <label
+                                    htmlFor="subject"
+                                    className="block text-sm font-medium text-gray-700 mb-2"
+                                >
                                     Inquiry Type *
                                 </label>
                                 <select
@@ -203,18 +244,33 @@ const Contact = () => {
                                     required
                                     disabled={isSubmitting}
                                 >
-                                    <option value="">Select inquiry type</option>
-                                    <option value="product-info">Product Information</option>
-                                    <option value="order-status">Order Status</option>
-                                    <option value="shipping">Shipping & Delivery</option>
-                                    <option value="returns">Returns & Exchanges</option>
-                                    <option value="technical">Technical Support</option>
+                                    <option value="">
+                                        Select inquiry type
+                                    </option>
+                                    <option value="product-info">
+                                        Product Information
+                                    </option>
+                                    <option value="order-status">
+                                        Order Status
+                                    </option>
+                                    <option value="shipping">
+                                        Shipping & Delivery
+                                    </option>
+                                    <option value="returns">
+                                        Returns & Exchanges
+                                    </option>
+                                    <option value="technical">
+                                        Technical Support
+                                    </option>
                                     <option value="other">Other</option>
                                 </select>
                             </motion.div>
 
                             <motion.div variants={item}>
-                                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                                <label
+                                    htmlFor="message"
+                                    className="block text-sm font-medium text-gray-700 mb-2"
+                                >
                                     Your Message *
                                 </label>
                                 <textarea
@@ -237,8 +293,8 @@ const Contact = () => {
                                 disabled={isSubmitting}
                                 className={`w-full font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 ${
                                     isSubmitting
-                                        ? 'bg-gray-400 cursor-not-allowed'
-                                        : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-200'
+                                        ? "bg-gray-400 cursor-not-allowed"
+                                        : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-200"
                                 } text-white`}
                             >
                                 {isSubmitting ? (
@@ -254,17 +310,18 @@ const Contact = () => {
                                 )}
                             </motion.button>
 
-                            {submitStatus === 'success' && (
+                            {submitStatus === "success" && (
                                 <motion.div
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     className="bg-green-50 border border-green-200 rounded-xl p-4 text-green-700 text-center"
                                 >
-                                    ✅ Message sent successfully! We'll get back to you soon.
+                                    ✅ Message sent successfully! We'll get back
+                                    to you soon.
                                 </motion.div>
                             )}
 
-                            {submitStatus === 'error' && (
+                            {submitStatus === "error" && (
                                 <motion.div
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -275,7 +332,8 @@ const Contact = () => {
                             )}
 
                             <p className="text-center text-sm text-gray-500">
-                                We respect your privacy. Your information is secure with us.
+                                We respect your privacy. Your information is
+                                secure with us.
                             </p>
                         </form>
                     </motion.div>
@@ -293,13 +351,19 @@ const Contact = () => {
                                     variants={item}
                                     className={`p-6 rounded-2xl ${contact.bg} border border-gray-200 hover:shadow-md transition-all duration-300 hover:translate-y-[-2px]`}
                                 >
-                                    <div className={`w-12 h-12 rounded-xl ${contact.bg} flex items-center justify-center mb-4 border ${contact.color.replace('text', 'border')} border-opacity-20`}>
+                                    <div
+                                        className={`w-12 h-12 rounded-xl ${contact.bg} flex items-center justify-center mb-4 border ${contact.color.replace("text", "border")} border-opacity-20`}
+                                    >
                                         <span className={contact.color}>
                                             {contact.icon}
                                         </span>
                                     </div>
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{contact.title}</h3>
-                                    <p className="text-gray-600 whitespace-pre-line leading-relaxed">{contact.content}</p>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                        {contact.title}
+                                    </h3>
+                                    <p className="text-gray-600 whitespace-pre-line leading-relaxed">
+                                        {contact.content}
+                                    </p>
                                 </motion.div>
                             ))}
                         </motion.div>
@@ -312,10 +376,16 @@ const Contact = () => {
                         >
                             <div className="flex items-center justify-center mb-2">
                                 <FiHeadphones className="w-6 h-6 mr-2" />
-                                <h3 className="text-xl font-bold">Quick Support</h3>
+                                <h3 className="text-xl font-bold">
+                                    Quick Support
+                                </h3>
                             </div>
-                            <p className="text-green-100">For immediate assistance with orders or products</p>
-                            <p className="text-2xl font-bold mt-2">+1 (555) 123-HELP</p>
+                            <p className="text-green-100">
+                                For immediate assistance with orders or products
+                            </p>
+                            <p className="text-2xl font-bold mt-2">
+                                +1 (555) 123-HELP
+                            </p>
                         </motion.div>
 
                         <motion.div

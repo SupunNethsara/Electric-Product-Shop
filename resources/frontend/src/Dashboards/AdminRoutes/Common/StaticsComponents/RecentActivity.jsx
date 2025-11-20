@@ -24,7 +24,8 @@ function RecentActivity() {
 
     const getStatusBadge = (status) => {
         const statusColors = {
-            completed: "bg-emerald-100 text-emerald-800 border border-emerald-200",
+            completed:
+                "bg-emerald-100 text-emerald-800 border border-emerald-200",
             pending: "bg-amber-100 text-amber-800 border border-amber-200",
             processing: "bg-blue-100 text-blue-800 border border-blue-200",
             cancelled: "bg-red-100 text-red-800 border border-red-200",
@@ -50,7 +51,7 @@ function RecentActivity() {
                     "http://127.0.0.1:8000/api/admin/recentOrders",
                     {
                         headers: { Authorization: `Bearer ${token}` },
-                    }
+                    },
                 );
 
                 const ordersData = ordersResponse.data;
@@ -60,10 +61,9 @@ function RecentActivity() {
                     "http://127.0.0.1:8000/api/admin/recentUsers",
                     {
                         headers: { Authorization: `Bearer ${token}` },
-                    }
+                    },
                 );
                 setRecentUsers(usersResponse.data.recentUsers || []);
-
             } catch (error) {
                 console.error("Error fetching recent activity:", error);
             } finally {
@@ -75,7 +75,11 @@ function RecentActivity() {
     }, []);
 
     if (loading) {
-        return <p className="text-center text-emerald-700">Loading recent activity...</p>;
+        return (
+            <p className="text-center text-emerald-700">
+                Loading recent activity...
+            </p>
+        );
     }
 
     return (
@@ -104,7 +108,8 @@ function RecentActivity() {
                                         {order.customer_name}
                                     </p>
                                     <p className="text-xs text-gray-500">
-                                        {order.items_count} item{order.items_count !== 1 ? 's' : ''}
+                                        {order.items_count} item
+                                        {order.items_count !== 1 ? "s" : ""}
                                     </p>
                                 </div>
                                 <div className="text-right">
@@ -115,13 +120,16 @@ function RecentActivity() {
                                         {getStatusBadge(order.status)}
                                     </div>
                                     <p className="text-xs text-gray-500 mt-1">
-                                        {order.formatted_date} {order.formatted_time}
+                                        {order.formatted_date}{" "}
+                                        {order.formatted_time}
                                     </p>
                                 </div>
                             </div>
                         ))
                     ) : (
-                        <p className="text-sm text-gray-500">No recent orders.</p>
+                        <p className="text-sm text-gray-500">
+                            No recent orders.
+                        </p>
                     )}
                 </div>
             </div>
@@ -166,7 +174,9 @@ function RecentActivity() {
                             </div>
                         ))
                     ) : (
-                        <p className="text-sm text-gray-500">No recent users.</p>
+                        <p className="text-sm text-gray-500">
+                            No recent users.
+                        </p>
                     )}
                 </div>
             </div>

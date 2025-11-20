@@ -1,17 +1,12 @@
-import React, { useState } from 'react';
-import { X, Send } from 'lucide-react';
-import StarRating from './StarRating';
+import React, { useState } from "react";
+import { X, Send } from "lucide-react";
+import StarRating from "./StarRating";
 import useToast from "../../Common/useToast.jsx";
 
-const ReviewForm = ({
-                        product,
-                        existingReview,
-                        onSuccess,
-                        onCancel
-                    }) => {
+const ReviewForm = ({ product, existingReview, onSuccess, onCancel }) => {
     const [rating, setRating] = useState(existingReview?.rating || 0);
-    const [title, setTitle] = useState(existingReview?.title || '');
-    const [comment, setComment] = useState(existingReview?.comment || '');
+    const [title, setTitle] = useState(existingReview?.title || "");
+    const [comment, setComment] = useState(existingReview?.comment || "");
     const [submitting, setSubmitting] = useState(false);
     const { success, error: showError } = useToast();
 
@@ -19,7 +14,7 @@ const ReviewForm = ({
         e.preventDefault();
 
         if (rating === 0) {
-            showError('Please select a rating');
+            showError("Please select a rating");
             return;
         }
 
@@ -29,24 +24,28 @@ const ReviewForm = ({
                 ? `http://127.0.0.1:8000/api/products/${product.id}/reviews/${existingReview.id}`
                 : `http://127.0.0.1:8000/api/products/${product.id}/reviews`;
 
-            const method = existingReview ? 'PUT' : 'POST';
+            const method = existingReview ? "PUT" : "POST";
 
             const response = await fetch(url, {
                 method,
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
-                body: JSON.stringify({ rating, title, comment })
+                body: JSON.stringify({ rating, title, comment }),
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to submit review');
+                throw new Error(errorData.message || "Failed to submit review");
             }
 
             const result = await response.json();
-            success(existingReview ? 'Review updated successfully!' : 'Review submitted successfully!');
+            success(
+                existingReview
+                    ? "Review updated successfully!"
+                    : "Review submitted successfully!",
+            );
             onSuccess(result);
         } catch (error) {
             showError(error.message);
@@ -60,7 +59,7 @@ const ReviewForm = ({
             <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between p-6 border-b border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900">
-                        {existingReview ? 'Edit Review' : 'Write a Review'}
+                        {existingReview ? "Edit Review" : "Write a Review"}
                     </h3>
                     <button
                         onClick={onCancel}
@@ -83,7 +82,10 @@ const ReviewForm = ({
                     </div>
 
                     <div>
-                        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                            htmlFor="title"
+                            className="block text-sm font-medium text-gray-700 mb-2"
+                        >
                             Review Title (Optional)
                         </label>
                         <input
@@ -98,7 +100,10 @@ const ReviewForm = ({
                     </div>
 
                     <div>
-                        <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                            htmlFor="comment"
+                            className="block text-sm font-medium text-gray-700 mb-2"
+                        >
                             Your Review (Optional)
                         </label>
                         <textarea
@@ -131,12 +136,16 @@ const ReviewForm = ({
                             {submitting ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    {existingReview ? 'Updating...' : 'Submitting...'}
+                                    {existingReview
+                                        ? "Updating..."
+                                        : "Submitting..."}
                                 </>
                             ) : (
                                 <>
                                     <Send size={16} />
-                                    {existingReview ? 'Update Review' : 'Submit Review'}
+                                    {existingReview
+                                        ? "Update Review"
+                                        : "Submit Review"}
                                 </>
                             )}
                         </button>

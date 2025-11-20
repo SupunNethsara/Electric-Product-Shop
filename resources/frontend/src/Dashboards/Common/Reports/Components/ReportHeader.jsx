@@ -1,5 +1,5 @@
-import React from 'react';
-import { RefreshCw } from 'lucide-react';
+import React from "react";
+import { RefreshCw } from "lucide-react";
 
 const ReportHeader = ({ loading, onRefresh }) => {
     return (
@@ -19,8 +19,10 @@ const ReportHeader = ({ loading, onRefresh }) => {
                         disabled={loading}
                         className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
                     >
-                        <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                        {loading ? 'Loading...' : 'Refresh'}
+                        <RefreshCw
+                            className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
+                        />
+                        {loading ? "Loading..." : "Refresh"}
                     </button>
                 </div>
             </div>

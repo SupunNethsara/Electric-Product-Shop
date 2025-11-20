@@ -1,18 +1,18 @@
 // Store/slices/quotationSlice.js
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 
-const BASE_URL = 'http://localhost:8000/api';
+const BASE_URL = "http://localhost:8000/api";
 
 const api = axios.create({
     baseURL: BASE_URL,
     headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
     },
 });
 
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
@@ -26,34 +26,38 @@ const getProductPrice = (product) => {
 
 // Async Thunks for Quotations
 export const addToQuotation = createAsyncThunk(
-    'quotation/addToQuotation',
+    "quotation/addToQuotation",
     async ({ product_id, quantity }, { rejectWithValue }) => {
         try {
-            const response = await api.post('/quotations', {
+            const response = await api.post("/quotations", {
                 product_id,
-                quantity
+                quantity,
             });
             return response.data;
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || 'Failed to add to quotation');
+            return rejectWithValue(
+                error.response?.data?.message || "Failed to add to quotation",
+            );
         }
-    }
+    },
 );
 
 export const fetchQuotations = createAsyncThunk(
-    'quotation/fetchQuotations',
+    "quotation/fetchQuotations",
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get('/quotations');
+            const response = await api.get("/quotations");
             return response.data;
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || 'Failed to fetch quotations');
+            return rejectWithValue(
+                error.response?.data?.message || "Failed to fetch quotations",
+            );
         }
-    }
+    },
 );
 
 export const removeFromQuotation = createAsyncThunk(
-    'quotation/removeFromQuotation',
+    "quotation/removeFromQuotation",
     async (id, { rejectWithValue }) => {
         try {
             await api.delete(`/quotations/${id}`);
@@ -62,25 +66,30 @@ export const removeFromQuotation = createAsyncThunk(
             if (error.response?.status === 404) {
                 return id;
             }
-            return rejectWithValue(error.response?.data?.message || 'Failed to remove from quotation');
+            return rejectWithValue(
+                error.response?.data?.message ||
+                    "Failed to remove from quotation",
+            );
         }
-    }
+    },
 );
 
 export const clearQuotations = createAsyncThunk(
-    'quotation/clearQuotations',
+    "quotation/clearQuotations",
     async (_, { rejectWithValue }) => {
         try {
-            await api.delete('/quotations/clear');
+            await api.delete("/quotations/clear");
             return { success: true };
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || 'Failed to clear quotations');
+            return rejectWithValue(
+                error.response?.data?.message || "Failed to clear quotations",
+            );
         }
-    }
+    },
 );
 
 const quotationSlice = createSlice({
-    name: 'quotation',
+    name: "quotation",
     initialState: {
         items: [],
         loading: false,
@@ -97,7 +106,7 @@ const quotationSlice = createSlice({
             state.totalItems = 0;
             state.totalPrice = 0;
             state.error = null;
-        }
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -109,7 +118,9 @@ const quotationSlice = createSlice({
             .addCase(addToQuotation.fulfilled, (state, action) => {
                 state.loading = false;
                 const newItem = action.payload.item;
-                const existingIndex = state.items.findIndex(item => item.product_id === newItem.product_id);
+                const existingIndex = state.items.findIndex(
+                    (item) => item.product_id === newItem.product_id,
+                );
 
                 if (existingIndex !== -1) {
                     state.items[existingIndex] = newItem;
@@ -117,10 +128,13 @@ const quotationSlice = createSlice({
                     state.items.push(newItem);
                 }
 
-                state.totalItems = state.items.reduce((total, item) => total + item.quantity, 0);
+                state.totalItems = state.items.reduce(
+                    (total, item) => total + item.quantity,
+                    0,
+                );
                 state.totalPrice = state.items.reduce((total, item) => {
                     const productPrice = getProductPrice(item.product);
-                    return total + (productPrice * item.quantity);
+                    return total + productPrice * item.quantity;
                 }, 0);
             })
             .addCase(addToQuotation.rejected, (state, action) => {
@@ -135,10 +149,13 @@ const quotationSlice = createSlice({
             .addCase(fetchQuotations.fulfilled, (state, action) => {
                 state.loading = false;
                 state.items = action.payload;
-                state.totalItems = action.payload.reduce((total, item) => total + item.quantity, 0);
+                state.totalItems = action.payload.reduce(
+                    (total, item) => total + item.quantity,
+                    0,
+                );
                 state.totalPrice = action.payload.reduce((total, item) => {
                     const productPrice = getProductPrice(item.product);
-                    return total + (productPrice * item.quantity);
+                    return total + productPrice * item.quantity;
                 }, 0);
             })
             .addCase(fetchQuotations.rejected, (state, action) => {
@@ -152,11 +169,16 @@ const quotationSlice = createSlice({
             })
             .addCase(removeFromQuotation.fulfilled, (state, action) => {
                 state.loading = false;
-                state.items = state.items.filter(item => item.id !== action.payload);
-                state.totalItems = state.items.reduce((total, item) => total + item.quantity, 0);
+                state.items = state.items.filter(
+                    (item) => item.id !== action.payload,
+                );
+                state.totalItems = state.items.reduce(
+                    (total, item) => total + item.quantity,
+                    0,
+                );
                 state.totalPrice = state.items.reduce((total, item) => {
                     const productPrice = getProductPrice(item.product);
-                    return total + (productPrice * item.quantity);
+                    return total + productPrice * item.quantity;
                 }, 0);
             })
             .addCase(removeFromQuotation.rejected, (state, action) => {
@@ -170,7 +192,7 @@ const quotationSlice = createSlice({
                 state.totalPrice = 0;
                 state.error = null;
             });
-    }
+    },
 });
 
 export const { clearQuotationError, clearQuotation } = quotationSlice.actions;

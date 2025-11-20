@@ -55,8 +55,12 @@ function App() {
                         ))}
                     </div>
                     <div className="space-y-2">
-                        <p className="text-gray-700 font-medium text-lg">Loading</p>
-                        <p className="text-slate-400 text-sm">Please wait while we set things up</p>
+                        <p className="text-gray-700 font-medium text-lg">
+                            Loading
+                        </p>
+                        <p className="text-slate-400 text-sm">
+                            Please wait while we set things up
+                        </p>
                     </div>
                 </div>
             </div>
@@ -71,7 +75,10 @@ function App() {
                         path="/auth/google/callback"
                         element={<AuthCallback />}
                     />
-                    <Route path="/reset-password" element={<ResetPasswordPage/>} />
+                    <Route
+                        path="/reset-password"
+                        element={<ResetPasswordPage />}
+                    />
                     <Route
                         path="/*"
                         element={
@@ -149,7 +156,7 @@ function App() {
                         element={
                             <SuperAdminRoute>
                                 <SuperAdminLayout>
-                                        <SuperAdminDashboard/>
+                                    <SuperAdminDashboard />
                                 </SuperAdminLayout>
                             </SuperAdminRoute>
                         }

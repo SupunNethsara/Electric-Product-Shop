@@ -137,9 +137,11 @@ function CheckOutUser() {
 
     // Helper function to check if there's a discount
     const hasDiscount = (product) => {
-        return product?.buy_now_price &&
+        return (
+            product?.buy_now_price &&
             product?.price &&
-            parseFloat(product.buy_now_price) < parseFloat(product.price);
+            parseFloat(product.buy_now_price) < parseFloat(product.price)
+        );
     };
 
     // Helper function to calculate savings - FIXED: Added const declaration
@@ -157,9 +159,14 @@ function CheckOutUser() {
             return {
                 itemsTotal: parseFloat(itemTotal.toFixed(2)),
                 deliveryFee: selectedDelivery.price,
-                total: parseFloat((itemTotal + selectedDelivery.price).toFixed(2)),
+                total: parseFloat(
+                    (itemTotal + selectedDelivery.price).toFixed(2),
+                ),
                 itemCount: 1,
-                totalSavings: getProductSavings(directBuyData.product, directBuyData.quantity),
+                totalSavings: getProductSavings(
+                    directBuyData.product,
+                    directBuyData.quantity,
+                ),
             };
         }
 
@@ -285,7 +292,6 @@ function CheckOutUser() {
                 dispatch(clearCart());
                 try {
                     await dispatch(clearServerCart()).unwrap();
-                    console.log("✅ Server cart cleared successfully");
                 } catch (clearError) {
                     console.warn(
                         "⚠️ Server cart clear warning (order still placed):",
@@ -421,7 +427,10 @@ function CheckOutUser() {
                                     <h2 className="text-lg font-semibold text-gray-900">
                                         Shipping & Billing
                                     </h2>
-                                    <button onClick={() => navigate('/profile')} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200">
+                                    <button
+                                        onClick={() => navigate("/profile")}
+                                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+                                    >
                                         <svg
                                             className="w-4 h-4"
                                             fill="none"
@@ -491,19 +500,27 @@ function CheckOutUser() {
                                             typeof item.product?.images ===
                                             "string"
                                                 ? JSON.parse(
-                                                    item.product.images.replace(
-                                                        /\\([^\\])/g,
-                                                        "$1",
-                                                    ),
-                                                )
+                                                      item.product.images.replace(
+                                                          /\\([^\\])/g,
+                                                          "$1",
+                                                      ),
+                                                  )
                                                 : item.product?.images || [];
                                         const mainImage =
                                             images[0] || item.product?.image;
 
-                                        const productPrice = getProductPrice(item.product);
-                                        const itemTotal = productPrice * item.quantity;
-                                        const productHasDiscount = hasDiscount(item.product);
-                                        const itemSavings = getProductSavings(item.product, item.quantity);
+                                        const productPrice = getProductPrice(
+                                            item.product,
+                                        );
+                                        const itemTotal =
+                                            productPrice * item.quantity;
+                                        const productHasDiscount = hasDiscount(
+                                            item.product,
+                                        );
+                                        const itemSavings = getProductSavings(
+                                            item.product,
+                                            item.quantity,
+                                        );
 
                                         return (
                                             <div
@@ -547,17 +564,26 @@ function CheckOutUser() {
                                                         {/* Show original price if there's a discount */}
                                                         {productHasDiscount && (
                                                             <span className="text-sm text-gray-500 line-through">
-                                                                Rs. {parseFloat(item.product.price).toFixed(2)}
+                                                                Rs.{" "}
+                                                                {parseFloat(
+                                                                    item.product
+                                                                        .price,
+                                                                ).toFixed(2)}
                                                             </span>
                                                         )}
 
                                                         {/* Current price (buy_now_price or price) */}
-                                                        <span className={`text-sm font-semibold ${
-                                                            productHasDiscount
-                                                                ? 'text-green-600'
-                                                                : 'text-gray-900'
-                                                        }`}>
-                                                            Rs. {productPrice.toFixed(2)}
+                                                        <span
+                                                            className={`text-sm font-semibold ${
+                                                                productHasDiscount
+                                                                    ? "text-green-600"
+                                                                    : "text-gray-900"
+                                                            }`}
+                                                        >
+                                                            Rs.{" "}
+                                                            {productPrice.toFixed(
+                                                                2,
+                                                            )}
                                                         </span>
 
                                                         <span className="text-sm text-gray-500">
@@ -565,18 +591,25 @@ function CheckOutUser() {
                                                         </span>
 
                                                         <span className="text-sm font-semibold text-green-600">
-                                                            Rs. {itemTotal.toFixed(2)}
+                                                            Rs.{" "}
+                                                            {itemTotal.toFixed(
+                                                                2,
+                                                            )}
                                                         </span>
                                                     </div>
 
                                                     {/* Show savings if there's a discount */}
-                                                    {productHasDiscount && itemSavings > 0 && (
-                                                        <div className="mt-1">
-                                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                                                You save Rs. {itemSavings.toFixed(2)}
-                                                            </span>
-                                                        </div>
-                                                    )}
+                                                    {productHasDiscount &&
+                                                        itemSavings > 0 && (
+                                                            <div className="mt-1">
+                                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                                    You save Rs.{" "}
+                                                                    {itemSavings.toFixed(
+                                                                        2,
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                 </div>
                                             </div>
                                         );
@@ -621,7 +654,10 @@ function CheckOutUser() {
                                             Total Savings
                                         </span>
                                         <span className="text-green-700 font-bold">
-                                            -Rs. {orderSummary.totalSavings.toFixed(2)}
+                                            -Rs.{" "}
+                                            {orderSummary.totalSavings.toFixed(
+                                                2,
+                                            )}
                                         </span>
                                     </div>
                                 )}
@@ -672,8 +708,8 @@ function CheckOutUser() {
                                 {isProcessing
                                     ? "Processing..."
                                     : displayItems.length === 0
-                                        ? "No Items to Order"
-                                        : "Confirm Order"}
+                                      ? "No Items to Order"
+                                      : "Confirm Order"}
                             </button>
 
                             {directBuyData && (

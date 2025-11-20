@@ -3,33 +3,40 @@ import { Search, X } from "lucide-react";
 import ProductCard from "../../Products/ProductCard.jsx";
 
 export default function ProductSection({
-                                           filteredProducts = [],
-                                           searchQuery = "",
-                                           selectedCategories = [],
-                                           categories = [],
-                                           toggleCategory = () => {},
-                                           clearAllFilters = () => {},
-                                           loading = false,
-                                       }) {
-
+    filteredProducts = [],
+    searchQuery = "",
+    selectedCategories = [],
+    categories = [],
+    toggleCategory = () => {},
+    clearAllFilters = () => {},
+    loading = false,
+}) {
     return (
         <div className="flex-1">
             <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-gray-600">
                     {searchQuery && `Search results for "${searchQuery}"`}
-                    {!searchQuery && selectedCategories.length === 0 && "All Products"}
-                    {!searchQuery && selectedCategories.length > 0 && "Filtered Products"}
+                    {!searchQuery &&
+                        selectedCategories.length === 0 &&
+                        "All Products"}
+                    {!searchQuery &&
+                        selectedCategories.length > 0 &&
+                        "Filtered Products"}
                 </p>
 
                 <div className="flex flex-wrap gap-1">
                     {selectedCategories.map((categoryId) => {
-                        const category = categories.find(cat => cat.id === categoryId);
+                        const category = categories.find(
+                            (cat) => cat.id === categoryId,
+                        );
                         return (
                             <span
                                 key={categoryId}
                                 className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs border border-blue-200"
                             >
-                                {category ? category.name : `Category ${categoryId}`}
+                                {category
+                                    ? category.name
+                                    : `Category ${categoryId}`}
                                 <button
                                     onClick={() => toggleCategory(categoryId)}
                                     className="hover:text-blue-900 transition-colors"

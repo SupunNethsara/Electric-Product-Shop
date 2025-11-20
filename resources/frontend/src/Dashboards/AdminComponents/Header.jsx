@@ -21,22 +21,30 @@ function Header() {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-    const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
+    const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] =
+        useState(false);
     const dropdownRef = useRef(null);
     const notificationRef = useRef(null);
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
                 setIsUserDropdownOpen(false);
             }
-            if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+            if (
+                notificationRef.current &&
+                !notificationRef.current.contains(event.target)
+            ) {
                 setIsNotificationDropdownOpen(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     const fetchNotifications = async () => {
@@ -47,7 +55,7 @@ function Header() {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
-                }
+                },
             );
             const orders = response.data.orders || [];
             setNotifications(orders);
@@ -80,12 +88,10 @@ function Header() {
 
     const markAsRead = async (orderId) => {
         try {
-            setNotifications(prev =>
-                prev.map(n =>
-                    n.id === orderId ? { ...n, read: true } : n
-                )
+            setNotifications((prev) =>
+                prev.map((n) => (n.id === orderId ? { ...n, read: true } : n)),
             );
-            setUnreadCount(prev => Math.max(0, prev - 1));
+            setUnreadCount((prev) => Math.max(0, prev - 1));
 
             await axios.patch(
                 `http://127.0.0.1:8000/api/orders/${orderId}/mark-read`,
@@ -94,22 +100,20 @@ function Header() {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
-                }
+                },
             );
         } catch (error) {
             console.error("Error marking notification as read:", error);
-            setNotifications(prev =>
-                prev.map(n =>
-                    n.id === orderId ? { ...n, read: false } : n
-                )
+            setNotifications((prev) =>
+                prev.map((n) => (n.id === orderId ? { ...n, read: false } : n)),
             );
-            setUnreadCount(prev => prev + 1);
+            setUnreadCount((prev) => prev + 1);
         }
     };
 
     const markAllAsRead = async () => {
         try {
-            setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+            setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
             setUnreadCount(0);
 
             await axios.patch(
@@ -119,7 +123,7 @@ function Header() {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
-                }
+                },
             );
             setIsNotificationDropdownOpen(false);
             setNotifications([]);
@@ -136,7 +140,7 @@ function Header() {
             shipped: "🚚",
             completed: "✅",
             cancelled: "❌",
-            default: "🛒"
+            default: "🛒",
         };
         return icons[status] || icons.default;
     };
@@ -148,7 +152,7 @@ function Header() {
             processing: `Order #${order.order_code} is being processed`,
             shipped: `Order #${order.order_code} has been shipped`,
             completed: `Order #${order.order_code} has been completed`,
-            cancelled: `Order #${order.order_code} has been cancelled`
+            cancelled: `Order #${order.order_code} has been cancelled`,
         };
         return messages[order.status] || `Order #${order.order_code} updated`;
     };
@@ -160,7 +164,7 @@ function Header() {
             processing: "text-purple-600 bg-purple-50",
             shipped: "text-orange-600 bg-orange-50",
             completed: "text-green-600 bg-green-50",
-            cancelled: "text-red-600 bg-red-50"
+            cancelled: "text-red-600 bg-red-50",
         };
         return colors[status] || "text-gray-600 bg-gray-50";
     };
@@ -173,7 +177,7 @@ function Header() {
         const diffHours = Math.floor(diffMs / 3600000);
         const diffDays = Math.floor(diffMs / 86400000);
 
-        if (diffMins < 1) return 'Just now';
+        if (diffMins < 1) return "Just now";
         if (diffMins < 60) return `${diffMins}m ago`;
         if (diffHours < 24) return `${diffHours}h ago`;
         if (diffDays < 7) return `${diffDays}d ago`;
@@ -211,7 +215,7 @@ function Header() {
                                 <Bell size={20} />
                                 {unreadCount > 0 && (
                                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs flex items-center justify-center rounded-full border-2 border-white font-medium">
-                                        {unreadCount > 9 ? '9+' : unreadCount}
+                                        {unreadCount > 9 ? "9+" : unreadCount}
                                     </span>
                                 )}
                             </button>
@@ -226,7 +230,10 @@ function Header() {
                                                 </h3>
                                                 {unreadCount > 0 && (
                                                     <p className="text-sm text-gray-600">
-                                                        {unreadCount} unread {unreadCount === 1 ? 'message' : 'messages'}
+                                                        {unreadCount} unread{" "}
+                                                        {unreadCount === 1
+                                                            ? "message"
+                                                            : "messages"}
                                                     </p>
                                                 )}
                                             </div>
@@ -245,55 +252,89 @@ function Header() {
                                     <div className="max-h-96 overflow-y-auto">
                                         {notifications.length === 0 ? (
                                             <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-                                                <Bell size={48} className="text-gray-300 mb-3" />
-                                                <p className="text-gray-500 font-medium">No notifications</p>
+                                                <Bell
+                                                    size={48}
+                                                    className="text-gray-300 mb-3"
+                                                />
+                                                <p className="text-gray-500 font-medium">
+                                                    No notifications
+                                                </p>
                                                 <p className="text-gray-400 text-sm mt-1">
                                                     You're all caught up!
                                                 </p>
                                             </div>
                                         ) : (
                                             <div className="divide-y divide-gray-100">
-                                                {notifications.map((notification) => (
-                                                    <div
-                                                        key={notification.id}
-                                                        className={`p-4 hover:bg-gray-50 transition-colors duration-200 ${
-                                                            !notification.read ? 'bg-blue-50 hover:bg-blue-100' : ''
-                                                        }`}
-                                                    >
-                                                        <div className="flex items-start space-x-3">
-                                                            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                                                                {getNotificationIcon(notification.status)}
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <p className="text-sm font-medium text-gray-900">
-                                                                    {getNotificationMessage(notification)}
-                                                                </p>
-                                                                <div className="flex items-center space-x-2 mt-1">
-                                                                    <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(notification.status)}`}>
-                                                                        {notification.status}
-                                                                    </span>
-                                                                    <span className="text-xs text-gray-500">
-                                                                        {formatTime(notification.created_at)}
-                                                                    </span>
+                                                {notifications.map(
+                                                    (notification) => (
+                                                        <div
+                                                            key={
+                                                                notification.id
+                                                            }
+                                                            className={`p-4 hover:bg-gray-50 transition-colors duration-200 ${
+                                                                !notification.read
+                                                                    ? "bg-blue-50 hover:bg-blue-100"
+                                                                    : ""
+                                                            }`}
+                                                        >
+                                                            <div className="flex items-start space-x-3">
+                                                                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                                                                    {getNotificationIcon(
+                                                                        notification.status,
+                                                                    )}
                                                                 </div>
-                                                                <p className="text-xs font-medium text-green-600 mt-1">
-                                                                    Rs:{parseFloat(notification.total_amount).toFixed(2)}
-                                                                </p>
-                                                            </div>
-                                                            <div className="flex items-center space-x-1">
-                                                                {!notification.read && (
-                                                                    <button
-                                                                        onClick={() => markAsRead(notification.id)}
-                                                                        className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200"
-                                                                        title="Mark as read"
-                                                                    >
-                                                                        <CheckCheck size={14} />
-                                                                    </button>
-                                                                )}
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-sm font-medium text-gray-900">
+                                                                        {getNotificationMessage(
+                                                                            notification,
+                                                                        )}
+                                                                    </p>
+                                                                    <div className="flex items-center space-x-2 mt-1">
+                                                                        <span
+                                                                            className={`text-xs px-2 py-1 rounded-full ${getStatusColor(notification.status)}`}
+                                                                        >
+                                                                            {
+                                                                                notification.status
+                                                                            }
+                                                                        </span>
+                                                                        <span className="text-xs text-gray-500">
+                                                                            {formatTime(
+                                                                                notification.created_at,
+                                                                            )}
+                                                                        </span>
+                                                                    </div>
+                                                                    <p className="text-xs font-medium text-green-600 mt-1">
+                                                                        Rs:
+                                                                        {parseFloat(
+                                                                            notification.total_amount,
+                                                                        ).toFixed(
+                                                                            2,
+                                                                        )}
+                                                                    </p>
+                                                                </div>
+                                                                <div className="flex items-center space-x-1">
+                                                                    {!notification.read && (
+                                                                        <button
+                                                                            onClick={() =>
+                                                                                markAsRead(
+                                                                                    notification.id,
+                                                                                )
+                                                                            }
+                                                                            className="p-1 text-gray-400 hover:text-green-600 transition-colors duration-200"
+                                                                            title="Mark as read"
+                                                                        >
+                                                                            <CheckCheck
+                                                                                size={
+                                                                                    14
+                                                                                }
+                                                                            />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    ),
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -302,8 +343,10 @@ function Header() {
                                         <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
                                             <button
                                                 onClick={() => {
-                                                    navigate('/admin/orders');
-                                                    setIsNotificationDropdownOpen(false);
+                                                    navigate("/admin/orders");
+                                                    setIsNotificationDropdownOpen(
+                                                        false,
+                                                    );
                                                 }}
                                                 className="w-full text-center text-sm font-medium text-green-600 hover:text-green-700 py-2 rounded-lg hover:bg-green-50 transition-colors duration-200"
                                             >
@@ -350,46 +393,68 @@ function Header() {
                                             {user?.role}
                                         </p>
                                     </div>
-                                    {(role === "admin" || role === "super_admin") && (
+                                    {(role === "admin" ||
+                                        role === "super_admin") && (
                                         <Link
                                             to={"/"}
                                             className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                                            onClick={() => setIsUserDropdownOpen(false)}
+                                            onClick={() =>
+                                                setIsUserDropdownOpen(false)
+                                            }
                                         >
-                                            <User size={16} className="mr-3 text-gray-400" />
+                                            <User
+                                                size={16}
+                                                className="mr-3 text-gray-400"
+                                            />
                                             User Dashboard
                                         </Link>
                                     )}
-                                    {role !== "admin" && role !== "super_admin" && (
-                                        <>
-                                            <button
-                                                onClick={() => {
-                                                    navigate("/profile");
-                                                    setIsUserDropdownOpen(false);
-                                                }}
-                                                className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                                            >
-                                                <User size={16} className="mr-3 text-gray-400" />
-                                                Your Profile
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    navigate("/admin/settings");
-                                                    setIsUserDropdownOpen(false);
-                                                }}
-                                                className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                                            >
-                                                <Settings size={16} className="mr-3 text-gray-400" />
-                                                Settings
-                                            </button>
-                                        </>
-                                    )}
+                                    {role !== "admin" &&
+                                        role !== "super_admin" && (
+                                            <>
+                                                <button
+                                                    onClick={() => {
+                                                        navigate("/profile");
+                                                        setIsUserDropdownOpen(
+                                                            false,
+                                                        );
+                                                    }}
+                                                    className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                                                >
+                                                    <User
+                                                        size={16}
+                                                        className="mr-3 text-gray-400"
+                                                    />
+                                                    Your Profile
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        navigate(
+                                                            "/admin/settings",
+                                                        );
+                                                        setIsUserDropdownOpen(
+                                                            false,
+                                                        );
+                                                    }}
+                                                    className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                                                >
+                                                    <Settings
+                                                        size={16}
+                                                        className="mr-3 text-gray-400"
+                                                    />
+                                                    Settings
+                                                </button>
+                                            </>
+                                        )}
                                     <div className="border-t border-gray-100 mt-2 pt-2">
                                         <button
                                             onClick={handleLogout}
                                             className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
                                         >
-                                            <LogOut size={16} className="mr-3" />
+                                            <LogOut
+                                                size={16}
+                                                className="mr-3"
+                                            />
                                             Sign out
                                         </button>
                                     </div>
