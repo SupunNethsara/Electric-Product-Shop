@@ -19,6 +19,11 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+// Helper function to get product price (buy_now_price first, then price)
+const getProductPrice = (product) => {
+    return parseFloat(product?.buy_now_price || product?.price || 0);
+};
+
 // Async Thunks for Quotations
 export const addToQuotation = createAsyncThunk(
     'quotation/addToQuotation',
@@ -114,7 +119,8 @@ const quotationSlice = createSlice({
 
                 state.totalItems = state.items.reduce((total, item) => total + item.quantity, 0);
                 state.totalPrice = state.items.reduce((total, item) => {
-                    return total + (parseFloat(item.product.price) * item.quantity);
+                    const productPrice = getProductPrice(item.product);
+                    return total + (productPrice * item.quantity);
                 }, 0);
             })
             .addCase(addToQuotation.rejected, (state, action) => {
@@ -131,7 +137,8 @@ const quotationSlice = createSlice({
                 state.items = action.payload;
                 state.totalItems = action.payload.reduce((total, item) => total + item.quantity, 0);
                 state.totalPrice = action.payload.reduce((total, item) => {
-                    return total + (parseFloat(item.product.price) * item.quantity);
+                    const productPrice = getProductPrice(item.product);
+                    return total + (productPrice * item.quantity);
                 }, 0);
             })
             .addCase(fetchQuotations.rejected, (state, action) => {
@@ -148,7 +155,8 @@ const quotationSlice = createSlice({
                 state.items = state.items.filter(item => item.id !== action.payload);
                 state.totalItems = state.items.reduce((total, item) => total + item.quantity, 0);
                 state.totalPrice = state.items.reduce((total, item) => {
-                    return total + (parseFloat(item.product.price) * item.quantity);
+                    const productPrice = getProductPrice(item.product);
+                    return total + (productPrice * item.quantity);
                 }, 0);
             })
             .addCase(removeFromQuotation.rejected, (state, action) => {

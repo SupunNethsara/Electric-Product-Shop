@@ -36,6 +36,30 @@ const QuotationsPage = () => {
     const [showClearConfirm, setShowClearConfirm] = useState(false);
     const [selectedItemId, setSelectedItemId] = useState(null);
 
+
+    const getProductPrice = (product) => {
+        return parseFloat(product?.buy_now_price || product?.price || 0);
+    };
+    const hasDiscount = (product) => {
+        return product?.buy_now_price &&
+            product?.price &&
+            parseFloat(product.buy_now_price) < parseFloat(product.price);
+    };
+
+    const getProductSavings = (product, quantity = 1) => {
+        if (!hasDiscount(product)) return 0;
+        const originalPrice = parseFloat(product.price);
+        const discountedPrice = parseFloat(product.buy_now_price);
+        return (originalPrice - discountedPrice) * quantity;
+    };
+    const calculateTotalSavings = () => {
+        return items.reduce((total, item) => {
+            return total + getProductSavings(item.product, item.quantity);
+        }, 0);
+    };
+
+    const totalSavings = calculateTotalSavings();
+
     useEffect(() => {
         if (isAuthenticated) {
             dispatch(fetchQuotations());
@@ -116,7 +140,7 @@ const QuotationsPage = () => {
 
         let grandTotal = 0;
         const itemsWithTotals = items.map(item => {
-            const unitPrice = parseFloat(item.product.buy_now_price || item.product.price || 0);
+            const unitPrice = getProductPrice(item.product);
             const quantity = parseInt(item.quantity);
             const itemTotal = unitPrice * quantity;
             grandTotal += itemTotal;
@@ -134,14 +158,49 @@ const QuotationsPage = () => {
                 yPosition = 20;
             }
 
+            const productHasDiscount = hasDiscount(item.product);
+            const originalPrice = parseFloat(item.product.price);
+
             doc.text(item.product.name.substring(0, 30), 20, yPosition);
             doc.text(item.product.model || 'N/A', 70, yPosition);
+
+            if (productHasDiscount) {
+                doc.setTextColor(0, 128, 0);
+                doc.setFont('helvetica', 'bold');
+            }
             doc.text(`Rs. ${item.unitPrice.toLocaleString()}`, 110, yPosition);
+
+            // Reset color
+            doc.setTextColor(0, 0, 0);
+            doc.setFont('helvetica', 'normal');
+
             doc.text(item.quantity.toString(), 140, yPosition);
             doc.text(`Rs. ${item.itemTotal.toLocaleString()}`, 170, yPosition);
 
+            // Add discount note if applicable
+            if (productHasDiscount) {
+                yPosition += 3;
+                doc.setFontSize(7);
+                doc.setTextColor(128, 128, 128);
+                const savings = getProductSavings(item.product, item.quantity);
+                doc.text(`(Original: Rs. ${originalPrice.toLocaleString()} - Saved: Rs. ${savings.toLocaleString()})`, 20, yPosition);
+                doc.setFontSize(9);
+                doc.setTextColor(0, 0, 0);
+                yPosition += 2;
+            }
+
             yPosition += 8;
         });
+
+        // Show total savings if any
+        if (totalSavings > 0) {
+            yPosition += 5;
+            doc.setFontSize(9);
+            doc.setTextColor(0, 128, 0);
+            doc.text(`Total Savings: Rs. ${totalSavings.toLocaleString()}`, 20, yPosition);
+            doc.setTextColor(0, 0, 0);
+            yPosition += 5;
+        }
 
         yPosition = Math.max(yPosition + 10, 260);
         doc.setFont('helvetica', 'bold');
@@ -240,56 +299,82 @@ const QuotationsPage = () => {
                                     </div>
 
                                     <div className="divide-y divide-gray-100">
-                                        {items.map((item) => (
-                                            <div key={item.id} className="p-4 hover:bg-gray-50 transition-colors">
-                                                <div className="flex gap-3 items-start">
-                                                    <div className="flex-shrink-0">
-                                                        <div className="w-16 h-16 bg-gray-100 rounded border border-gray-200 overflow-hidden">
-                                                            <img
-                                                                src={item.product.image || '/placeholder-image.jpg'}
-                                                                alt={item.product.name}
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                        </div>
-                                                    </div>
+                                        {items.map((item) => {
+                                            const productPrice = getProductPrice(item.product);
+                                            const itemTotal = productPrice * item.quantity;
+                                            const productHasDiscount = hasDiscount(item.product);
+                                            const itemSavings = getProductSavings(item.product, item.quantity);
 
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex justify-between items-start mb-2">
-                                                            <div className="flex-1">
-                                                                <h3 className="font-medium text-gray-900 text-sm leading-tight mb-1">
-                                                                    {item.product.name}
-                                                                </h3>
-                                                                <p className="text-gray-500 text-xs mb-1">
-                                                                    Model: {item.product.model}
-                                                                </p>
-                                                                <p className="text-blue-600 font-semibold text-sm">
-                                                                    Rs. {parseFloat(item.product.price).toLocaleString()}
-                                                                </p>
+                                            return (
+                                                <div key={item.id} className="p-4 hover:bg-gray-50 transition-colors">
+                                                    <div className="flex gap-3 items-start">
+                                                        <div className="flex-shrink-0">
+                                                            <div className="w-16 h-16 bg-gray-100 rounded border border-gray-200 overflow-hidden">
+                                                                <img
+                                                                    src={item.product.image || '/placeholder-image.jpg'}
+                                                                    alt={item.product.name}
+                                                                    className="w-full h-full object-cover"
+                                                                />
                                                             </div>
-                                                            <button
-                                                                onClick={() => handleRemoveItem(item.id)}
-                                                                className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded"
-                                                            >
-                                                                <Trash2 size={16} />
-                                                            </button>
                                                         </div>
 
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-xs text-gray-600 font-medium">
-                                                                    Qty: {item.quantity}
-                                                                </span>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <div className="flex-1">
+                                                                    <h3 className="font-medium text-gray-900 text-sm leading-tight mb-1">
+                                                                        {item.product.name}
+                                                                    </h3>
+                                                                    <p className="text-gray-500 text-xs mb-1">
+                                                                        Model: {item.product.model}
+                                                                    </p>
+                                                                    <div className="flex items-center gap-2">
+                                                                        {/* Show original price if there's a discount */}
+                                                                        {productHasDiscount && (
+                                                                            <span className="text-gray-500 text-xs line-through">
+                                                                                Rs. {parseFloat(item.product.price).toLocaleString()}
+                                                                            </span>
+                                                                        )}
+                                                                        {/* Current price (buy_now_price or price) */}
+                                                                        <p className={`font-semibold text-sm ${
+                                                                            productHasDiscount ? 'text-green-600' : 'text-blue-600'
+                                                                        }`}>
+                                                                            Rs. {productPrice.toLocaleString()}
+                                                                        </p>
+                                                                    </div>
+                                                                    {/* Show savings if there's a discount */}
+                                                                    {productHasDiscount && itemSavings > 0 && (
+                                                                        <div className="mt-1">
+                                                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                                                Save Rs. {itemSavings.toLocaleString()}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => handleRemoveItem(item.id)}
+                                                                    className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
                                                             </div>
-                                                            <div className="text-right">
-                                                                <p className="font-semibold text-gray-900 text-sm">
-                                                                    Rs. {(parseFloat(item.product.price) * item.quantity).toLocaleString()}
-                                                                </p>
+
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-xs text-gray-600 font-medium">
+                                                                        Qty: {item.quantity}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="text-right">
+                                                                    <p className="font-semibold text-gray-900 text-sm">
+                                                                        Rs. {itemTotal.toLocaleString()}
+                                                                    </p>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
@@ -302,19 +387,37 @@ const QuotationsPage = () => {
 
                                     <div className="p-4 space-y-3">
                                         <div className="space-y-2">
+                                            {/* Show total savings if any */}
+                                            {totalSavings > 0 && (
+                                                <div className="flex justify-between bg-green-50 p-2 rounded">
+                                                    <span className="text-green-700 text-sm font-medium">Total Savings</span>
+                                                    <span className="text-green-700 text-sm font-bold">
+                                                        - Rs. {totalSavings.toLocaleString()}
+                                                    </span>
+                                                </div>
+                                            )}
+
                                             <div className="flex justify-between text-sm text-gray-600">
                                                 <span>Subtotal ({totalItems} items)</span>
                                                 <span>Rs. {totalPrice.toLocaleString()}</span>
                                             </div>
                                             <div className="flex justify-between text-sm text-gray-600">
-                                                <span>Tax (10%)</span>
-                                                <span>Rs. {(totalPrice * 0.1).toLocaleString()}</span>
+                                                <span>Tax </span>
+                                                <span>Rs. 0</span>
                                             </div>
                                             <div className="flex justify-between font-semibold text-gray-900 pt-2 border-t border-gray-200">
                                                 <span>Total</span>
-                                                <span>Rs. {(totalPrice * 1.1).toLocaleString()}</span>
+                                                <span>Rs. {(totalPrice).toLocaleString()}</span>
                                             </div>
                                         </div>
+
+                                        {totalSavings > 0 && (
+                                            <div className="bg-green-50 border border-green-200 rounded p-2">
+                                                <p className="text-green-700 text-xs text-center">
+                                                    🎉 You're saving <strong>Rs. {totalSavings.toLocaleString()}</strong>!
+                                                </p>
+                                            </div>
+                                        )}
 
                                         <div className="space-y-2 pt-2">
                                             <button
