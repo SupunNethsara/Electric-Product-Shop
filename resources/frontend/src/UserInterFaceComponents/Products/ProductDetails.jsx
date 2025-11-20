@@ -151,7 +151,6 @@ const ProductDetails = () => {
     const { cartLoading } = useSelector((state) => state.cart);
 
     const [product, setProduct] = useState(location.state?.product || null);
-    const [product, setProduct] = useState(location.state?.product || null);
     const [loading, setLoading] = useState(!location.state?.product);
     const [error, setError] = useState(null);
     const [addingToCart, setAddingToCart] = useState(false);

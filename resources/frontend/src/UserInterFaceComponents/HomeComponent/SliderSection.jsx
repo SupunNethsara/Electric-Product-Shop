@@ -214,7 +214,7 @@ function SliderSection() {
                                         }}
                                     >
                                         <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500"></span>
-                                        Free Shipping Over Rs50
+                                        Premium Quality Guaranteed
                                     </div>
 
                                     <div className="space-y-2">
