@@ -163,7 +163,7 @@ class ProductController extends Controller
     {
         $products = Product::where('status', 'active')
             ->orderBy('created_at', 'desc')
-            ->take(15)
+            ->take(40)
             ->get();
 
         return response()->json($products);
