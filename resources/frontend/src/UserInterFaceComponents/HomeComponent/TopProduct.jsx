@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function TopProduct() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const navigate = useNavigate();
     const themeColors = {
         primary: "#0866ff",
         primaryHover: "#0759e0",
@@ -18,8 +20,8 @@ function TopProduct() {
             title: "4K CCTV System",
             description: "4-camera setup with night vision",
             category: "HOME SECURITY",
-            price: "Rs299.99",
-            original_price: "Rs374.99",
+            price: "Rs4299.99",
+            original_price: "Rs4374.99",
             image: "/CCTV.png",
             button_text: "Secure Your Home",
             theme_color: "primary",
@@ -30,8 +32,8 @@ function TopProduct() {
             title: "Outdoor Camera",
             description: "Weatherproof & battery powered",
             category: "WIRELESS SOLUTION",
-            price: "Rs129.99",
-            original_price: "Rs159.99",
+            price: "Rs3129.99",
+            original_price: "Rs4159.99",
             image: "/cctv2.png",
             button_text: "Buy Now",
             theme_color: "secondary",
@@ -45,16 +47,12 @@ function TopProduct() {
 
     const fetchProducts = async () => {
         try {
-            console.log('Fetching top products from API...');
             const response = await axios.get('http://localhost:8000/api/top-products', {
                 timeout: 5000
             });
-            console.log('API Response:', response.data);
 
             if (response.data && Array.isArray(response.data)) {
                 const activeProducts = response.data.filter(product => product.is_active);
-                console.log('Active products:', activeProducts);
-
                 if (activeProducts.length > 0) {
                     setProducts(activeProducts);
                 } else {
@@ -65,7 +63,6 @@ function TopProduct() {
             }
         } catch (error) {
             console.error('Error fetching top products:', error);
-            console.log('Using default products due to error');
             setProducts(defaultProducts);
         } finally {
             setLoading(false);
@@ -236,7 +233,7 @@ function TopProduct() {
                             )}
                         </div>
 
-                        <button
+                        <button onClick={()=>navigate('/shop')}
                             className="mt-2 sm:mt-3 w-full text-xs sm:text-sm font-semibold text-white py-2 rounded-lg transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
                             style={{
                                 backgroundColor: product.theme_color === 'primary'

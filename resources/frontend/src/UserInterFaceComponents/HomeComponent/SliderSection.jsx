@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { gsap } from "gsap";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const calculateDiscount = (price, originalPrice) => {
     if (!price || !originalPrice) return 0;
@@ -51,7 +52,7 @@ function SliderSection() {
     const autoPlayRef = useRef(null);
     const slideContainerRef = useRef(null);
     const slideRefs = useRef([]);
-
+    const navigate = useNavigate();
     const themeColors = {
         primary: "#0866ff",
         primaryHover: "#0759e0",
@@ -408,6 +409,7 @@ function SliderSection() {
                                             </div>
 
                                             <button
+                                                onClick={()=>navigate('/shop')}
                                                 className="text-white text-sm sm:text-base lg:text-lg py-2.5 sm:py-3 px-8 sm:px-12 mt-4 sm:mt-6 rounded-lg hover:scale-105 active:scale-95 transition-transform duration-200 shadow-lg"
                                                 style={{
                                                     backgroundColor: themeColors.primary,
