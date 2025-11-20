@@ -4,8 +4,10 @@ import FillterSidebar from "./ShopComponents/FillterSidebar.jsx";
 import ProductSection from "./ShopComponents/ProductSection.jsx";
 import MobileFilterDrawer from "./ShopComponents/MobileFilterDrawer.jsx";
 import axios from "axios";
+import { useLocation } from 'react-router-dom';
 
 function ProductShop() {
+    const location = useLocation();
     const [allProducts, setAllProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -24,8 +26,17 @@ function ProductShop() {
     const [initialLoad, setInitialLoad] = useState(true);
 
     useEffect(() => {
+        const urlParams = new URLSearchParams(location.search);
+        const searchParam = urlParams.get('search');
+
+        if (searchParam) {
+            console.log('🔗 URL search parameter detected:', searchParam);
+            setSearchQuery(searchParam);
+            setSearchInput(searchParam);
+        }
+
         window.scrollTo(0, 0);
-    }, []);
+    }, [location.search]);
 
     const extractCategoriesFromProducts = (products) => {
         const categorySet = new Set();
@@ -106,15 +117,11 @@ function ProductShop() {
 
                 const products = response.data.data || [];
                 setAllProducts(products);
-                setFilteredProducts(products);
-                setTotalProducts(products.length);
                 const extractedCategories = extractCategoriesFromProducts(products);
                 setCategories(extractedCategories);
             } catch (error) {
                 console.error('Error fetching products:', error);
                 setAllProducts([]);
-                setFilteredProducts([]);
-                setTotalProducts(0);
                 setCategories([]);
             } finally {
                 setLoading(false);
@@ -141,7 +148,7 @@ function ProductShop() {
 
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase().trim();
-            console.log('🔍 Searching for:', query);
+            console.log('🔍 Applying search filter:', query);
 
             filtered = filtered.filter(product => {
                 const matches =
@@ -154,12 +161,9 @@ function ProductShop() {
                     product.category_3?.toLowerCase().includes(query) ||
                     product.tags?.toLowerCase().includes(query);
 
-                if (matches) {
-                    console.log('✅ Search match:', product.name);
-                }
                 return matches;
             });
-       }
+        }
 
         if (selectedCategories.length > 0) {
             filtered = filtered.filter(product =>
@@ -302,6 +306,7 @@ function ProductShop() {
                     currentPage={currentPage}
                     onPageChange={handlePageChange}
                     totalPages={Math.ceil(totalProducts / itemsPerPage)}
+                    searchQuery={searchQuery}
                 />
 
                 <div className="flex gap-6">

@@ -26,3 +26,7 @@ Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 Route::post('/products/{id}/restore', [ProductController::class, 'restore']);
 Route::delete('/products/{id}/force', [ProductController::class, 'forceDelete']);
 Route::get('/products/trashed', [ProductController::class, 'trashed']);
+
+// Search routes
+Route::get('/products/search', [ProductController::class, 'searchProducts']);
+Route::get('/products/search-suggestions', [ProductController::class, 'getSearchSuggestions']);
