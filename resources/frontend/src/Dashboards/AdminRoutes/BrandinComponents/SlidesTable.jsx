@@ -57,6 +57,9 @@ function SlidesTable({ slides, onEdit, onDelete, onReorder, onToggleActive }) {
                             <div className="text-sm text-gray-500 truncate max-w-xs">
                                 {slide.description}
                             </div>
+                            <div className="text-sm text-gray-400">
+                                {slide.price} | {slide.original_price}
+                            </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                             <button

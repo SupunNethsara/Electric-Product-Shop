@@ -16,3 +16,13 @@ Route::post('/products/{id}/track-view', [ProductController::class, 'trackView']
 Route::get('/products/{id}/view-stats', [ProductController::class, 'getViewStats']);
 Route::get('/products/most-viewed', [ProductController::class, 'getMostViewedProducts']);
 
+//Excel Files
+Route::get('/products/download/details-template', [ProductController::class, 'downloadProductDetailsTemplate']);
+Route::get('/products/download/pricing-template', [ProductController::class, 'downloadProductPricingTemplate']);
+Route::get('/products/download/all-templates', [ProductController::class, 'downloadAllTemplates']);
+
+//Delete
+Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+Route::post('/products/{id}/restore', [ProductController::class, 'restore']);
+Route::delete('/products/{id}/force', [ProductController::class, 'forceDelete']);
+Route::get('/products/trashed', [ProductController::class, 'trashed']);

@@ -4,7 +4,6 @@ import { clearError, registerUser, setRequiresVerification } from "../Store/slic
 import { X, User, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import OtpVerificationModal from "./OtpVerificationModal.jsx";
 
-
 const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
     const [formData, setFormData] = useState({
         name: '',
@@ -132,7 +131,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                 onClick={handleOverlayClick}
             >
                 <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 overflow-hidden max-h-[90vh] overflow-y-auto">
-                    <div className="relative bg-gradient-to-r from-green-500 to-green-600 p-8 sticky top-0">
+                    <div className="relative bg-gradient-to-r from-blue-500 to-blue-600 p-8 sticky top-0">
                         <button
                             onClick={onClose}
                             className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-all duration-200 text-white"
@@ -143,7 +142,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                             <h2 className="text-2xl font-bold text-white mb-2">
                                 Join Us Today
                             </h2>
-                            <p className="text-green-100">
+                            <p className="text-blue-100">
                                 Create your account to get started
                             </p>
                         </div>
@@ -171,7 +170,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                                         name="name"
                                         type="text"
                                         required
-                                        className="w-full pl-12 pr-4 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-slate-50/50"
+                                        className="w-full pl-12 pr-4 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                                         placeholder="Enter your full name"
                                         value={formData.name}
                                         onChange={handleChange}
@@ -193,7 +192,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                                         name="email"
                                         type="email"
                                         required
-                                        className="w-full pl-12 pr-4 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-slate-50/50"
+                                        className="w-full pl-12 pr-4 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                                         placeholder="Enter your email"
                                         value={formData.email}
                                         onChange={handleChange}
@@ -215,7 +214,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                                         name="password"
                                         type={showPassword ? "text" : "password"}
                                         required
-                                        className="w-full pl-12 pr-12 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-slate-50/50"
+                                        className="w-full pl-12 pr-12 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                                         placeholder="Create a password"
                                         value={formData.password}
                                         onChange={handleChange}
@@ -246,7 +245,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                                         name="password_confirmation"
                                         type={showConfirmPassword ? "text" : "password"}
                                         required
-                                        className="w-full pl-12 pr-12 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-slate-50/50"
+                                        className="w-full pl-12 pr-12 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                                         placeholder="Confirm your password"
                                         value={formData.password_confirmation}
                                         onChange={handleChange}
@@ -267,7 +266,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-4 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-500/25"
+                            className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 px-4 rounded-xl font-semibold hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/25"
                         >
                             {isLoading ? (
                                 <div className="flex items-center justify-center gap-2">
@@ -285,7 +284,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                                 <button
                                     type="button"
                                     onClick={onSwitchToLogin}
-                                    className="text-green-600 font-semibold hover:text-green-700 transition-colors duration-200"
+                                    className="text-blue-600 font-semibold hover:text-blue-700 transition-colors duration-200"
                                     disabled={isLoading}
                                 >
                                     Sign in here

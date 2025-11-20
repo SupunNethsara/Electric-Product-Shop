@@ -38,12 +38,6 @@ const Sidebar = () => {
             current: location.pathname.includes('/admin/orders')
         },
         {
-            name: 'Quotations',
-            href: '/admin/quotations',
-            icon: FileText,
-            current: location.pathname.includes('/admin/quotations')
-        },
-        {
             name: 'Users',
             href: '/admin/user-manage',
             icon: Users,
@@ -60,18 +54,11 @@ const Sidebar = () => {
             href: '/admin/reports',
             icon: BarChart3,
             current: location.pathname.includes('/admin/reports')
-        },
-        {
-            name: 'Settings',
-            href: '/admin/settings',
-            icon: Settings,
-            current: location.pathname.includes('/admin/settings')
         }
     ];
 
     return (
         <div className="w-64 h-screen bg-white shadow-xl flex flex-col fixed left-0 top-0">
-            {/* Header */}
             <div className="px-6 py-4 border-b border-gray-200 flex-shrink-0">
                 <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">

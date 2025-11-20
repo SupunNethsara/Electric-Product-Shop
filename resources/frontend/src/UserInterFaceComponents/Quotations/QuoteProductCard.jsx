@@ -11,6 +11,24 @@ const QuoteProductCard = ({ product }) => {
     const [viewCount, setViewCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
+    const getProductPrice = () => {
+        return parseFloat(product?.buy_now_price || product?.price || 0);
+    };
+
+    const hasDiscount = () => {
+        return product?.buy_now_price &&
+            product?.price &&
+            parseFloat(product.buy_now_price) < parseFloat(product.price);
+    };
+
+    const currentPrice = getProductPrice();
+    const productHasDiscount = hasDiscount();
+
+    const originalPrice = productHasDiscount ? parseFloat(product.price) : currentPrice * 1.3;
+    const discountPercent = productHasDiscount
+        ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
+        : Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
+
     const handleBuyClick = async () => {
         await trackProductView();
         navigate('/quoteDetails', { state: { product } });
@@ -40,19 +58,11 @@ const QuoteProductCard = ({ product }) => {
 
             const data = await response.json();
 
-            if (response.ok) {
-                console.log('✅ View tracked successfully:', data);
-                if (data.debug) {
-                    console.log('🔍 Debug info:', data.debug);
-                }
-            } else {
-                console.error(' Failed to track view:', data);
-            }
-
         } catch (error) {
             console.error(' Network error tracking view:', error);
         }
     };
+
     const fetchRatingData = async () => {
         try {
             setLoading(true);
@@ -95,9 +105,6 @@ const QuoteProductCard = ({ product }) => {
         fetchViewStats();
     }, [product.id]);
 
-    const originalPrice = parseFloat(product.price) * 1.3;
-    const discountPercent = Math.round(((originalPrice - parseFloat(product.price)) / originalPrice) * 100);
-
     const isOutOfStock = product.status === 'disabled' || product.availability === 0;
 
     return (
@@ -110,9 +117,11 @@ const QuoteProductCard = ({ product }) => {
                         className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                     />
 
-                    <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 text-xs font-bold rounded">
-                        {discountPercent}% OFF
-                    </div>
+                    {productHasDiscount && discountPercent > 0 && (
+                        <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 text-xs font-bold rounded">
+                            {discountPercent}% OFF
+                        </div>
+                    )}
 
                     <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 text-xs font-bold rounded flex items-center gap-1">
                         <Eye size={12} />
@@ -156,8 +165,25 @@ const QuoteProductCard = ({ product }) => {
 
                 <div className="mb-3">
                     <div className="flex items-baseline gap-2 mb-1">
-                        <span className="text-md font-bold text-[#e3251b]">Rs. {product.price}</span>
+                        <span className="text-md font-bold text-[#e3251b]">
+                            Rs. {currentPrice.toLocaleString()}
+                        </span>
+
+                        {productHasDiscount && (
+                            <span className="text-xs text-gray-500 line-through">
+                                Rs. {parseFloat(product.price).toLocaleString()}
+                            </span>
+                        )}
                     </div>
+
+                    {productHasDiscount && (
+                        <div className="mb-1">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                Save Rs. {(parseFloat(product.price) - currentPrice).toLocaleString()}
+                            </span>
+                        </div>
+                    )}
+
                     <div className="text-xs text-gray-600">
                         <span className={`font-semibold ${
                             isOutOfStock ? 'text-red-600' : 'text-[#e3251b]'

@@ -23,9 +23,11 @@ function CheckOutUser() {
     const { items: cartItems, loading: cartLoading } = useSelector(
         (state) => state.cart,
     );
+
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
+
     const deliveryOptions = [
         {
             id: "standard",
@@ -45,10 +47,6 @@ function CheckOutUser() {
         deliveryOptions.find((option) => option.id === deliveryOption) ||
         deliveryOptions[0];
     const directBuyData = location.state?.directBuy ? location.state : null;
-
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -132,18 +130,36 @@ function CheckOutUser() {
         fetchData();
     }, [dispatch, directBuyData]);
 
+    // Helper function to get product price (buy_now_price first, then price)
+    const getProductPrice = (product) => {
+        return parseFloat(product?.buy_now_price || product?.price || 0);
+    };
+
+    // Helper function to check if there's a discount
+    const hasDiscount = (product) => {
+        return product?.buy_now_price &&
+            product?.price &&
+            parseFloat(product.buy_now_price) < parseFloat(product.price);
+    };
+
+    // Helper function to calculate savings - FIXED: Added const declaration
+    const getProductSavings = (product, quantity = 1) => {
+        if (!hasDiscount(product)) return 0;
+        const originalPrice = parseFloat(product.price);
+        const discountedPrice = parseFloat(product.buy_now_price);
+        return (originalPrice - discountedPrice) * quantity;
+    };
+
     const calculateOrderSummary = () => {
         if (directBuyData) {
-            const itemTotal =
-                parseFloat(directBuyData.product.price) *
-                directBuyData.quantity;
+            const productPrice = getProductPrice(directBuyData.product);
+            const itemTotal = productPrice * directBuyData.quantity;
             return {
                 itemsTotal: parseFloat(itemTotal.toFixed(2)),
                 deliveryFee: selectedDelivery.price,
-                total: parseFloat(
-                    (itemTotal + selectedDelivery.price).toFixed(2),
-                ),
+                total: parseFloat((itemTotal + selectedDelivery.price).toFixed(2)),
                 itemCount: 1,
+                totalSavings: getProductSavings(directBuyData.product, directBuyData.quantity),
             };
         }
 
@@ -153,11 +169,13 @@ function CheckOutUser() {
                 deliveryFee: selectedDelivery.price,
                 total: selectedDelivery.price,
                 itemCount: 0,
+                totalSavings: 0,
             };
         }
 
         const itemsTotal = cartItems.reduce((total, item) => {
-            return total + parseFloat(item.product.price) * item.quantity;
+            const productPrice = getProductPrice(item.product);
+            return total + productPrice * item.quantity;
         }, 0);
 
         const itemCount = cartItems.reduce(
@@ -165,11 +183,16 @@ function CheckOutUser() {
             0,
         );
 
+        const totalSavings = cartItems.reduce((total, item) => {
+            return total + getProductSavings(item.product, item.quantity);
+        }, 0);
+
         return {
             itemsTotal: parseFloat(itemsTotal.toFixed(2)),
             deliveryFee: selectedDelivery.price,
             total: parseFloat((itemsTotal + selectedDelivery.price).toFixed(2)),
             itemCount: itemCount,
+            totalSavings: parseFloat(totalSavings.toFixed(2)),
         };
     };
 
@@ -182,12 +205,16 @@ function CheckOutUser() {
     const createDirectOrder = async () => {
         try {
             const token = localStorage.getItem("token");
+            const productPrice = getProductPrice(directBuyData.product);
+
             const orderData = {
                 items: [
                     {
                         product_id: directBuyData.product.id,
                         quantity: directBuyData.quantity,
-                        price: directBuyData.product.price,
+                        price: productPrice,
+                        original_price: directBuyData.product.price, // Store original price for reference
+                        buy_now_price: directBuyData.product.buy_now_price, // Store buy_now_price for reference
                     },
                 ],
                 total_amount: orderSummary.total,
@@ -206,7 +233,6 @@ function CheckOutUser() {
                 },
             );
             dispatch(clearCart());
-            console.log("Direct order created:", response.data);
 
             const confirmationData = {
                 order: response.data.order,
@@ -229,11 +255,16 @@ function CheckOutUser() {
 
             const token = localStorage.getItem("token");
             const orderData = {
-                items: cartItems.map((item) => ({
-                    product_id: item.product_id,
-                    quantity: item.quantity,
-                    price: item.product.price,
-                })),
+                items: cartItems.map((item) => {
+                    const productPrice = getProductPrice(item.product);
+                    return {
+                        product_id: item.product_id,
+                        quantity: item.quantity,
+                        price: productPrice,
+                        original_price: item.product.price, // Store original price for reference
+                        buy_now_price: item.product.buy_now_price, // Store buy_now_price for reference
+                    };
+                }),
                 total_amount: orderSummary.total,
                 delivery_fee: selectedDelivery.price,
                 delivery_option: deliveryOption,
@@ -279,6 +310,7 @@ function CheckOutUser() {
             setIsProcessing(false);
         }
     };
+
     const handleProceedToPay = async () => {
         if (displayItems.length === 0) {
             alert("No items to order!");
@@ -389,7 +421,7 @@ function CheckOutUser() {
                                     <h2 className="text-lg font-semibold text-gray-900">
                                         Shipping & Billing
                                     </h2>
-                                    <button onClick={()=>navigate('/profile')} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200">
+                                    <button onClick={() => navigate('/profile')} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200">
                                         <svg
                                             className="w-4 h-4"
                                             fill="none"
@@ -459,14 +491,19 @@ function CheckOutUser() {
                                             typeof item.product?.images ===
                                             "string"
                                                 ? JSON.parse(
-                                                      item.product.images.replace(
-                                                          /\\([^\\])/g,
-                                                          "$1",
-                                                      ),
-                                                  )
+                                                    item.product.images.replace(
+                                                        /\\([^\\])/g,
+                                                        "$1",
+                                                    ),
+                                                )
                                                 : item.product?.images || [];
                                         const mainImage =
                                             images[0] || item.product?.image;
+
+                                        const productPrice = getProductPrice(item.product);
+                                        const itemTotal = productPrice * item.quantity;
+                                        const productHasDiscount = hasDiscount(item.product);
+                                        const itemSavings = getProductSavings(item.product, item.quantity);
 
                                         return (
                                             <div
@@ -505,32 +542,41 @@ function CheckOutUser() {
                                                             </span>
                                                         )}
                                                     </h5>
+
                                                     <div className="flex flex-wrap items-center gap-2 mt-1">
-                                                        <span className="text-sm font-semibold text-gray-900">
-                                                            Rs.{" "}
-                                                            {item.product?.price
-                                                                ? parseFloat(
-                                                                      item
-                                                                          .product
-                                                                          .price,
-                                                                  ).toFixed(2)
-                                                                : "0.00"}
+                                                        {/* Show original price if there's a discount */}
+                                                        {productHasDiscount && (
+                                                            <span className="text-sm text-gray-500 line-through">
+                                                                Rs. {parseFloat(item.product.price).toFixed(2)}
+                                                            </span>
+                                                        )}
+
+                                                        {/* Current price (buy_now_price or price) */}
+                                                        <span className={`text-sm font-semibold ${
+                                                            productHasDiscount
+                                                                ? 'text-green-600'
+                                                                : 'text-gray-900'
+                                                        }`}>
+                                                            Rs. {productPrice.toFixed(2)}
                                                         </span>
+
                                                         <span className="text-sm text-gray-500">
                                                             × {item.quantity}
                                                         </span>
+
                                                         <span className="text-sm font-semibold text-green-600">
-                                                            Rs.{" "}
-                                                            {(
-                                                                parseFloat(
-                                                                    item.product
-                                                                        ?.price ||
-                                                                        0,
-                                                                ) *
-                                                                item.quantity
-                                                            ).toFixed(2)}
+                                                            Rs. {itemTotal.toFixed(2)}
                                                         </span>
                                                     </div>
+
+                                                    {/* Show savings if there's a discount */}
+                                                    {productHasDiscount && itemSavings > 0 && (
+                                                        <div className="mt-1">
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                                You save Rs. {itemSavings.toFixed(2)}
+                                                            </span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         );
@@ -568,6 +614,18 @@ function CheckOutUser() {
                             </h4>
 
                             <div className="flex flex-col gap-3">
+                                {/* Show total savings if any */}
+                                {orderSummary.totalSavings > 0 && (
+                                    <div className="flex justify-between items-center bg-green-50 p-3 rounded-lg">
+                                        <span className="text-green-700 font-medium">
+                                            Total Savings
+                                        </span>
+                                        <span className="text-green-700 font-bold">
+                                            -Rs. {orderSummary.totalSavings.toFixed(2)}
+                                        </span>
+                                    </div>
+                                )}
+
                                 <div className="flex justify-between items-center">
                                     <span className="text-gray-600">
                                         Items Total ({orderSummary.itemCount}{" "}
@@ -599,6 +657,7 @@ function CheckOutUser() {
                                     </div>
                                 </div>
                             </div>
+
                             <button
                                 onClick={handleProceedToPay}
                                 disabled={
@@ -613,8 +672,8 @@ function CheckOutUser() {
                                 {isProcessing
                                     ? "Processing..."
                                     : displayItems.length === 0
-                                      ? "No Items to Order"
-                                      : "Confirm Order"}
+                                        ? "No Items to Order"
+                                        : "Confirm Order"}
                             </button>
 
                             {directBuyData && (

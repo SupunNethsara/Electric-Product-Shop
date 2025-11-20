@@ -218,13 +218,13 @@ const ProductCard = ({ product }) => {
                             className="text-lg font-bold"
                             style={{ color: colors.primary }}
                         >
-                            Rs. {product.price}
+                            Rs. {product.buy_now_price}
                         </span>
                         <span
                             className="text-sm line-through"
                             style={{ color: colors.textLight }}
                         >
-                            Rs. {originalPrice.toFixed(2)}
+                            Rs. {product.price}
                         </span>
                     </div>
 

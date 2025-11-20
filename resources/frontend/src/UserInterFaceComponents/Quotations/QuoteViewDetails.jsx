@@ -103,7 +103,6 @@ const QuoteViewDetails = () => {
             })).unwrap();
 
             success('Product added to quotation list!');
-            // Navigate to quotations page after successful addition
             navigate('/quotations');
 
         } catch (error) {
@@ -208,7 +207,6 @@ const QuoteViewDetails = () => {
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 lg:p-8">
-                        {/* Product Images */}
                         <div className="space-y-4">
                             <div className="relative group aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden">
                                 <img
@@ -246,8 +244,6 @@ const QuoteViewDetails = () => {
                                 </div>
                             )}
                         </div>
-
-                        {/* Product Details */}
                         <div className="space-y-6">
                             <div className="space-y-3">
                                 <div className="flex items-start justify-between">
@@ -307,7 +303,6 @@ const QuoteViewDetails = () => {
                                 </div>
                             </div>
 
-                            {/* Features */}
                             <div className="grid grid-cols-2 gap-3">
                                 {product.warranty && (
                                     <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg border border-orange-100">
@@ -327,7 +322,6 @@ const QuoteViewDetails = () => {
                                 </div>
                             </div>
 
-                            {/* Action Buttons */}
                             <div className="space-y-4 pt-4 border-t border-gray-200">
                                 <div className="flex items-center gap-4">
                                     <span className="font-medium text-gray-900 min-w-20">Quantity:</span>
@@ -385,7 +379,6 @@ const QuoteViewDetails = () => {
                 </div>
             </div>
 
-            {/* Image Zoom Modal */}
             {showZoomModal && (
                 <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => setShowZoomModal(false)}>
                     <div className="relative max-w-4xl w-full max-h-[90vh]">

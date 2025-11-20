@@ -201,7 +201,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onSwitchToForgotPassw
             onClick={handleOverlayClick}
         >
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 overflow-hidden">
-                <div className="relative bg-gradient-to-r from-green-500 to-green-600 p-8">
+                <div className="relative bg-gradient-to-r from-blue-500 to-blue-600 p-8">
                     <button
                         onClick={onClose}
                         className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-all duration-200 text-white"
@@ -212,7 +212,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onSwitchToForgotPassw
                         <h2 className="text-2xl font-bold text-white mb-2">
                             Welcome Back
                         </h2>
-                        <p className="text-green-100">
+                        <p className="text-blue-100">
                             Sign in to your account to continue
                         </p>
                     </div>
@@ -228,11 +228,11 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onSwitchToForgotPassw
                     {forgotPasswordMessage && (
                         <div className={`px-4 py-3 rounded-xl text-sm flex items-center gap-2 ${
                             forgotPasswordMessage.includes('sent')
-                                ? 'bg-green-50 border border-green-200 text-green-700'
+                                ? 'bg-blue-50 border border-blue-200 text-blue-700'
                                 : 'bg-blue-50 border border-blue-200 text-blue-700'
                         }`}>
                             <div className={`w-2 h-2 rounded-full ${
-                                forgotPasswordMessage.includes('sent') ? 'bg-green-500' : 'bg-blue-500'
+                                forgotPasswordMessage.includes('sent') ? 'bg-blue-500' : 'bg-blue-500'
                             }`}></div>
                             {forgotPasswordMessage}
                         </div>
@@ -253,7 +253,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onSwitchToForgotPassw
                                     name="email"
                                     type="email"
                                     required
-                                    className="w-full pl-12 pr-4 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-slate-50/50"
+                                    className="w-full pl-12 pr-4 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                                     placeholder="Enter your email"
                                     value={formData.email}
                                     onChange={handleChange}
@@ -292,7 +292,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onSwitchToForgotPassw
                                     name="password"
                                     type={showPassword ? "text" : "password"}
                                     required
-                                    className="w-full pl-12 pr-12 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-slate-50/50"
+                                    className="w-full pl-12 pr-12 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                                     placeholder="Enter your password"
                                     value={formData.password}
                                     onChange={handleChange}
@@ -311,7 +311,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onSwitchToForgotPassw
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-4 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-500/25"
+                        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 px-4 rounded-xl font-semibold hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/25"
                     >
                         {isLoading ? (
                             <div className="flex items-center justify-center gap-2">
@@ -336,7 +336,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onSwitchToForgotPassw
                         type="button"
                         onClick={handleGoogleLogin}
                         disabled={isLoading}
-                        className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-50"
                     >
                         <FcGoogle size={20} />
                         <span>Sign in with Google</span>
@@ -348,7 +348,7 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onSwitchToForgotPassw
                             <button
                                 type="button"
                                 onClick={onSwitchToRegister}
-                                className="text-green-600 font-semibold hover:text-green-700 transition-colors duration-200"
+                                className="text-blue-600 font-semibold hover:text-blue-700 transition-colors duration-200"
                             >
                                 Create one now
                             </button>

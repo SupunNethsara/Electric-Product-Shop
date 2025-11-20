@@ -117,36 +117,39 @@ const UploadProducts = ({ onUploadComplete }) => {
         setUploadStage('validate');
     };
 
-    const handleDownloadTemplate = (type) => {
-        let filename = '';
-        let templatePath = '';
+    const handleDownloadTemplate = async (type) => {
+        try {
+            let endpoint = '';
+            let filename = '';
 
-        if (type === 'details') {
-            filename = 'ProductDetails.xlsx';
-            templatePath = '/templates/ProductDetails.xlsx';
-        } else if (type === 'pricing') {
-            filename = 'ProductPricing.xlsx';
-            templatePath = '/templates/ProductPricing.xlsx';
-        } else {
-            console.error('Invalid template type');
-            return;
+            if (type === 'details') {
+                endpoint = 'http://127.0.0.1:8000/api/products/download/details-template';
+                filename = 'product_details_template.xlsx';
+            } else if (type === 'pricing') {
+                endpoint = 'http://127.0.0.1:8000/api/products/download/pricing-template';
+                filename = 'product_pricing_template.xlsx';
+            } else {
+                console.error('Invalid template type');
+                return;
+            }
+
+            const response = await axios.get(endpoint, {
+                responseType: 'blob'
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+            console.error('Download failed:', error);
+            alert(`Error downloading ${type} template: ${error.message}`);
         }
-
-        const url = new URL(templatePath, window.location.origin).toString();
-
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        link.target = '_blank';
-
-        link.onerror = () => {
-            console.error(`Failed to load template: ${url}`);
-            alert(`Error: Could not download the ${type} template. Please make sure the file exists at: ${url}`);
-        };
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
     };
 
     return (

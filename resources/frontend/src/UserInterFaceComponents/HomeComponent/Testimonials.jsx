@@ -5,15 +5,15 @@ const Testimonials = () => {
     const testimonials = [
         {
             id: 1,
-            name: "Sarah Johnson",
+            name: "Nimal de silva",
             role: "Tech Enthusiast",
-            image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150",
+            image: "/profile.webp",
             content: "Amazing product quality and fast delivery! The customer support team was incredibly helpful throughout the process.",
             rating: 5
         },
         {
             id: 2,
-            name: "Mike Chen",
+            name: "Predeep Gamage",
             role: "Business Owner",
             image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
             content: "I've been shopping here for over a year now. The product range and prices are unbeatable in the market.",
@@ -21,7 +21,7 @@ const Testimonials = () => {
         },
         {
             id: 3,
-            name: "Emily Davis",
+            name: "Rasika Frenando",
             role: "Student",
             image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150",
             content: "Great deals for students! The laptop I bought works perfectly and the warranty gives me peace of mind.",

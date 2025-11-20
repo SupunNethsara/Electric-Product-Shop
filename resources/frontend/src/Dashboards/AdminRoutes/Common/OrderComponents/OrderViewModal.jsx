@@ -3,10 +3,9 @@ import dayjs from 'dayjs';
 import InvoiceGenerator from './InvoiceGenerator';
 
 const OrderViewModal = ({ isOpen, onClose, orderData }) => {
-    console.log('orderdata', orderData)
     if (!isOpen || !orderData) return null;
 
-    const { order, items } = orderData;
+    const { order, items, user, profile } = orderData;
 
     const statusColor = (status) => {
         switch (status?.toLowerCase()) {
@@ -72,10 +71,10 @@ const OrderViewModal = ({ isOpen, onClose, orderData }) => {
         <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="fixed inset-0 bg-black/50" onClick={onClose}></div>
             <div className="flex min-h-full items-center justify-center p-4">
-                <div className="relative bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                <div className="relative bg-white rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white flex-shrink-0">
                         <div>
-                            <h2 className="text-xl font-semibold text-gray-900">Order Details - HR Investigation</h2>
+                            <h2 className="text-xl font-semibold text-gray-900">Order Details</h2>
                             <p className="text-sm text-gray-500 mt-1">Order #{order.order_code}</p>
                         </div>
                         <button
@@ -90,6 +89,88 @@ const OrderViewModal = ({ isOpen, onClose, orderData }) => {
 
                     <div className="flex-1 overflow-y-auto">
                         <div className="p-6 space-y-6">
+                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                    Customer Information
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <div className="space-y-3">
+                                        <div>
+                                            <p className="text-sm font-medium text-blue-700">Personal Details</p>
+                                            <div className="mt-2 space-y-2">
+                                                <p className="text-sm">
+                                                    <span className="font-medium text-gray-600">Name:</span>{' '}
+                                                    <span className="text-gray-900">{user?.name || 'N/A'}</span>
+                                                </p>
+                                                <p className="text-sm">
+                                                    <span className="font-medium text-gray-600">Email:</span>{' '}
+                                                    <span className="text-gray-900">{user?.email || 'N/A'}</span>
+                                                </p>
+                                                <p className="text-sm">
+                                                    <span className="font-medium text-gray-600">Role:</span>{' '}
+                                                    <span className="capitalize text-gray-900">{user?.role || 'N/A'}</span>
+                                                </p>
+                                                <p className="text-sm">
+                                                    <span className="font-medium text-gray-600">Status:</span>{' '}
+                                                    <span className={`capitalize px-2 py-1 rounded-full text-xs ${
+                                                        user?.status === 'active'
+                                                            ? 'bg-green-100 text-green-800'
+                                                            : 'bg-red-100 text-red-800'
+                                                    }`}>
+                                                        {user?.status || 'N/A'}
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div>
+                                            <p className="text-sm font-medium text-blue-700">Contact Information</p>
+                                            <div className="mt-2 space-y-2">
+                                                <p className="text-sm">
+                                                    <span className="font-medium text-gray-600">Phone:</span>{' '}
+                                                    <span className="text-gray-900">{profile?.phone || 'N/A'}</span>
+                                                </p>
+                                                <p className="text-sm">
+                                                    <span className="font-medium text-gray-600">Address:</span>{' '}
+                                                    <span className="text-gray-900">{profile?.address || 'N/A'}</span>
+                                                </p>
+                                                <p className="text-sm">
+                                                    <span className="font-medium text-gray-600">City:</span>{' '}
+                                                    <span className="text-gray-900">{profile?.city || 'N/A'}</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div>
+                                            <p className="text-sm font-medium text-blue-700">Location Details</p>
+                                            <div className="mt-2 space-y-2">
+                                                <p className="text-sm">
+                                                    <span className="font-medium text-gray-600">Country:</span>{' '}
+                                                    <span className="text-gray-900">{profile?.country || 'N/A'}</span>
+                                                </p>
+                                                <p className="text-sm">
+                                                    <span className="font-medium text-gray-600">Postal Code:</span>{' '}
+                                                    <span className="text-gray-900">{profile?.postal_code || 'N/A'}</span>
+                                                </p>
+                                                <p className="text-sm">
+                                                    <span className="font-medium text-gray-600">Member Since:</span>{' '}
+                                                    <span className="text-gray-900">
+                                                        {user?.created_at ? dayjs(user.created_at).format("MMM D, YYYY") : 'N/A'}
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                 <div className="lg:col-span-2 space-y-4">
                                     <div className="bg-gray-50 rounded-lg p-4">
@@ -128,6 +209,11 @@ const OrderViewModal = ({ isOpen, onClose, orderData }) => {
                                             {statusIcon(order.status)}
                                             <span className="font-medium capitalize">{order.status}</span>
                                         </div>
+                                        {order.read_at && (
+                                            <p className="text-xs text-gray-500 mt-2">
+                                                Last viewed: {dayjs(order.read_at).format("MMM D, YYYY h:mm A")}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 

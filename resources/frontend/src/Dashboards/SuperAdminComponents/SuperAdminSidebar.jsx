@@ -47,19 +47,12 @@ function SuperAdminSidebar() {
             href: '/super-admin/reports',
             icon: BarChart3,
             current: location.pathname.includes('/super-admin/reports')
-        },
-        {
-            name: 'Organization',
-            href: '/super-admin/organization',
-            icon: Building,
-            current: location.pathname.includes('/super-admin/organization')
-        },
+        }
 
     ];
 
     return (
         <div className="w-64 h-screen bg-white shadow-xl flex flex-col">
-            {/* User Info Section */}
             <div className="px-6 py-4 border-b border-gray-200">
                 <div className="flex items-center space-x-3 mb-3">
                     <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
@@ -78,7 +71,6 @@ function SuperAdminSidebar() {
                 </div>
             </div>
 
-            {/* Navigation Menu */}
             <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
                 {navigationItems.map((item) => {
                     const Icon = item.icon;

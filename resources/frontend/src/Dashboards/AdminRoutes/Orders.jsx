@@ -7,6 +7,11 @@ import StatusUpdateModal from "./Common/OrderComponents/StatusUpdateModal.jsx";
 export default function Orders() {
     const [query, setQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
+    const [dateRange, setDateRange] = useState({
+        startDate: "",
+        endDate: ""
+    });
+    const [showDateFilter, setShowDateFilter] = useState(false);
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [viewData, setViewData] = useState(null);
@@ -81,15 +86,58 @@ export default function Orders() {
         setSelectedOrder(null);
     };
 
+    const handleDateRangeChange = (field, value) => {
+        setDateRange(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const clearDateRange = () => {
+        setDateRange({
+            startDate: "",
+            endDate: ""
+        });
+    };
+
+    const clearAllFilters = () => {
+        setQuery("");
+        setStatusFilter("all");
+        clearDateRange();
+        setShowDateFilter(false);
+    };
+
+    const isDateInRange = (dateString, startDate, endDate) => {
+        if (!startDate && !endDate) return true;
+
+        const orderDate = dayjs(dateString);
+        const start = startDate ? dayjs(startDate) : null;
+        const end = endDate ? dayjs(endDate) : null;
+
+        if (start && end) {
+            return orderDate.isAfter(start.subtract(1, 'day')) && orderDate.isBefore(end.add(1, 'day'));
+        } else if (start) {
+            return orderDate.isAfter(start.subtract(1, 'day'));
+        } else if (end) {
+            return orderDate.isBefore(end.add(1, 'day'));
+        }
+
+        return true;
+    };
+
     const filtered = orders.filter(o => {
         const matchesQuery =
             o.id.toString().toLowerCase().includes(query.toLowerCase()) ||
             o.order_code?.toLowerCase().includes(query.toLowerCase()) ||
             o.user?.name?.toLowerCase().includes(query.toLowerCase()) ||
             o.user?.email?.toLowerCase().includes(query.toLowerCase());
+
         const matchesStatus =
             statusFilter === "all" || o.status === statusFilter.toLowerCase();
-        return matchesQuery && matchesStatus;
+
+        const matchesDateRange = isDateInRange(o.created_at, dateRange.startDate, dateRange.endDate);
+
+        return matchesQuery && matchesStatus && matchesDateRange;
     });
 
     const statusColor = (s) => {
@@ -148,6 +196,13 @@ export default function Orders() {
         return orders.filter(o => o.status === status).length;
     };
 
+    const getFilteredOrdersValue = () => {
+        return filtered.reduce(
+            (total, order) => total + parseFloat(order.total_amount || 0),
+            0
+        );
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -183,6 +238,7 @@ export default function Orders() {
                         </div>
                     </div>
                 </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     {[
                         { status: "pending", label: "Pending" },
@@ -210,7 +266,7 @@ export default function Orders() {
                 </div>
 
                 <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-                    <div className="flex flex-col lg:flex-row gap-4 items-center">
+                    <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
                         <div className="flex-1 w-full relative">
                             <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"
                                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -226,11 +282,11 @@ export default function Orders() {
                             />
                         </div>
 
-                        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                        <div className="w-full lg:w-48">
                             <select
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
-                                className="px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-sm"
+                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-sm"
                             >
                                 <option value="all">All Status</option>
                                 <option value="pending">Pending</option>
@@ -240,19 +296,157 @@ export default function Orders() {
                                 <option value="completed">Completed</option>
                                 <option value="cancelled">Cancelled</option>
                             </select>
+                        </div>
+
+                        <div className="flex gap-2 w-full lg:w-auto">
+                            <button
+                                onClick={() => setShowDateFilter(!showDateFilter)}
+                                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-colors text-sm font-medium ${
+                                    showDateFilter || dateRange.startDate || dateRange.endDate
+                                        ? 'bg-blue-50 text-blue-700 border-blue-300'
+                                        : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
+                                }`}
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Date Range
+                                {(dateRange.startDate || dateRange.endDate) && (
+                                    <span className="bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                                        ✓
+                                    </span>
+                                )}
+                            </button>
 
                             <button
-                                onClick={() => {
-                                    setQuery("");
-                                    setStatusFilter("all");
-                                }}
+                                onClick={clearAllFilters}
                                 className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
                             >
-                                Clear Filters
+                                Clear All
                             </button>
                         </div>
                     </div>
+
+                    {showDateFilter && (
+                        <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <div className="flex flex-col sm:flex-row gap-4 items-end">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            From Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={dateRange.startDate}
+                                            onChange={(e) => handleDateRangeChange('startDate', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            To Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={dateRange.endDate}
+                                            onChange={(e) => handleDateRangeChange('endDate', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-sm"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    {(dateRange.startDate || dateRange.endDate) && (
+                                        <button
+                                            onClick={clearDateRange}
+                                            className="px-3 py-2 text-sm bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition-colors font-medium"
+                                        >
+                                            Clear Dates
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => setShowDateFilter(false)}
+                                        className="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {(query || statusFilter !== "all" || dateRange.startDate || dateRange.endDate) && (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                            {query && (
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-800 border border-blue-200">
+                                    Search: "{query}"
+                                    <button
+                                        onClick={() => setQuery("")}
+                                        className="ml-1 hover:text-blue-900"
+                                    >
+                                        ×
+                                    </button>
+                                </span>
+                            )}
+                            {statusFilter !== "all" && (
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-purple-100 text-purple-800 border border-purple-200">
+                                    Status: {statusFilter}
+                                    <button
+                                        onClick={() => setStatusFilter("all")}
+                                        className="ml-1 hover:text-purple-900"
+                                    >
+                                        ×
+                                    </button>
+                                </span>
+                            )}
+                            {dateRange.startDate && (
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-green-100 text-green-800 border border-green-200">
+                                    From: {dayjs(dateRange.startDate).format("MMM D, YYYY")}
+                                    <button
+                                        onClick={() => handleDateRangeChange('startDate', '')}
+                                        className="ml-1 hover:text-green-900"
+                                    >
+                                        ×
+                                    </button>
+                                </span>
+                            )}
+                            {dateRange.endDate && (
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-orange-100 text-orange-800 border border-orange-200">
+                                    To: {dayjs(dateRange.endDate).format("MMM D, YYYY")}
+                                    <button
+                                        onClick={() => handleDateRangeChange('endDate', '')}
+                                        className="ml-1 hover:text-orange-900"
+                                    >
+                                        ×
+                                    </button>
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
+
+                {filtered.length > 0 && (
+                    <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                            <div>
+                                <p className="text-sm font-medium text-blue-900">
+                                    Showing {filtered.length} of {orders.length} orders
+                                    {dateRange.startDate && dateRange.endDate && (
+                                        <span> between {dayjs(dateRange.startDate).format("MMM D, YYYY")} and {dayjs(dateRange.endDate).format("MMM D, YYYY")}</span>
+                                    )}
+                                </p>
+                                <p className="text-sm text-blue-700">
+                                    Filtered orders value: <span className="font-semibold">Rs. {getFilteredOrdersValue().toLocaleString()}</span>
+                                </p>
+                            </div>
+                            <button
+                                onClick={clearAllFilters}
+                                className="px-3 py-1.5 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                            >
+                                Clear All Filters
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
@@ -289,16 +483,13 @@ export default function Orders() {
                                             </svg>
                                             <p className="font-medium text-lg">No orders found</p>
                                             <p className="text-sm mt-1 max-w-md">
-                                                {query || statusFilter !== "all"
+                                                {query || statusFilter !== "all" || dateRange.startDate || dateRange.endDate
                                                     ? "No orders match your search criteria. Try adjusting your filters."
                                                     : "No orders have been placed yet. Orders will appear here once customers start placing orders."}
                                             </p>
-                                            {(query || statusFilter !== "all") && (
+                                            {(query || statusFilter !== "all" || dateRange.startDate || dateRange.endDate) && (
                                                 <button
-                                                    onClick={() => {
-                                                        setQuery("");
-                                                        setStatusFilter("all");
-                                                    }}
+                                                    onClick={clearAllFilters}
                                                     className="mt-4 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                                                 >
                                                     Clear All Filters
@@ -371,6 +562,7 @@ export default function Orders() {
                         </table>
                     </div>
                 </div>
+
                 <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-600">
                     <p>
                         Showing <span className="font-medium">{filtered.length}</span> of{" "}
@@ -383,6 +575,11 @@ export default function Orders() {
                         {statusFilter !== "all" && (
                             <span className="ml-2">
                                 with status "<span className="font-medium capitalize">{statusFilter}</span>"
+                            </span>
+                        )}
+                        {(dateRange.startDate || dateRange.endDate) && (
+                            <span className="ml-2">
+                                in date range
                             </span>
                         )}
                     </p>
@@ -406,6 +603,7 @@ export default function Orders() {
                         </div>
                     </div>
                 </div>
+
                 <OrderViewModal
                     isOpen={isModalOpen}
                     onClose={closeModal}

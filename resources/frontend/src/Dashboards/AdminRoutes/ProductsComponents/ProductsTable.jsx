@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProductRow from './ProductRow';
-import { Search, Filter, Eye, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Search, Filter, Eye, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Package, Trash2, Archive, RefreshCw } from 'lucide-react';
 import useToast from "../../../UserInterFaceComponents/Common/useToast.jsx";
-import {ProductDetailsModal} from "./ProductDetailsModal.jsx";
+import { ProductDetailsModal } from "./ProductDetailsModal.jsx";
 
 const ProductsTable = ({ refreshTrigger }) => {
     const [products, setProducts] = useState([]);
@@ -26,8 +26,40 @@ const ProductsTable = ({ refreshTrigger }) => {
         status: 'all',
         minPrice: '',
         maxPrice: '',
-        inStock: false
+        inStock: false,
+        outOfStock: false
     });
+
+    const handleDeleteProduct = async (productId, productName) => {
+        if (!window.confirm(`Are you sure you want to delete "${productName}"? This action can be undone.`)) {
+            return;
+        }
+
+        try {
+            const response = await axios.delete(`http://127.0.0.1:8000/api/products/${productId}`);
+
+            if (response.data.success) {
+                setProducts(prevProducts =>
+                    prevProducts.filter(product => product.id !== productId)
+                );
+                setPagination(prev => ({
+                    ...prev,
+                    total: prev.total - 1,
+                    from: Math.max(prev.from - 1, 1),
+                    to: Math.max(prev.to - 1, 1)
+                }));
+
+                success(`Product "${productName}" has been deleted successfully!`);
+            }
+        } catch (error) {
+            console.error('Failed to delete product:', error);
+            if (error.response?.data?.message) {
+                showError(error.response.data.message);
+            } else {
+                showError('Failed to delete product. Please try again.');
+            }
+        }
+    };
 
     const handleStatusToggle = async (productId, newStatus) => {
         try {
@@ -63,7 +95,8 @@ const ProductsTable = ({ refreshTrigger }) => {
                 ...(filters.status !== 'all' && { status: filters.status }),
                 ...(filters.minPrice && { min_price: filters.minPrice }),
                 ...(filters.maxPrice && { max_price: filters.maxPrice }),
-                ...(filters.inStock && { in_stock: true })
+                ...(filters.inStock && { in_stock: true }),
+                ...(filters.outOfStock && { availability: 0 })
             });
 
             const response = await axios.get(`http://127.0.0.1:8000/api/products?${params}`);
@@ -100,7 +133,6 @@ const ProductsTable = ({ refreshTrigger }) => {
         fetchProducts(1);
     }, [refreshTrigger]);
 
-    // Debounced filter effect
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             fetchProducts(1);
@@ -182,7 +214,8 @@ const ProductsTable = ({ refreshTrigger }) => {
             status: 'all',
             minPrice: '',
             maxPrice: '',
-            inStock: false
+            inStock: false,
+            outOfStock: false
         });
     };
 
@@ -220,12 +253,35 @@ const ProductsTable = ({ refreshTrigger }) => {
         return pages;
     };
 
+    const isOutOfStock = (product) => {
+        return product.availability === 0 || product.availability === '0' || !product.availability;
+    };
+
+    const getStockStatusBadge = (product) => {
+        if (isOutOfStock(product)) {
+            return (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-100 text-red-800 border border-red-200">
+                    <Package className="w-3 h-3 mr-1" />
+                    Out of Stock
+                </span>
+            );
+        } else {
+            return (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 border border-green-200">
+                    <Package className="w-3 h-3 mr-1" />
+                    In Stock ({product.availability})
+                </span>
+            );
+        }
+    };
+
     const filteredProducts = Array.isArray(products) ? products : [];
 
     if (loading && products.length === 0) {
         return (
             <div className="flex justify-center items-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <span className="ml-3 text-gray-600">Loading products...</span>
             </div>
         );
     }
@@ -240,67 +296,97 @@ const ProductsTable = ({ refreshTrigger }) => {
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-3">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                            type="text"
-                            placeholder="Search products..."
-                            value={filters.search}
-                            onChange={(e) => handleFilterChange('search', e.target.value)}
-                            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-48"
-                        />
-                    </div>
-
-                    <select
-                        value={filters.status}
-                        onChange={(e) => handleFilterChange('status', e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => fetchProducts(pagination.current_page)}
+                        disabled={loading}
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                     >
-                        <option value="all">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="disabled">Disabled</option>
-                    </select>
-
-                    <div className="flex gap-2">
-                        <input
-                            type="number"
-                            placeholder="Min Price"
-                            value={filters.minPrice}
-                            onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                            className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                        />
-                        <input
-                            type="number"
-                            placeholder="Max Price"
-                            value={filters.maxPrice}
-                            onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                            className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                        />
-                    </div>
-
-                    <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                        <input
-                            type="checkbox"
-                            checked={filters.inStock}
-                            onChange={(e) => handleFilterChange('inStock', e.target.checked)}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">In Stock</span>
-                    </label>
-
-                    {(filters.search || filters.status !== 'all' || filters.minPrice || filters.maxPrice || filters.inStock) && (
-                        <button
-                            onClick={clearFilters}
-                            className="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                            Clear
-                        </button>
-                    )}
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                        Refresh
+                    </button>
                 </div>
             </div>
 
-            {(filters.search || filters.status !== 'all' || filters.minPrice || filters.maxPrice || filters.inStock) && (
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-900">Product Filters</h3>
+                        <p className="text-gray-600 text-sm">Filter products by various criteria</p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                                type="text"
+                                placeholder="Search products..."
+                                value={filters.search}
+                                onChange={(e) => handleFilterChange('search', e.target.value)}
+                                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-48"
+                            />
+                        </div>
+
+                        <select
+                            value={filters.status}
+                            onChange={(e) => handleFilterChange('status', e.target.value)}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        >
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="disabled">Disabled</option>
+                        </select>
+
+                        <div className="flex gap-2">
+                            <input
+                                type="number"
+                                placeholder="Min Price"
+                                value={filters.minPrice}
+                                onChange={(e) => handleFilterChange('minPrice', e.target.value)}
+                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            />
+                            <input
+                                type="number"
+                                placeholder="Max Price"
+                                value={filters.maxPrice}
+                                onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+                                className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            />
+                        </div>
+
+                        <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input
+                                type="checkbox"
+                                checked={filters.inStock}
+                                onChange={(e) => handleFilterChange('inStock', e.target.checked)}
+                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">In Stock</span>
+                        </label>
+
+                        <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input
+                                type="checkbox"
+                                checked={filters.outOfStock}
+                                onChange={(e) => handleFilterChange('outOfStock', e.target.checked)}
+                                className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                            />
+                            <span className="text-sm text-gray-700">Out of Stock</span>
+                        </label>
+
+                        {(filters.search || filters.status !== 'all' || filters.minPrice || filters.maxPrice || filters.inStock || filters.outOfStock) && (
+                            <button
+                                onClick={clearFilters}
+                                className="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                Clear
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {(filters.search || filters.status !== 'all' || filters.minPrice || filters.maxPrice || filters.inStock || filters.outOfStock) && (
                 <div className="flex flex-wrap gap-2">
                     {filters.search && (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
@@ -314,17 +400,22 @@ const ProductsTable = ({ refreshTrigger }) => {
                     )}
                     {filters.minPrice && (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                            Min: ${filters.minPrice}
+                            Min: Rs. {filters.minPrice}
                         </span>
                     )}
                     {filters.maxPrice && (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-800">
-                            Max: ${filters.maxPrice}
+                            Max: Rs. {filters.maxPrice}
                         </span>
                     )}
                     {filters.inStock && (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-teal-100 text-teal-800">
                             In Stock Only
+                        </span>
+                    )}
+                    {filters.outOfStock && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
+                            Out of Stock Only
                         </span>
                     )}
                 </div>
@@ -354,16 +445,16 @@ const ProductsTable = ({ refreshTrigger }) => {
                                 Price
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
-                                Stock
+                                Stock Status
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
+                                Images
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Status
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                View Details
+                                Details
                             </th>
                         </tr>
                         </thead>
@@ -376,11 +467,14 @@ const ProductsTable = ({ refreshTrigger }) => {
                                     onImagesUpload={handleImagesUpload}
                                     onViewDetails={handleViewDetails}
                                     onStatusToggle={handleStatusToggle}
+                                    onDelete={handleDeleteProduct}
+                                    getStockStatusBadge={getStockStatusBadge}
+                                    isOutOfStock={isOutOfStock}
                                 />
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="10" className="px-6 py-8 text-center text-gray-500">
+                                <td colSpan="11" className="px-6 py-8 text-center text-gray-500">
                                     <div className="flex flex-col items-center justify-center">
                                         <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
@@ -392,7 +486,7 @@ const ProductsTable = ({ refreshTrigger }) => {
                                                 : 'No products available in the system.'
                                             }
                                         </p>
-                                        {(filters.search || filters.status !== 'all' || filters.minPrice || filters.maxPrice || filters.inStock) && (
+                                        {(filters.search || filters.status !== 'all' || filters.minPrice || filters.maxPrice || filters.inStock || filters.outOfStock) && (
                                             <button
                                                 onClick={clearFilters}
                                                 className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
@@ -434,7 +528,6 @@ const ProductsTable = ({ refreshTrigger }) => {
                             </div>
 
                             <div className="flex items-center space-x-1">
-
                                 <button
                                     onClick={() => handlePageChange(1)}
                                     disabled={pagination.current_page === 1}
@@ -456,13 +549,13 @@ const ProductsTable = ({ refreshTrigger }) => {
                                         key={index}
                                         onClick={() => typeof page === 'number' && handlePageChange(page)}
                                         disabled={page === '...'}
-                                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium min-w-[42px] justify-center ${
                                             page === pagination.current_page
                                                 ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
                                                 : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                                         } ${page === '...' ? 'cursor-default' : 'cursor-pointer'}`}
                                     >
-                                        {page}
+                                        {page === '...' ? '...' : page}
                                     </button>
                                 ))}
 
@@ -491,6 +584,8 @@ const ProductsTable = ({ refreshTrigger }) => {
                 <ProductDetailsModal
                     product={selectedProduct}
                     onClose={() => setShowModal(false)}
+                    onDelete={handleDeleteProduct}
+                    isOutOfStock={isOutOfStock(selectedProduct)}
                 />
             )}
         </div>

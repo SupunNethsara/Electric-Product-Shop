@@ -13,6 +13,9 @@ use App\Models\ProductView;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProductController extends Controller
 {
@@ -54,7 +57,8 @@ class ProductController extends Controller
             $query->where('availability', '>', 0);
         }
 
-        $query->orderBy('created_at', 'desc');
+        $query->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc');
 
         $products = $query->paginate($perPage, ['*'], 'page', $page);
 
@@ -236,18 +240,19 @@ class ProductController extends Controller
                         'hedding' => $detailRow[7] ?? null,
                         'warranty' => $detailRow[8] ?? null,
                         'specification' => $detailRow[9] ?? null,
-                        'tags' => $detailRow[10] ?? null,
-                        'youtube_video_id' => $detailRow[11] ?? null,
+                        'specification_pdf_id' => $detailRow[10] ?? null,
+                        'tags' => $detailRow[11] ?? null,
+                        'youtube_video_id' => $detailRow[12] ?? null,
                         'price' => is_numeric($priceRow[1] ?? 0) ? (float)$priceRow[1] : 0,
                         'buy_now_price' => is_numeric($priceRow[2] ?? 0) ? (float)$priceRow[2] : 0,
                         'availability' => is_numeric($priceRow[3] ?? 0) ? (int)$priceRow[3] : 0,
                         'status' => $existingProduct && $existingProduct->images ? 'active' : 'disabled'
-
                     ];
 
                     $productData = array_map(function($value) {
                         return is_string($value) ? trim($value) : $value;
                     }, $productData);
+
                     Product::updateOrCreate(
                         ['item_code' => $itemCode],
                         $productData
@@ -446,6 +451,323 @@ class ProductController extends Controller
             'success' => true,
             'products' => $products,
             'total_views' => $products->sum('total_views')
+        ]);
+    }
+    public function downloadProductDetailsTemplate(): StreamedResponse
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $headers = [
+            'item_code',
+            'name',
+            'category_1',
+            'category_2',
+            'category_3',
+            'model',
+            'description',
+            'hedding',
+            'warranty',
+            'specification',
+            'specification_pdf_id',
+            'tags',
+            'youtube_video_id'
+        ];
+
+        foreach ($headers as $index => $header) {
+            $sheet->setCellValueByColumnAndRow($index + 1, 1, $header);
+        }
+
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF']
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '2E86C1']
+            ]
+        ];
+
+        $sheet->getStyle('A1:M1')->applyFromArray($headerStyle);
+
+        $sheet->getColumnDimension('A')->setWidth(15);
+        $sheet->getColumnDimension('B')->setWidth(30);
+        $sheet->getColumnDimension('C')->setWidth(20);
+        $sheet->getColumnDimension('D')->setWidth(20);
+        $sheet->getColumnDimension('E')->setWidth(20);
+        $sheet->getColumnDimension('F')->setWidth(15);
+        $sheet->getColumnDimension('G')->setWidth(40);
+        $sheet->getColumnDimension('H')->setWidth(20);
+        $sheet->getColumnDimension('I')->setWidth(15);
+        $sheet->getColumnDimension('J')->setWidth(40);
+        $sheet->getColumnDimension('K')->setWidth(25);
+        $sheet->getColumnDimension('L')->setWidth(25);
+        $sheet->getColumnDimension('M')->setWidth(20);
+
+        $exampleData = [
+            'PROD001',
+            'Sample Product Name',
+            'Electronics',
+            'Mobile Phones',
+            'Smartphones',
+            'MODEL-X1',
+            'This is a sample product description',
+            'Main Heading',
+            '1 Year',
+            'Sample specifications here',
+            'https://example.com/specification.pdf',
+            'tag1,tag2,tag3',
+            'abc123def45'
+        ];
+
+        foreach ($exampleData as $index => $value) {
+            $sheet->setCellValueByColumnAndRow($index + 1, 2, $value);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function() use ($writer) {
+            $writer->save('php://output');
+        }, 'product_details_template.xlsx');
+    }
+
+    /**
+     * Download Product Pricing Excel template
+     */
+    public function downloadProductPricingTemplate(): StreamedResponse
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $headers = [
+            'item_code',
+            'price',
+            'buy_now_price',
+            'availability'
+        ];
+
+        foreach ($headers as $index => $header) {
+            $sheet->setCellValueByColumnAndRow($index + 1, 1, $header);
+        }
+
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF']
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '27AE60']
+            ]
+        ];
+
+        $sheet->getStyle('A1:D1')->applyFromArray($headerStyle);
+
+        $sheet->getColumnDimension('A')->setWidth(15);
+        $sheet->getColumnDimension('B')->setWidth(15);
+        $sheet->getColumnDimension('C')->setWidth(15);
+        $sheet->getColumnDimension('D')->setWidth(15);
+
+        $exampleData = [
+            'PROD001',
+            99.99,
+            89.99,
+            50
+        ];
+
+        foreach ($exampleData as $index => $value) {
+            $sheet->setCellValueByColumnAndRow($index + 1, 2, $value);
+        }
+
+        $sheet->getStyle('B2:D2')->getNumberFormat()->setFormatCode('#,##0.00');
+
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function() use ($writer) {
+            $writer->save('php://output');
+        }, 'product_pricing_template.xlsx');
+    }
+
+    /**
+     * Download both templates as a zip file (optional)
+     */
+    public function downloadAllTemplates(): StreamedResponse
+    {
+
+        $tempDir = sys_get_temp_dir();
+        $detailsFile = $tempDir . '/product_details_template.xlsx';
+        $pricingFile = $tempDir . '/product_pricing_template.xlsx';
+
+        $detailsSpreadsheet = new Spreadsheet();
+        $detailsSheet = $detailsSpreadsheet->getActiveSheet();
+        $detailsHeaders = ['item_code', 'name', 'category_1', 'category_2', 'category_3', 'model', 'description', 'hedding', 'warranty', 'specification', 'tags', 'youtube_video_id'];
+
+        foreach ($detailsHeaders as $index => $header) {
+            $detailsSheet->setCellValueByColumnAndRow($index + 1, 1, $header);
+        }
+
+        $detailsWriter = new Xlsx($detailsSpreadsheet);
+        $detailsWriter->save($detailsFile);
+
+        $pricingSpreadsheet = new Spreadsheet();
+        $pricingSheet = $pricingSpreadsheet->getActiveSheet();
+        $pricingHeaders = ['item_code', 'price', 'buy_now_price', 'availability'];
+
+        foreach ($pricingHeaders as $index => $header) {
+            $pricingSheet->setCellValueByColumnAndRow($index + 1, 1, $header);
+        }
+
+        $pricingWriter = new Xlsx($pricingSpreadsheet);
+        $pricingWriter->save($pricingFile);
+
+
+        $zipFile = $tempDir . '/product_templates.zip';
+        $zip = new \ZipArchive();
+        $zip->open($zipFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+        $zip->addFile($detailsFile, 'product_details_template.xlsx');
+        $zip->addFile($pricingFile, 'product_pricing_template.xlsx');
+        $zip->close();
+
+        unlink($detailsFile);
+        unlink($pricingFile);
+
+        return response()->streamDownload(function() use ($zipFile) {
+            readfile($zipFile);
+            unlink($zipFile);
+        }, 'product_templates.zip');
+    }
+    public function destroy($id)
+    {
+        try {
+            $product = Product::find($id);
+
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product not found'
+                ], 404);
+            }
+            $product->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product deleted successfully',
+                'data' => [
+                    'id' => $product->id,
+                    'item_code' => $product->item_code,
+                    'name' => $product->name,
+                    'deleted_at' => $product->deleted_at
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to delete product: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete product',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function restore($id)
+    {
+        try {
+            $product = Product::withTrashed()->find($id);
+
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product not found'
+                ], 404);
+            }
+
+            if (!$product->trashed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product is not deleted'
+                ], 400);
+            }
+
+            $product->restore();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product restored successfully',
+                'data' => $product
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to restore product: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to restore product',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function forceDelete($id)
+    {
+        try {
+            $product = Product::withTrashed()->find($id);
+
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product not found'
+                ], 404);
+            }
+
+            $product->forceDelete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product permanently deleted',
+                'data' => [
+                    'id' => $id,
+                    'item_code' => $product->item_code,
+                    'name' => $product->name
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to permanently delete product: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to permanently delete product',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function trashed(Request $request)
+    {
+        $perPage = $request->get('per_page', 15);
+        $page = $request->get('page', 1);
+
+        $query = Product::onlyTrashed();
+
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('item_code', 'like', "%{$search}%")
+                    ->orWhere('model', 'like', "%{$search}%");
+            });
+        }
+
+        $products = $query->orderBy('deleted_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'data' => $products->items(),
+            'pagination' => [
+                'current_page' => $products->currentPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
+                'last_page' => $products->lastPage(),
+                'from' => $products->firstItem(),
+                'to' => $products->lastItem(),
+            ]
         ]);
     }
 }
