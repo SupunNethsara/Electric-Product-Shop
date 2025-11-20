@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
     FiAward,
     FiUsers,
@@ -7,12 +7,15 @@ import {
     FiShoppingBag,
     FiTruck,
     FiHeadphones,
-
 } from "react-icons/fi";
 import { motion } from "framer-motion";
-
+import { useNavigate } from "react-router-dom";
 
 const About = () => {
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [])
 
     const values = [
         {
@@ -51,13 +54,13 @@ const About = () => {
         {
             icon: <FiHeadphones className="w-8 h-8" />,
             title: "24/7 Support",
-            description: "Our dedicated customer service team is always here to help with any questions or concerns",
+            description:
+                "Our dedicated customer service team is always here to help with any questions or concerns",
         },
     ];
-
+    const navigate = useNavigate();
     return (
         <div className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-
             <div className="py-8 bg-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
                     <div className="lg:text-center">
@@ -73,10 +76,20 @@ const About = () => {
                         <div className="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10">
                             <div className="relative">
                                 <p className="text-lg text-gray-600 mb-6">
-                                    Founded in 2018, we started with a simple mission: to make quality products accessible to everyone at affordable prices. From our first online store to becoming a trusted shopping destination for thousands of customers worldwide.
+                                    Founded in 2018, we started with a simple
+                                    mission: to make quality products accessible
+                                    to everyone at affordable prices. From our
+                                    first online store to becoming a trusted
+                                    shopping destination for thousands of
+                                    customers worldwide.
                                 </p>
                                 <p className="text-lg text-gray-600">
-                                    Our journey has been driven by innovation and a commitment to customer satisfaction. We continuously expand our product range and improve our services to provide the best possible shopping experience for our valued customers.
+                                    Our journey has been driven by innovation
+                                    and a commitment to customer satisfaction.
+                                    We continuously expand our product range and
+                                    improve our services to provide the best
+                                    possible shopping experience for our valued
+                                    customers.
                                 </p>
                             </div>
                             <div className="relative">
@@ -85,7 +98,10 @@ const About = () => {
                                         Our Mission
                                     </h3>
                                     <p className="text-gray-600">
-                                        To provide exceptional value through quality products, outstanding customer service, and a seamless shopping experience that exceeds expectations.
+                                        To provide exceptional value through
+                                        quality products, outstanding customer
+                                        service, and a seamless shopping
+                                        experience that exceeds expectations.
                                     </p>
                                 </div>
                                 <div className="mt-6 bg-gray-50 p-6 rounded-2xl border-l-4 border-gray-400">
@@ -93,7 +109,10 @@ const About = () => {
                                         Our Vision
                                     </h3>
                                     <p className="text-gray-600">
-                                        To become the most trusted and loved online shopping destination, known for our commitment to quality, value, and customer satisfaction.
+                                        To become the most trusted and loved
+                                        online shopping destination, known for
+                                        our commitment to quality, value, and
+                                        customer satisfaction.
                                     </p>
                                 </div>
                             </div>
@@ -193,13 +212,21 @@ const About = () => {
                             Ready to Start Shopping?
                         </h2>
                         <p className="text-blue-100 text-xl mb-8 max-w-2xl mx-auto">
-                            Join thousands of satisfied customers who trust us for their shopping needs. Experience the difference today!
+                            Join thousands of satisfied customers who trust us
+                            for their shopping needs. Experience the difference
+                            today!
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200">
+                            <button
+                                onClick={() => navigate("/shop")}
+                                className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200"
+                            >
                                 Shop Now
                             </button>
-                            <button className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors duration-200">
+                            <button
+                                onClick={() => navigate("/contact")}
+                                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors duration-200"
+                            >
                                 Contact Us
                             </button>
                         </div>

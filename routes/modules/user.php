@@ -20,3 +20,4 @@ Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
     Route::put('/system-settings', [SystemSettingController::class, 'update']);
 });
     Route::get('/system-settings', [SystemSettingController::class, 'index']);
+Route::post('/send-contact-email', [UserController::class, 'sendContactEmail']);
