@@ -207,14 +207,12 @@ function SliderSection() {
                             <div className="w-full flex-shrink-0 h-full p-4 sm:p-8 lg:p-16 grid md:grid-cols-2 items-center">
                                 <div className="text-content space-y-3 sm:space-y-4 text-center md:text-left">
                                     <div
-                                        className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm animate-pulse"
+                                        className="inline-flex w-50 items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm animate-pulse"
                                         style={{
                                             backgroundColor: `${themeColors.primary}15`,
                                             color: themeColors.primary,
                                         }}
                                     >
-                                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500"></span>
-                                        Premium Quality Guaranteed
                                     </div>
 
                                     <div className="space-y-2">
@@ -400,14 +398,14 @@ function SliderSection() {
                                     >
                                         <div className="text-content space-y-3 sm:space-y-4 text-center md:text-left">
                                             <div
-                                                className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm"
+                                                className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm animate-pulse"
                                                 style={{
                                                     backgroundColor: `${themeColors.primary}15`,
                                                     color: themeColors.primary,
                                                 }}
                                             >
-                                                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 animate-pulse"></span>
-                                                Free Shipping Over Rs50
+                                                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500"></span>
+                                                Premium Quality Guaranteed
                                             </div>
 
                                             <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 leading-tight">

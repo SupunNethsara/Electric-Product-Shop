@@ -94,15 +94,7 @@ function TopProduct() {
                                     style={{
                                         backgroundColor: `${themeColors.primary}15`,
                                     }}
-                                >
-                                    <div
-                                        className="animate-spin rounded-full h-8 w-8 border-2"
-                                        style={{
-                                            borderColor: `${themeColors.primary}30`,
-                                            borderTopColor: themeColors.primary,
-                                        }}
-                                    ></div>
-                                </div>
+                                ></div>
                             </div>
                         </div>
 
