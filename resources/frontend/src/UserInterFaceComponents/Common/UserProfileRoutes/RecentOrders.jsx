@@ -360,20 +360,44 @@ function RecentOrders() {
                                     <div className="p-4">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center space-x-4">
-                                                <div className="flex-shrink-0 w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                                                    <svg
-                                                        className="w-5 h-5 text-blue-600"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            strokeWidth={2}
-                                                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                                                        />
-                                                    </svg>
+                                                <div className="flex-shrink-0 w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center relative">
+                                                    {/* Show first product image, or multiple if available */}
+                                                    {items.length > 0 ? (
+                                                        <>
+                                                            {items.slice(0, 2).map((item, index) => (
+                                                                <img
+                                                                    key={item.id}
+                                                                    src={item.product?.image}
+                                                                    alt={item.product?.name}
+                                                                    className={`w-6 h-6 object-cover rounded border border-white ${
+                                                                        index === 1 ? 'absolute -bottom-1 -right-1' : ''
+                                                                    }`}
+                                                                    onError={(e) => {
+                                                                        e.target.style.display = 'none';
+                                                                    }}
+                                                                />
+                                                            ))}
+                                                            {items.length > 2 && (
+                                                                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-600 text-white text-xs rounded-full flex items-center justify-center">
+                                                                    +{items.length - 1}
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    ) : (
+                                                        <svg
+                                                            className="w-5 h-5 text-blue-600"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                                                            />
+                                                        </svg>
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <h3 className="font-semibold text-gray-900 text-sm">
