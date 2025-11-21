@@ -20,6 +20,12 @@ const Footer = () => {
         address: "",
         siteDescription: "",
         logoUrl: null,
+        socialLinks: {
+            facebook: "",
+            instagram: "",
+            twitter: "",
+            linkedin: ""
+        }
     });
     const [loading, setLoading] = useState(true);
 
@@ -43,6 +49,12 @@ const Footer = () => {
                 address: data.address || "",
                 siteDescription: data.site_description || "",
                 logoUrl: data.logo_url || null,
+                socialLinks: data.social_links || {
+                    facebook: "",
+                    instagram: "",
+                    twitter: "",
+                    linkedin: ""
+                }
             });
         } catch (error) {
             console.error("Error fetching settings:", error);
@@ -87,24 +99,28 @@ const Footer = () => {
         {
             name: "Facebook",
             icon: <Facebook className="w-5 h-5" />,
-            href: "https://facebook.com",
+            href: settings.socialLinks.facebook,
+            color: "hover:text-blue-500 hover:border-blue-500"
         },
         {
             name: "Twitter",
             icon: <Twitter className="w-5 h-5" />,
-            href: "https://twitter.com",
+            href: settings.socialLinks.twitter,
+            color: "hover:text-blue-400 hover:border-blue-400"
         },
         {
             name: "Instagram",
             icon: <Instagram className="w-5 h-5" />,
-            href: "https://instagram.com",
+            href: settings.socialLinks.instagram,
+            color: "hover:text-pink-500 hover:border-pink-500"
         },
         {
             name: "LinkedIn",
             icon: <Linkedin className="w-5 h-5" />,
-            href: "https://linkedin.com",
+            href: settings.socialLinks.linkedin,
+            color: "hover:text-blue-600 hover:border-blue-600"
         },
-    ];
+    ].filter(social => social.href);
 
     if (loading) {
         return (
@@ -120,7 +136,6 @@ const Footer = () => {
         <footer className="bg-gradient-to-br from-gray-900 to-blue-900 text-white">
             <div className="max-w-7xl mx-auto px-6 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
-                    {/* Brand Section */}
                     <div className="lg:col-span-2">
                         <Link to="/" className="inline-block mb-4">
                             {settings.logoUrl ? (
@@ -200,18 +215,24 @@ const Footer = () => {
                             Follow us:
                         </span>
                         <div className="flex items-center gap-3">
-                            {socialLinks.map((social) => (
-                                <a
-                                    key={social.name}
-                                    href={social.href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-gray-400 hover:text-blue-400 hover:bg-blue-900/50 transition-all duration-200 p-2 rounded-lg border border-gray-700 hover:border-blue-400"
-                                    aria-label={social.name}
-                                >
-                                    {social.icon}
-                                </a>
-                            ))}
+                            {socialLinks.length > 0 ? (
+                                socialLinks.map((social) => (
+                                    <a
+                                        key={social.name}
+                                        href={social.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`text-gray-400 hover:bg-blue-900/50 transition-all duration-200 p-2 rounded-lg border border-gray-700 ${social.color}`}
+                                        aria-label={social.name}
+                                    >
+                                        {social.icon}
+                                    </a>
+                                ))
+                            ) : (
+                                <span className="text-gray-500 text-sm">
+                                    No social links configured
+                                </span>
+                            )}
                         </div>
                     </div>
 

@@ -425,7 +425,6 @@ const Contact = () => {
                             ))}
                         </motion.div>
 
-                        {/* Social Media Links */}
                         {contactInfo.socialLinks && Object.values(contactInfo.socialLinks).some(link => link) && (
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
@@ -456,7 +455,6 @@ const Contact = () => {
                             </motion.div>
                         )}
 
-                        {/* Quick Support */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={isVisible ? { opacity: 1, y: 0 } : {}}
