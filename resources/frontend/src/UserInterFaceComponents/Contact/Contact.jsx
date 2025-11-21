@@ -372,7 +372,7 @@ const Contact = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={isVisible ? { opacity: 1, y: 0 } : {}}
                             transition={{ duration: 0.6, delay: 0.3 }}
-                            className="bg-green-600 text-white p-6 rounded-2xl text-center"
+                            className="bg-red-600 text-white p-6 rounded-2xl text-center"
                         >
                             <div className="flex items-center justify-center mb-2">
                                 <FiHeadphones className="w-6 h-6 mr-2" />
