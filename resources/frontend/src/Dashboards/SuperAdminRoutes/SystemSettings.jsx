@@ -12,6 +12,15 @@ function SystemSettings() {
         itemsPerPage: 24,
         logo: null,
         logoUrl: null,
+        googleMapsEmbed: "",
+        contactEmail: "",
+        businessHours: "",
+        socialLinks: {
+            facebook: "",
+            instagram: "",
+            twitter: "",
+            linkedin: ""
+        }
     });
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
@@ -49,6 +58,15 @@ function SystemSettings() {
                 itemsPerPage: data.items_per_page || 24,
                 logo: data.logo || null,
                 logoUrl: data.logo_url || null,
+                googleMapsEmbed: data.google_maps_embed || "",
+                contactEmail: data.contact_email || "",
+                businessHours: data.business_hours || "Mon - Fri: 9:00 AM - 6:00 PM",
+                socialLinks: data.social_links || {
+                    facebook: "",
+                    instagram: "",
+                    twitter: "",
+                    linkedin: ""
+                }
             });
 
             if (data.logo_url) {
@@ -71,6 +89,16 @@ function SystemSettings() {
         setSettings((prev) => ({
             ...prev,
             [key]: value,
+        }));
+    };
+
+    const handleSocialLinkChange = (platform, value) => {
+        setSettings((prev) => ({
+            ...prev,
+            socialLinks: {
+                ...prev.socialLinks,
+                [platform]: value
+            }
         }));
     };
 
@@ -120,6 +148,10 @@ function SystemSettings() {
             formData.append("address", settings.address || "");
             formData.append("siteDescription", settings.siteDescription || "");
             formData.append("itemsPerPage", settings.itemsPerPage.toString());
+            formData.append("googleMapsEmbed", settings.googleMapsEmbed || "");
+            formData.append("contactEmail", settings.contactEmail || "");
+            formData.append("businessHours", settings.businessHours || "");
+            formData.append("socialLinks", JSON.stringify(settings.socialLinks));
 
             if (removeLogoFlag) {
                 formData.append("remove_logo", "true");
@@ -151,6 +183,15 @@ function SystemSettings() {
                 itemsPerPage: updatedData.items_per_page,
                 logo: updatedData.logo,
                 logoUrl: updatedData.logo_url,
+                googleMapsEmbed: updatedData.google_maps_embed,
+                contactEmail: updatedData.contact_email,
+                businessHours: updatedData.business_hours,
+                socialLinks: updatedData.social_links || {
+                    facebook: "",
+                    instagram: "",
+                    twitter: "",
+                    linkedin: ""
+                }
             });
 
             if (updatedData.logo_url) {
@@ -190,11 +231,26 @@ function SystemSettings() {
                 itemsPerPage: 24,
                 logo: null,
                 logoUrl: null,
+                googleMapsEmbed: "",
+                contactEmail: "contact@store.com",
+                businessHours: "Mon - Fri: 9:00 AM - 6:00 PM\nSat: 10:00 AM - 4:00 PM\nSun: Closed",
+                socialLinks: {
+                    facebook: "",
+                    instagram: "",
+                    twitter: "",
+                    linkedin: ""
+                }
             });
             setLogoPreview(null);
             setLogoFile(null);
             setRemoveLogoFlag(false);
         }
+    };
+
+    const getGoogleMapsEmbedCode = (address) => {
+        if (!address) return "";
+        const encodedAddress = encodeURIComponent(address);
+        return `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3960.923935068942!2d79.86177441528766!3d6.914006295016287!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNsKwNTQnNTAuNCJOIDc5wrA1MSc0OS4xIkU!5e0!3m2!1sen!2slk!4v1645839197081!5m2!1sen!2slk`;
     };
 
     return (
@@ -239,6 +295,16 @@ function SystemSettings() {
                                         id: "general",
                                         label: "General Settings",
                                         icon: "⚙️",
+                                    },
+                                    {
+                                        id: "contact",
+                                        label: "Contact & Location",
+                                        icon: "📍",
+                                    },
+                                    {
+                                        id: "social",
+                                        label: "Social Media",
+                                        icon: "📱",
                                     },
                                     {
                                         id: "security",
@@ -509,6 +575,186 @@ function SystemSettings() {
                                             </div>
                                         </>
                                     )}
+                                </div>
+                            )}
+
+                            {activeTab === "contact" && (
+                                <div className="space-y-8">
+                                    <div className="border-b border-gray-100 pb-6">
+                                        <h2 className="text-2xl font-semibold text-gray-800">
+                                            Contact & Location
+                                        </h2>
+                                        <p className="text-gray-600 mt-2">
+                                            Configure your contact information and store location
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                        <div className="space-y-6">
+                                            <div className="space-y-2">
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    Contact Email
+                                                </label>
+                                                <input
+                                                    type="email"
+                                                    value={settings.contactEmail}
+                                                    onChange={(e) => handleSettingChange("contactEmail", e.target.value)}
+                                                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-colors duration-200"
+                                                    placeholder="contact@example.com"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    Business Hours
+                                                </label>
+                                                <textarea
+                                                    value={settings.businessHours}
+                                                    onChange={(e) => handleSettingChange("businessHours", e.target.value)}
+                                                    rows={4}
+                                                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-colors duration-200"
+                                                    placeholder="Mon - Fri: 9:00 AM - 6:00 PM&#10;Sat: 10:00 AM - 4:00 PM&#10;Sun: Closed"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    Google Maps Embed Code
+                                                </label>
+                                                <textarea
+                                                    value={settings.googleMapsEmbed}
+                                                    onChange={(e) => handleSettingChange("googleMapsEmbed", e.target.value)}
+                                                    rows={4}
+                                                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white transition-colors duration-200 font-mono text-sm"
+                                                    placeholder='&lt;iframe src="https://www.google.com/maps/embed?pb=..."&gt;&lt;/iframe&gt;'
+                                                />
+                                                <p className="text-xs text-gray-500">
+                                                    Paste the embed code from Google Maps. Get it by clicking "Share" → "Embed a map" on Google Maps.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <h3 className="text-lg font-semibold text-gray-800">Location Preview</h3>
+                                            <div className="bg-gray-100 rounded-2xl overflow-hidden h-80">
+                                                {settings.googleMapsEmbed ? (
+                                                    <div
+                                                        className="w-full h-full"
+                                                        dangerouslySetInnerHTML={{ __html: settings.googleMapsEmbed }}
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-gray-500">
+                                                        <div className="text-center">
+                                                            <div className="text-4xl mb-2">📍</div>
+                                                            <p>No map configured</p>
+                                                            <p className="text-sm">Add a Google Maps embed code to preview your location</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-4 pt-8 border-t border-gray-100">
+                                        <button
+                                            onClick={saveSettings}
+                                            disabled={loading}
+                                            className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md"
+                                        >
+                                            {loading ? (
+                                                <span className="flex items-center">
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                                    Saving...
+                                                </span>
+                                            ) : (
+                                                "Save Contact Settings"
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === "social" && (
+                                <div className="space-y-8">
+                                    <div className="border-b border-gray-100 pb-6">
+                                        <h2 className="text-2xl font-semibold text-gray-800">
+                                            Social Media Links
+                                        </h2>
+                                        <p className="text-gray-600 mt-2">
+                                            Add your social media profiles to connect with customers
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="block text-sm font-medium text-gray-700">
+                                                Facebook URL
+                                            </label>
+                                            <input
+                                                type="url"
+                                                value={settings.socialLinks.facebook}
+                                                onChange={(e) => handleSocialLinkChange("facebook", e.target.value)}
+                                                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-colors duration-200"
+                                                placeholder="https://facebook.com/yourpage"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="block text-sm font-medium text-gray-700">
+                                                Instagram URL
+                                            </label>
+                                            <input
+                                                type="url"
+                                                value={settings.socialLinks.instagram}
+                                                onChange={(e) => handleSocialLinkChange("instagram", e.target.value)}
+                                                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 bg-white transition-colors duration-200"
+                                                placeholder="https://instagram.com/yourprofile"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="block text-sm font-medium text-gray-700">
+                                                Twitter URL
+                                            </label>
+                                            <input
+                                                type="url"
+                                                value={settings.socialLinks.twitter}
+                                                onChange={(e) => handleSocialLinkChange("twitter", e.target.value)}
+                                                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 bg-white transition-colors duration-200"
+                                                placeholder="https://twitter.com/yourhandle"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="block text-sm font-medium text-gray-700">
+                                                LinkedIn URL
+                                            </label>
+                                            <input
+                                                type="url"
+                                                value={settings.socialLinks.linkedin}
+                                                onChange={(e) => handleSocialLinkChange("linkedin", e.target.value)}
+                                                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-700 focus:border-blue-700 bg-white transition-colors duration-200"
+                                                placeholder="https://linkedin.com/company/yourcompany"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-4 pt-8 border-t border-gray-100">
+                                        <button
+                                            onClick={saveSettings}
+                                            disabled={loading}
+                                            className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md"
+                                        >
+                                            {loading ? (
+                                                <span className="flex items-center">
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                                    Saving...
+                                                </span>
+                                            ) : (
+                                                "Save Social Links"
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                             )}
 
