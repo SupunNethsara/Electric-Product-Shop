@@ -7,6 +7,7 @@ use App\Notifications\CustomResetPassword;
 use App\Notifications\VerifyOtpNotification;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -88,5 +89,17 @@ class User extends Authenticatable
         return $this->forceFill([
             'email_verified_at' => $this->freshTimestamp(),
         ])->save();
+    }
+    public function wishlists(): HasMany
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    /**
+     * Check if a product is in user's wishlist
+     */
+    public function hasInWishlist($productId): bool
+    {
+        return $this->wishlists()->where('product_id', $productId)->exists();
     }
 }

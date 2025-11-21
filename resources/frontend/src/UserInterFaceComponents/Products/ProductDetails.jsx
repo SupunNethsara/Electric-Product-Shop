@@ -157,6 +157,7 @@ const ProductDetails = () => {
     const [selectedImage, setSelectedImage] = useState(0);
     const [quantity, setQuantity] = useState(1);
     const [isWishlisted, setIsWishlisted] = useState(false);
+    const [wishlistLoading, setWishlistLoading] = useState(false);
     const [showZoomModal, setShowZoomModal] = useState(false);
     const [activeTab, setActiveTab] = useState("description");
     const { success, error: showError } = useToast();
@@ -179,6 +180,72 @@ const ProductDetails = () => {
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
+    useEffect(() => {
+        if (isAuthenticated && product) {
+            checkWishlistStatus();
+        }
+    }, [product, isAuthenticated]);
+
+    const checkWishlistStatus = async () => {
+        try {
+            const response = await fetch(
+                `http://127.0.0.1:8000/api/wishlist/check/${product.id}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                },
+            );
+            if (response.ok) {
+                const data = await response.json();
+                setIsWishlisted(data.is_in_wishlist);
+            }
+        } catch (error) {
+            console.error("Error checking wishlist status:", error);
+        }
+    };
+
+    const handleWishlist = async () => {
+        if (!isAuthenticated) {
+            dispatch(openLoginModal());
+            return;
+        }
+
+        setWishlistLoading(true);
+        try {
+            if (isWishlisted) {
+                await fetch(
+                    `http://127.0.0.1:8000/api/wishlist/${product.id}`,
+                    {
+                        method: "DELETE",
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                    },
+                );
+                setIsWishlisted(false);
+                success("Removed from wishlist");
+            } else {
+                await fetch("http://127.0.0.1:8000/api/wishlist/add", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                    body: JSON.stringify({
+                        product_id: product.id,
+                    }),
+                });
+                setIsWishlisted(true);
+                success("Added to wishlist");
+            }
+        } catch (error) {
+            console.error("Error updating wishlist:", error);
+            showError("Failed to update wishlist");
+        } finally {
+            setWishlistLoading(false);
+        }
+    };
 
     useEffect(() => {
         const fetchProductDetails = async () => {
@@ -300,14 +367,6 @@ const ProductDetails = () => {
                 quantity: quantity,
             },
         });
-    };
-
-    const handleWishlist = () => {
-        if (!isAuthenticated) {
-            dispatch(openLoginModal());
-            return;
-        }
-        setIsWishlisted(!isWishlisted);
     };
 
     const handleShare = async () => {

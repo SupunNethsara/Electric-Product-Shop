@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProductController\ProductController;
+use App\Http\Controllers\ProductController\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/products', [ProductController::class, 'index']);
@@ -30,3 +31,15 @@ Route::get('/products/trashed', [ProductController::class, 'trashed']);
 // Search routes
 Route::get('/products/search', [ProductController::class, 'searchProducts']);
 Route::get('/products/search-suggestions', [ProductController::class, 'getSearchSuggestions']);
+
+
+//wishlist
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/wishlist', [WishlistController::class, 'index']);
+    Route::post('/wishlist/add', [WishlistController::class, 'addToWishlist']);
+    Route::get('/wishlist/check/{productId}', [WishlistController::class, 'checkWishlistStatus']);
+    Route::get('/wishlist/count', [WishlistController::class, 'getWishlistCount']);
+    Route::post('/wishlist/move-all-to-cart', [WishlistController::class, 'moveAllToCart']);
+    Route::delete('/wishlist/clear', [WishlistController::class, 'clearWishlist']);
+    Route::delete('/wishlist/{productId}', [WishlistController::class, 'removeFromWishlist']);
+});

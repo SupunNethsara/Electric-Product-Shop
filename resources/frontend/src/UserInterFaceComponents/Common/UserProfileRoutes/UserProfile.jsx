@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import PersonalDetails from "./PersonalDetails.jsx";
 import RecentOrders from "./RecentOrders.jsx";
+import Wishlist from "./Wishlist.jsx";
 
 function UserProfile() {
     const [activeTab, setActiveTab] = useState("profile");
@@ -27,27 +28,35 @@ function UserProfile() {
             case "profile":
                 return <PersonalDetails />;
             case "orders":
-                return (
-                    <div className="p-8 text-center">
-                        <RecentOrders />
-                    </div>
-                );
+                return <RecentOrders />;
             case "wishlist":
-                return (
-                    <div className="p-8 text-center">
-                        Wishlist Page - Coming Soon
-                    </div>
-                );
+                return <Wishlist />;
             case "payments":
                 return (
                     <div className="p-8 text-center">
-                        Payments Page - Coming Soon
+                        <div className="max-w-md mx-auto py-12">
+                            <CreditCard size={48} className="text-gray-400 mx-auto mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                Payment Methods
+                            </h3>
+                            <p className="text-gray-500">
+                                Manage your payment methods and billing information
+                            </p>
+                        </div>
                     </div>
                 );
             case "notifications":
                 return (
                     <div className="p-8 text-center">
-                        Notifications Page - Coming Soon
+                        <div className="max-w-md mx-auto py-12">
+                            <Bell size={48} className="text-gray-400 mx-auto mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                Notifications
+                            </h3>
+                            <p className="text-gray-500">
+                                Configure your notification preferences
+                            </p>
+                        </div>
                     </div>
                 );
             default:
@@ -59,8 +68,8 @@ function UserProfile() {
         <div className="min-h-auto pt-20 bg-gray-50">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="flex">
-                        <div className="w-64 bg-gray-50 border-r border-gray-200">
+                    <div className="flex flex-col lg:flex-row">
+                        <div className="w-full lg:w-64 bg-gray-50 border-b lg:border-b-0 lg:border-r border-gray-200">
                             <div className="p-6">
                                 <h2 className="text-lg font-semibold text-gray-900 mb-6">
                                     Account Settings
@@ -92,7 +101,9 @@ function UserProfile() {
                             </div>
                         </div>
 
-                        <div className="flex-1 p-8">{renderContent()}</div>
+                        <div className="flex-1 min-h-[600px]">
+                            {renderContent()}
+                        </div>
                     </div>
                 </div>
             </div>

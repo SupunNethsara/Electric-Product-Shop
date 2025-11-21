@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
@@ -43,12 +44,6 @@ class Product extends Model
         'reviews_count',
         'rating_distribution',
     ];
-
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
-
     public function reviews()
     {
         return $this->hasMany(Review::class);
@@ -97,5 +92,17 @@ class Product extends Model
             return $this->reviews()->where('user_id', auth()->id())->first();
         }
         return null;
+    }
+    public function wishlists(): HasMany
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    /**
+     * Check if product is in a user's wishlist
+     */
+    public function isInUserWishlist($userId): bool
+    {
+        return $this->wishlists()->where('user_id', $userId)->exists();
     }
 }
