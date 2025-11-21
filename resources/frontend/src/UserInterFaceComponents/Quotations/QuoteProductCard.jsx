@@ -151,7 +151,7 @@ const QuoteProductCard = ({ product }) => {
 
             <div className="p-4 pt-3">
                 <h3 className="text-sm text-gray-800 mb-2 line-clamp-2 h-10 leading-tight">
-                    {product.name} - {product.model}
+                    {product.name} - {product.category_2} {product.category_3}
                 </h3>
 
                 <div className="flex items-center gap-1 mb-2">

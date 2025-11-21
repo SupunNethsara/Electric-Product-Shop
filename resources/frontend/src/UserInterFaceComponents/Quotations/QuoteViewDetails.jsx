@@ -14,19 +14,141 @@ import {
     ChevronLeft,
     ChevronRight,
     FileText,
+    Heart,
 } from "lucide-react";
 import { openLoginModal } from "../../Store/slices/modalSlice.js";
 import { addToCart } from "../../Store/slices/cartSlice.js";
 import { addToQuotation } from "../../Store/slices/quotationSlice.js";
 import useToast from "../Common/useToast.jsx";
+import RatingSummary from "../Products/Reviews/RatingSummary.jsx";
+import ReviewsList from "../Products/Reviews/ReviewsList.jsx";
+import ReviewForm from "../Products/Reviews/ReviewForm.jsx";
+
+const groupSpecifications = (specs) => {
+    const groups = {
+        general: {},
+        technical: {},
+        features: {},
+        dimensions: {},
+        warranty: {},
+    };
+    const categoryKeywords = {
+        technical: [
+            "processor",
+            "ram",
+            "storage",
+            "battery",
+            "display",
+            "camera",
+            "os",
+            "connectivity",
+            "speed",
+            "resolution",
+            "capacity",
+        ],
+        dimensions: [
+            "weight",
+            "size",
+            "dimension",
+            "height",
+            "width",
+            "depth",
+            "length",
+            "thickness",
+        ],
+        features: [
+            "feature",
+            "color",
+            "material",
+            "waterproof",
+            "wireless",
+            "bluetooth",
+            "wifi",
+            "nfc",
+            "gps",
+        ],
+        warranty: ["warranty", "guarantee", "support", "service"],
+    };
+
+    Object.entries(specs).forEach(([key, value]) => {
+        const lowerKey = key.toLowerCase();
+        let assigned = false;
+        for (const [category, keywords] of Object.entries(categoryKeywords)) {
+            if (keywords.some((keyword) => lowerKey.includes(keyword))) {
+                groups[category][key] = value;
+                assigned = true;
+                break;
+            }
+        }
+        if (!assigned) {
+            groups.general[key] = value;
+        }
+    });
+    return Object.fromEntries(
+        Object.entries(groups).filter(
+            ([, categorySpecs]) => Object.keys(categorySpecs).length > 0,
+        ),
+    );
+};
+
+const formatSpecificationKey = (key) => {
+    return key
+        .replace(/([A-Z])/g, " $1")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (l) => l.toUpperCase())
+        .trim();
+};
+
+const renderSpecificationValue = (value) => {
+    if (typeof value === "boolean") {
+        return value ? (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                Yes
+            </span>
+        ) : (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                No
+            </span>
+        );
+    }
+
+    if (Array.isArray(value)) {
+        return (
+            <div className="flex flex-wrap gap-1">
+                {value.map((item, index) => (
+                    <span
+                        key={index}
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                    >
+                        {String(item)}
+                    </span>
+                ))}
+            </div>
+        );
+    }
+
+    if (typeof value === "string" && value.includes("http")) {
+        return (
+            <a
+                href={value}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 underline text-sm"
+            >
+                View Document
+            </a>
+        );
+    }
+
+    return <span className="text-sm sm:text-base">{String(value)}</span>;
+};
 
 const QuoteViewDetails = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { id } = useParams();
-    const { isAuthenticated } = useSelector((state) => state.auth);
-    const { cartLoading } = useSelector((state) => state.cart);
+    const { isAuthenticated, user } = useSelector((state) => state.auth);
     const { loading: quotationLoading } = useSelector(
         (state) => state.quotation,
     );
@@ -34,12 +156,34 @@ const QuoteViewDetails = () => {
     const [product, setProduct] = useState(location.state?.product || null);
     const [loading, setLoading] = useState(!location.state?.product);
     const [error, setError] = useState(null);
-    const [addingToCart, setAddingToCart] = useState(false);
+    const [ setAddingToCart] = useState(false);
     const [addingToQuotation, setAddingToQuotation] = useState(false);
     const [selectedImage, setSelectedImage] = useState(0);
     const [quantity, setQuantity] = useState(1);
+    const [isWishlisted, setIsWishlisted] = useState(false);
     const [showZoomModal, setShowZoomModal] = useState(false);
+    const [activeTab, setActiveTab] = useState("description");
     const { success, error: showError } = useToast();
+
+    const [reviews, setReviews] = useState([]);
+    const [ratingSummary, setRatingSummary] = useState({
+        average_rating: 0,
+        total_reviews: 0,
+        rating_distribution: {},
+    });
+    const [reviewsLoading, setReviewsLoading] = useState(false);
+    const [showReviewForm, setShowReviewForm] = useState(false);
+    const [editingReview, setEditingReview] = useState(null);
+    const [reviewsFilters, setReviewsFilters] = useState({
+        rating: "",
+        sort: "newest",
+        page: 1,
+        per_page: 10,
+    });
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
     useEffect(() => {
         const fetchProductDetails = async () => {
@@ -63,33 +207,49 @@ const QuoteViewDetails = () => {
         fetchProductDetails();
     }, [id, location.state]);
 
-    const handleAddToCart = async () => {
-        if (!isAuthenticated) {
-            dispatch(openLoginModal());
-            return;
+    useEffect(() => {
+        if (product) {
+            fetchRatingSummary();
+            fetchReviews();
         }
+    }, [product, reviewsFilters]);
 
-        if (product.availability === 0) {
-            showError("This product is out of stock", "Out of Stock");
-            return;
-        }
-
-        setAddingToCart(true);
+    const fetchRatingSummary = async () => {
         try {
-            await dispatch(
-                addToCart({
-                    product_id: product.id,
-                    quantity: quantity,
-                }),
-            ).unwrap();
-            success("Product added to cart successfully!");
+            const response = await fetch(
+                `http://127.0.0.1:8000/api/products/${product.id}/rating-summary`,
+            );
+            if (response.ok) {
+                const summary = await response.json();
+                setRatingSummary(summary);
+            }
         } catch (error) {
-            showError(error || "Failed to add product to cart");
-        } finally {
-            setAddingToCart(false);
+            console.error("Failed to fetch rating summary:", error);
         }
     };
 
+    const fetchReviews = async () => {
+        setReviewsLoading(true);
+        try {
+            const params = new URLSearchParams();
+            Object.entries(reviewsFilters).forEach(([key, value]) => {
+                if (value) params.append(key, value);
+            });
+
+            const response = await fetch(
+                `http://127.0.0.1:8000/api/products/${product.id}/reviews?${params}`,
+            );
+            if (response.ok) {
+                const data = await response.json();
+                setReviews(data.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch reviews:", error);
+            showError("Failed to load reviews");
+        } finally {
+            setReviewsLoading(false);
+        }
+    };
     const handleAddToQuotation = async () => {
         if (!isAuthenticated) {
             dispatch(openLoginModal());
@@ -119,6 +279,14 @@ const QuoteViewDetails = () => {
         }
     };
 
+    const handleWishlist = () => {
+        if (!isAuthenticated) {
+            dispatch(openLoginModal());
+            return;
+        }
+        setIsWishlisted(!isWishlisted);
+    };
+
     const handleShare = async () => {
         if (navigator.share) {
             try {
@@ -137,6 +305,50 @@ const QuoteViewDetails = () => {
         }
     };
 
+    const handleReviewSuccess = (result) => {
+        setShowReviewForm(false);
+        setEditingReview(null);
+        setRatingSummary((prev) => ({
+            ...prev,
+            average_rating: result.summary.average_rating,
+            total_reviews: result.summary.total_reviews,
+        }));
+        fetchReviews();
+    };
+
+    const handleEditReview = (review) => {
+        setEditingReview(review);
+        setShowReviewForm(true);
+    };
+
+    const handleDeleteReview = async (review) => {
+        if (!window.confirm("Are you sure you want to delete this review?")) {
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `http://127.0.0.1:8000/api/products/${product.id}/reviews/${review.id}`,
+                {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                },
+            );
+
+            if (response.ok) {
+                success("Review deleted successfully");
+                fetchRatingSummary();
+                fetchReviews();
+            } else {
+                throw new Error("Failed to delete review");
+            }
+        } catch (error) {
+            showError(error.message);
+        }
+    };
+
     const getProductImages = () => {
         if (product.images) {
             try {
@@ -148,7 +360,29 @@ const QuoteViewDetails = () => {
         return [product.image || "/images/placeholder-product.png"];
     };
 
+    const parseSpecification = () => {
+        if (!product.specification) return null;
+        try {
+            if (typeof product.specification === "string") {
+                return JSON.parse(product.specification);
+            }
+            return product.specification;
+        } catch {
+            return { Specification: product.specification };
+        }
+    };
+
+    const getTags = () => {
+        if (!product.tags) return [];
+        return product.tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter((tag) => tag);
+    };
+
     const productImages = getProductImages();
+    const specifications = parseSpecification();
+    const tags = getTags();
 
     const currentPrice = parseFloat(
         product?.buy_now_price || product?.price || 0,
@@ -161,6 +395,7 @@ const QuoteViewDetails = () => {
         originalPrice > currentPrice
             ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
             : 0;
+    const savings = originalPrice - currentPrice;
 
     if (loading) {
         return (
@@ -186,7 +421,7 @@ const QuoteViewDetails = () => {
                     <p className="text-gray-600 mb-6">
                         {error
                             ? error
-                            : "We couldn't find the product you're looking for."}
+                            : "We couldn't find the product you're looking for. It might be unavailable or removed."}
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <button
@@ -268,13 +503,23 @@ const QuoteViewDetails = () => {
                                 </div>
                             )}
                         </div>
+
                         <div className="space-y-6">
                             <div className="space-y-3">
                                 <div className="flex items-start justify-between">
                                     <div>
+                                        <div className="text-sm text-gray-500 mb-1">
+                                            {product.category?.name ||
+                                                "Electronics"}
+                                        </div>
                                         <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
                                             {product.name}
                                         </h1>
+                                        {product.hedding && (
+                                            <p className="text-lg text-gray-700 mt-1 font-medium">
+                                                {product.hedding}
+                                            </p>
+                                        )}
                                         {product.model && (
                                             <p className="text-gray-600 mt-1">
                                                 Model: {product.model}
@@ -291,6 +536,23 @@ const QuoteViewDetails = () => {
                                 </div>
 
                                 <div className="flex items-center gap-4 flex-wrap">
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex items-center bg-green-100 text-green-800 px-2 py-1 rounded-lg text-sm font-semibold">
+                                            <span>
+                                                {ratingSummary.average_rating.toFixed(
+                                                    1,
+                                                )}
+                                            </span>
+                                            <Star
+                                                size={14}
+                                                className="ml-1 fill-current"
+                                            />
+                                        </div>
+                                        <span className="text-gray-600 text-sm">
+                                            ({ratingSummary.total_reviews}{" "}
+                                            reviews)
+                                        </span>
+                                    </div>
                                     <div
                                         className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                                             product.availability > 0
@@ -313,24 +575,36 @@ const QuoteViewDetails = () => {
                                 </div>
                             </div>
 
-                            {/* Price Section */}
                             <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-5 border border-green-100">
                                 <div className="flex items-baseline gap-3 mb-1">
                                     <span className="text-3xl font-bold text-green-600">
-                                        Rs. {currentPrice.toLocaleString()}
+                                        Rs. {currentPrice.toLocaleString()}/=
                                     </span>
-                                    {discountPercent > 0 && (
-                                        <>
-                                            <span className="text-lg text-gray-500 line-through">
-                                                Rs.{" "}
-                                                {originalPrice.toLocaleString()}
-                                            </span>
-                                            <span className="bg-red-500 text-white text-sm font-bold px-2 py-1 rounded-full">
-                                                {discountPercent}% OFF
-                                            </span>
-                                        </>
-                                    )}
+                                    {product.price &&
+                                        product.buy_now_price &&
+                                        product.price >
+                                        product.buy_now_price && (
+                                            <>
+                                                <span className="text-lg text-gray-500 line-through">
+                                                    Rs.{" "}
+                                                    {originalPrice.toLocaleString()}
+                                                </span>
+                                                <span className="bg-red-500 text-white text-sm font-bold px-2 py-1 rounded-full">
+                                                    {discountPercent}% OFF
+                                                </span>
+                                            </>
+                                        )}
                                 </div>
+                                {savings > 0 && (
+                                    <p className="text-green-600 font-medium">
+                                        You save Rs. {savings.toLocaleString()}
+                                    </p>
+                                )}
+                                {product.price && !product.buy_now_price && (
+                                    <p className="text-gray-600 text-sm">
+                                        Regular price
+                                    </p>
+                                )}
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
@@ -366,6 +640,19 @@ const QuoteViewDetails = () => {
                                 </div>
                             </div>
 
+                            {tags.length > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                    {tags.map((tag, index) => (
+                                        <span
+                                            key={index}
+                                            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                                        >
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+
                             <div className="space-y-4 pt-4 border-t border-gray-200">
                                 <div className="flex items-center gap-4">
                                     <span className="font-medium text-gray-900 min-w-20">
@@ -378,10 +665,11 @@ const QuoteViewDetails = () => {
                                                     Math.max(1, quantity - 1),
                                                 )
                                             }
-                                            className="px-4 py-2 text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
+                                            className="px-4 py-2 text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             disabled={
                                                 quantity <= 1 ||
-                                                product.availability === 0
+                                                product.availability === 0 ||
+                                                addingToQuotation
                                             }
                                         >
                                             -
@@ -398,19 +686,25 @@ const QuoteViewDetails = () => {
                                                     ),
                                                 )
                                             }
-                                            className="px-4 py-2 text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
+                                            className="px-4 py-2 text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             disabled={
                                                 quantity >=
-                                                    product.availability ||
-                                                product.availability === 0
+                                                product.availability ||
+                                                product.availability === 0 ||
+                                                addingToQuotation
                                             }
                                         >
                                             +
                                         </button>
                                     </div>
+                                    {product.availability > 0 && (
+                                        <span className="text-sm text-gray-500">
+                                            {product.availability} available
+                                        </span>
+                                    )}
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="flex gap-3">
                                     <button
                                         onClick={handleAddToQuotation}
                                         disabled={
@@ -418,7 +712,7 @@ const QuoteViewDetails = () => {
                                             addingToQuotation ||
                                             quotationLoading
                                         }
-                                        className="flex items-center justify-center gap-2 py-3 px-4 bg-[#e3251b] text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium disabled:opacity-60 shadow-lg"
+                                        className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-[#e3251b] text-white rounded-lg hover:bg-[#c21e15] active:bg-[#a11811] transition-colors font-medium text-base disabled:opacity-60 disabled:cursor-not-allowed shadow-lg"
                                     >
                                         {addingToQuotation ? (
                                             <>
@@ -432,18 +726,328 @@ const QuoteViewDetails = () => {
                                             </>
                                         )}
                                     </button>
+                                    <button
+                                        onClick={handleWishlist}
+                                        className="w-12 flex items-center justify-center rounded-lg border-2 border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors disabled:opacity-60"
+                                        disabled={addingToQuotation}
+                                        aria-label={
+                                            isWishlisted
+                                                ? "Remove from wishlist"
+                                                : "Add to wishlist"
+                                        }
+                                        title={
+                                            isWishlisted
+                                                ? "Remove from wishlist"
+                                                : "Add to wishlist"
+                                        }
+                                    >
+                                        <Heart
+                                            size={20}
+                                            className={
+                                                isWishlisted
+                                                    ? "fill-red-500 text-red-500"
+                                                    : "text-gray-600"
+                                            }
+                                        />
+                                    </button>
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
-                            <div className="pt-4 border-t border-gray-200">
-                                <h3 className="font-semibold text-gray-900 mb-2">
-                                    Description
-                                </h3>
-                                <p className="text-gray-700 leading-relaxed">
-                                    {product.description ||
-                                        "No description available."}
-                                </p>
+                    <div className="border-t border-gray-200">
+                        <div className="px-6 lg:px-8">
+                            <div className="flex overflow-x-auto gap-8 border-b border-gray-200">
+                                {[
+                                    { id: "description", label: "Description" },
+                                    {
+                                        id: "specifications",
+                                        label: "Specifications",
+                                    },
+                                    {
+                                        id: "reviews",
+                                        label: `Reviews (${ratingSummary.total_reviews})`,
+                                    },
+                                ].map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`py-4 px-1 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
+                                            activeTab === tab.id
+                                                ? "border-green-600 text-green-600"
+                                                : "border-transparent text-gray-500 hover:text-gray-700"
+                                        }`}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                ))}
                             </div>
+                        </div>
+
+                        <div className="p-6 lg:p-8">
+                            {activeTab === "description" && (
+                                <div className="space-y-6">
+                                    <h3 className="text-xl font-semibold text-gray-900">
+                                        Product Description
+                                    </h3>
+                                    <p className="text-gray-700 leading-relaxed">
+                                        {product.description ||
+                                            "This high-quality product is designed to deliver exceptional performance and reliability. Crafted with precision and attention to detail, it offers outstanding value and meets the highest standards of quality and durability."}
+                                    </p>
+                                </div>
+                            )}
+
+                            {activeTab === "specifications" && (
+                                <div className="space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-xl font-bold text-gray-900">
+                                            Product Specifications
+                                        </h3>
+                                        <div className="text-xs text-gray-500">
+                                            {specifications
+                                                ? `${Object.keys(specifications).length} specifications`
+                                                : "No specifications"}
+                                        </div>
+                                    </div>
+
+                                    {product.specification_pdf_id && (
+                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-blue-100 rounded-lg">
+                                                        <svg
+                                                            className="w-6 h-6 text-blue-600"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                            />
+                                                        </svg>
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-semibold text-blue-900">
+                                                            Product
+                                                            Specification PDF
+                                                        </h4>
+                                                        <p className="text-blue-700 text-sm">
+                                                            Download detailed
+                                                            technical
+                                                            specifications
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <a
+                                                    href={
+                                                        product.specification_pdf_id
+                                                    }
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                                                >
+                                                    <svg
+                                                        className="w-4 h-4"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                        />
+                                                    </svg>
+                                                    View PDF
+                                                </a>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {specifications ? (
+                                        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+                                            {Object.entries(
+                                                groupSpecifications(
+                                                    specifications,
+                                                ),
+                                            ).map(([category, specs]) => (
+                                                <div
+                                                    key={category}
+                                                    className="border-b border-gray-100 last:border-b-0"
+                                                >
+                                                    <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
+                                                        <h4 className="font-semibold text-gray-900 text-lg capitalize">
+                                                            {category
+                                                                .replace(
+                                                                    /([A-Z])/g,
+                                                                    " $1",
+                                                                )
+                                                                .trim()}
+                                                        </h4>
+                                                    </div>
+
+                                                    <div className="divide-y divide-gray-100">
+                                                        {Object.entries(
+                                                            specs,
+                                                        ).map(
+                                                            ([key, value]) => (
+                                                                <div
+                                                                    key={key}
+                                                                    className="flex flex-col sm:flex-row hover:bg-gray-50 transition-colors duration-150"
+                                                                >
+                                                                    <div className="w-full sm:w-1/3 px-6 py-4 font-medium text-gray-700 border-r-0 sm:border-r border-gray-200 bg-white sm:bg-gray-50">
+                                                                        <span className="text-xs sm:text-base">
+                                                                            {formatSpecificationKey(
+                                                                                key,
+                                                                            )}
+                                                                        </span>
+                                                                    </div>
+                                                                    <pre className="w-full sm:w-2/3 px-6 py-4 text-gray-800">
+                                                                        {renderSpecificationValue(
+                                                                            value,
+                                                                        )}
+                                                                    </pre>
+                                                                </div>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+                                            <div className="text-gray-400 mb-3">
+                                                <svg
+                                                    className="w-12 h-12 mx-auto"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={1}
+                                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                    />
+                                                </svg>
+                                            </div>
+                                            <p className="text-gray-500 text-lg font-medium">
+                                                No specifications available
+                                            </p>
+                                            <p className="text-gray-400 text-sm mt-1">
+                                                Specifications for this product
+                                                will be added soon
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {activeTab === "reviews" && (
+                                <div className="space-y-8">
+                                    <RatingSummary
+                                        averageRating={
+                                            ratingSummary.average_rating
+                                        }
+                                        totalReviews={
+                                            ratingSummary.total_reviews
+                                        }
+                                        ratingDistribution={
+                                            ratingSummary.rating_distribution
+                                        }
+                                    />
+
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                        <div className="flex items-center gap-4">
+                                            <select
+                                                value={reviewsFilters.rating}
+                                                onChange={(e) =>
+                                                    setReviewsFilters(
+                                                        (prev) => ({
+                                                            ...prev,
+                                                            rating: e.target
+                                                                .value,
+                                                            page: 1,
+                                                        }),
+                                                    )
+                                                }
+                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                                            >
+                                                <option value="">
+                                                    All Ratings
+                                                </option>
+                                                <option value="5">
+                                                    5 Stars
+                                                </option>
+                                                <option value="4">
+                                                    4 Stars
+                                                </option>
+                                                <option value="3">
+                                                    3 Stars
+                                                </option>
+                                                <option value="2">
+                                                    2 Stars
+                                                </option>
+                                                <option value="1">
+                                                    1 Star
+                                                </option>
+                                            </select>
+
+                                            <select
+                                                value={reviewsFilters.sort}
+                                                onChange={(e) =>
+                                                    setReviewsFilters(
+                                                        (prev) => ({
+                                                            ...prev,
+                                                            sort: e.target
+                                                                .value,
+                                                            page: 1,
+                                                        }),
+                                                    )
+                                                }
+                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                                            >
+                                                <option value="newest">
+                                                    Newest First
+                                                </option>
+                                                <option value="oldest">
+                                                    Oldest First
+                                                </option>
+                                                <option value="highest">
+                                                    Highest Rated
+                                                </option>
+                                                <option value="lowest">
+                                                    Lowest Rated
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        {isAuthenticated && (
+                                            <button
+                                                onClick={() =>
+                                                    setShowReviewForm(true)
+                                                }
+                                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
+                                            >
+                                                <FileText size={16} />
+                                                Write a Review
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <ReviewsList
+                                        reviews={reviews}
+                                        currentUserId={user?.id}
+                                        onEdit={handleEditReview}
+                                        onDelete={handleDeleteReview}
+                                        loading={reviewsLoading}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -520,6 +1124,18 @@ const QuoteViewDetails = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showReviewForm && (
+                <ReviewForm
+                    product={product}
+                    existingReview={editingReview}
+                    onSuccess={handleReviewSuccess}
+                    onCancel={() => {
+                        setShowReviewForm(false);
+                        setEditingReview(null);
+                    }}
+                />
             )}
         </div>
     );

@@ -152,7 +152,7 @@ const ProductCard = ({ product }) => {
                     className="text-sm font-semibold mb-3 line-clamp-2 leading-tight flex-1"
                     style={{ color: colors.text }}
                 >
-                    {product.name} - {product.model}
+                    {product.name} - {product.category_2} {product.category_3}
                 </h3>
 
                 <div className="flex items-center gap-2 mb-3">
