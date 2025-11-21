@@ -568,6 +568,12 @@ function OrderConfirmation() {
                     >
                         Continue Shopping
                     </button>
+                    <button
+                        onClick={() => (window.location.href = "/profile")}
+                        className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium"
+                    >
+                        View My Orders
+                    </button>
                 </div>
             </div>
         </div>
