@@ -160,7 +160,7 @@ function PersonalDetails() {
                 <div className="lg:col-span-1">
                     <div className="bg-gray-50 rounded-xl p-6 text-center">
                         <div className="relative inline-block">
-                            <div className="w-32 h-32 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white text-4xl font-bold mx-auto mb-4">
+                            <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center text-white text-4xl font-bold mx-auto mb-4">
                                 {user?.name?.charAt(0).toUpperCase() || "U"}
                             </div>
                         </div>
