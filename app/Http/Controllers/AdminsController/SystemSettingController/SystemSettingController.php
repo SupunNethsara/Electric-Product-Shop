@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\AdminsController\SystemSettingController;
 
 use App\Http\Controllers\Controller;
@@ -35,7 +34,11 @@ class SystemSettingController extends Controller
             'address' => 'nullable|string',
             'siteDescription' => 'nullable|string',
             'itemsPerPage' => 'required|integer|min:1|max:100',
-            'logo' => 'nullable|mimes:png|max:2048'
+            'logo' => 'nullable|mimes:png|max:2048',
+            'googleMapsEmbed' => 'nullable|string',
+            'contactEmail' => 'nullable|email|max:255',
+            'businessHours' => 'nullable|string',
+            'socialLinks' => 'nullable|json'
         ]);
 
         $updateData = [
@@ -45,7 +48,18 @@ class SystemSettingController extends Controller
             'address' => $validated['address'] ?? null,
             'site_description' => $validated['siteDescription'] ?? null,
             'items_per_page' => $validated['itemsPerPage'],
+            'google_maps_embed' => $validated['googleMapsEmbed'] ?? null,
+            'contact_email' => $validated['contactEmail'] ?? null,
+            'business_hours' => $validated['businessHours'] ?? null,
         ];
+
+        // Handle social links
+        if ($request->has('socialLinks')) {
+            $socialLinks = json_decode($request->input('socialLinks'), true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $updateData['social_links'] = $socialLinks;
+            }
+        }
 
         $shouldRemoveLogo = $request->has('remove_logo') && $request->input('remove_logo') === 'true';
 

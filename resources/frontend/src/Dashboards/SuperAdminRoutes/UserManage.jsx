@@ -61,7 +61,6 @@ function UserManage() {
         fetchUsers();
     }, []);
 
-    // Filter and sort users
     const filteredUsers = users.filter(user => {
         const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -225,7 +224,6 @@ function UserManage() {
 
     return (
         <div className="min-h-screen bg-gray-50/30 p-6">
-            {/* Header */}
             <div className="mb-8">
                 <div className="flex items-center justify-between">
                     <div>
@@ -239,7 +237,6 @@ function UserManage() {
                 </div>
             </div>
 
-            {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {stats.map((stat, index) => (
                     <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -261,7 +258,6 @@ function UserManage() {
                 ))}
             </div>
 
-            {/* Filters and Search */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
                 <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
                     <div className="flex-1 w-full lg:max-w-md">
@@ -312,7 +308,6 @@ function UserManage() {
                 </div>
             </div>
 
-            {/* Users Table */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200">
                     <h2 className="text-lg font-semibold text-gray-900">Users ({filteredUsers.length})</h2>
@@ -427,7 +422,6 @@ function UserManage() {
                 )}
             </div>
 
-            {/* User Detail Modal */}
             {isModalOpen && selectedUser && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -444,7 +438,6 @@ function UserManage() {
                         </div>
 
                         <div className="p-6 space-y-6">
-                            {/* User Header */}
                             <div className="flex items-center gap-4">
                                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
                                     <span className="text-white font-medium text-lg">
@@ -460,7 +453,6 @@ function UserManage() {
                                 </div>
                             </div>
 
-                            {/* Basic Info Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-4">
                                     <div>
@@ -493,7 +485,6 @@ function UserManage() {
                                 </div>
                             </div>
 
-                            {/* Profile Information */}
                             {selectedUser.profile && (
                                 <div className="border-t pt-6">
                                     <h4 className="text-lg font-semibold text-gray-900 mb-4">Profile Information</h4>

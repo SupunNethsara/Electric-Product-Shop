@@ -1,21 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
-const ReviewModal = ({ product, onClose, onSubmit, submitting, showError, success }) => {
+const ReviewModal = ({
+    product,
+    onClose,
+    onSubmit,
+    submitting,
+    showError,
+    success,
+}) => {
     const [rating, setRating] = useState(5);
-    const [title, setTitle] = useState('');
-    const [comment, setComment] = useState('');
+    const [title, setTitle] = useState("");
+    const [comment, setComment] = useState("");
 
     const handleSubmit = (e) => {
         e.preventDefault();
         if (rating === 0) {
-            showError('Please select a rating', 'Rating Required');
+            showError("Please select a rating", "Rating Required");
             return;
         }
 
         onSubmit({
             rating,
             title: title || null,
-            comment: comment || null
+            comment: comment || null,
         });
     };
 
@@ -23,14 +30,26 @@ const ReviewModal = ({ product, onClose, onSubmit, submitting, showError, succes
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-900">Write a Review</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                        Write a Review
+                    </h2>
                     <button
                         onClick={onClose}
                         className="text-gray-400 hover:text-gray-600 transition-colors"
                         disabled={submitting}
                     >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                            />
                         </svg>
                     </button>
                 </div>
@@ -42,12 +61,17 @@ const ReviewModal = ({ product, onClose, onSubmit, submitting, showError, succes
                             alt={product?.name}
                             className="w-12 h-12 object-cover rounded"
                             onError={(e) => {
-                                e.target.src = 'https://via.placeholder.com/80x80?text=No+Image';
+                                e.target.src =
+                                    "https://via.placeholder.com/80x80?text=No+Image";
                             }}
                         />
                         <div>
-                            <h3 className="font-medium text-gray-900">{product?.name}</h3>
-                            <p className="text-sm text-gray-500">Model: {product?.model}</p>
+                            <h3 className="font-medium text-gray-900">
+                                {product?.name}
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                                Model: {product?.model}
+                            </p>
                         </div>
                     </div>
 
@@ -65,15 +89,20 @@ const ReviewModal = ({ product, onClose, onSubmit, submitting, showError, succes
                                         className="text-2xl focus:outline-none transition-transform hover:scale-110"
                                         disabled={submitting}
                                     >
-                                        {star <= rating ? '⭐' : '☆'}
+                                        {star <= rating ? "⭐" : "☆"}
                                     </button>
                                 ))}
                             </div>
-                            <p className="text-sm text-gray-500 mt-1">{rating} out of 5 stars</p>
+                            <p className="text-sm text-gray-500 mt-1">
+                                {rating} out of 5 stars
+                            </p>
                         </div>
 
                         <div>
-                            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label
+                                htmlFor="title"
+                                className="block text-sm font-medium text-gray-700 mb-2"
+                            >
                                 Review Title (Optional)
                             </label>
                             <input
@@ -89,7 +118,10 @@ const ReviewModal = ({ product, onClose, onSubmit, submitting, showError, succes
                         </div>
 
                         <div>
-                            <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label
+                                htmlFor="comment"
+                                className="block text-sm font-medium text-gray-700 mb-2"
+                            >
                                 Your Review (Optional)
                             </label>
                             <textarea
@@ -127,7 +159,7 @@ const ReviewModal = ({ product, onClose, onSubmit, submitting, showError, succes
                                         Submitting...
                                     </>
                                 ) : (
-                                    'Submit Review'
+                                    "Submit Review"
                                 )}
                             </button>
                         </div>

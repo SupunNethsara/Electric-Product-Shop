@@ -46,8 +46,7 @@ const ProductCard = ({ product }) => {
             if (token) {
                 headers["Authorization"] = `Bearer ${token}`;
             }
-
-            const response = await fetch(
+            await fetch(
                 `http://127.0.0.1:8000/api/products/${product.id}/track-view`,
                 {
                     method: "POST",
@@ -55,14 +54,6 @@ const ProductCard = ({ product }) => {
                     credentials: "include",
                 },
             );
-
-            const data = await response.json();
-
-            if (response.ok) {
-                console.log("✅ View tracked successfully");
-            } else {
-                console.error("Failed to track view:", data);
-            }
         } catch (error) {
             console.error("Network error tracking view:", error);
         }
@@ -114,8 +105,6 @@ const ProductCard = ({ product }) => {
         fetchViewStats();
     }, [product.id]);
 
-    const originalPrice = parseFloat(product.price) * 1.3;
-
     const isOutOfStock =
         product.status === "disabled" || product.availability === 0;
 
@@ -163,7 +152,7 @@ const ProductCard = ({ product }) => {
                     className="text-sm font-semibold mb-3 line-clamp-2 leading-tight flex-1"
                     style={{ color: colors.text }}
                 >
-                    {product.name} - {product.model}
+                    {product.name} - {product.category_2} {product.category_3}
                 </h3>
 
                 <div className="flex items-center gap-2 mb-3">

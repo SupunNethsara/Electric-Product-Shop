@@ -7,8 +7,6 @@ export const ProductDetailsModal = ({ product, onClose, onDelete }) => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleting, setDeleting] = useState(false);
 
-    console.log(product);
-
     const parseImages = (imagesData) => {
         if (!imagesData) return [];
         try {
@@ -69,17 +67,14 @@ export const ProductDetailsModal = ({ product, onClose, onDelete }) => {
         try {
             const { jsPDF } = await import('jspdf');
 
-            // Create PDF in A4 format
             const doc = new jsPDF('p', 'mm', 'a4');
             const pageWidth = doc.internal.pageSize.getWidth();
             const margin = 15;
             let yPosition = margin;
 
-            // Add company header
-            doc.setFillColor(59, 130, 246); // Blue-500
+            doc.setFillColor(59, 130, 246);
             doc.rect(0, 0, pageWidth, 25, 'F');
 
-            // Company logo and name
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(16);
             doc.setFont('helvetica', 'bold');
@@ -98,7 +93,6 @@ export const ProductDetailsModal = ({ product, onClose, onDelete }) => {
 
             yPosition = 35;
 
-            // Product Title Section
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(18);
             doc.setFont('helvetica', 'bold');
@@ -106,14 +100,12 @@ export const ProductDetailsModal = ({ product, onClose, onDelete }) => {
             doc.text(productNameLines, margin, yPosition);
             yPosition += productNameLines.length * 6 + 5;
 
-            // Product Code and Model
             doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
             doc.text(`Item Code: ${product.item_code}`, margin, yPosition);
             doc.text(`Model: ${product.model || 'N/A'}`, pageWidth / 2, yPosition);
             yPosition += 8;
 
-            // Status and Availability
             const statusColor = product.status === 'active' ? [34, 197, 94] : [156, 163, 175];
             const stockColor = product.availability > 0 ? [34, 197, 94] : [239, 68, 68];
 
@@ -126,8 +118,7 @@ export const ProductDetailsModal = ({ product, onClose, onDelete }) => {
             doc.setTextColor(0, 0, 0);
             yPosition += 10;
 
-            // Pricing Section
-            doc.setFillColor(240, 253, 244); // Light green background
+            doc.setFillColor(240, 253, 244);
             doc.roundedRect(margin, yPosition, pageWidth - (2 * margin), 25, 3, 3, 'F');
 
             doc.setFontSize(14);
@@ -139,15 +130,14 @@ export const ProductDetailsModal = ({ product, onClose, onDelete }) => {
             doc.text(`Regular Price:`, margin + 5, yPosition + 16);
             doc.text(`Rs. ${parseFloat(product.price).toLocaleString()}`, margin + 40, yPosition + 16);
 
-            doc.setTextColor(22, 163, 74); // Green color for buy now price
+            doc.setTextColor(22, 163, 74);
             doc.setFont('helvetica', 'bold');
             doc.text(`Buy Now Price:`, margin + 5, yPosition + 22);
             doc.text(`Rs. ${parseFloat(product.buy_now_price).toLocaleString()}`, margin + 45, yPosition + 22);
 
-            // Calculate and display discount
             const discount = product.price > 0 ? (((product.price - product.buy_now_price) / product.price) * 100).toFixed(1) : 0;
             if (discount > 0) {
-                doc.setTextColor(239, 68, 68); // Red color for discount
+                doc.setTextColor(239, 68, 68);
                 doc.text(`You Save: ${discount}%`, pageWidth - margin - 5, yPosition + 22, { align: 'right' });
             }
 
@@ -243,7 +233,6 @@ export const ProductDetailsModal = ({ product, onClose, onDelete }) => {
                 yPosition = margin;
             }
 
-            // Tags Section
             if (product.tags && product.tags.trim()) {
                 doc.setFontSize(12);
                 doc.setFont('helvetica', 'bold');
@@ -288,30 +277,25 @@ export const ProductDetailsModal = ({ product, onClose, onDelete }) => {
                 yPosition += 25;
             }
 
-            // Footer on all pages
             const pageCount = doc.internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
 
-                // Page number
                 doc.setFontSize(8);
                 doc.setTextColor(100, 100, 100);
                 doc.text(`Page ${i} of ${pageCount}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, {
                     align: 'center'
                 });
 
-                // Confidential footer
                 doc.text('CONFIDENTIAL - For Internal Use Only', margin, doc.internal.pageSize.getHeight() - 10);
                 doc.text(`Product ID: ${product.id}`, pageWidth - margin, doc.internal.pageSize.getHeight() - 10, {
                     align: 'right'
                 });
 
-                // Add border to entire page
                 doc.setDrawColor(200, 200, 200);
                 doc.rect(5, 5, pageWidth - 10, doc.internal.pageSize.getHeight() - 10);
             }
 
-            // Save the PDF
             const fileName = `${product.item_code}_${product.name.replace(/[^a-zA-Z0-9]/g, '_')}_product_sheet.pdf`;
             doc.save(fileName);
 
@@ -583,7 +567,6 @@ export const ProductDetailsModal = ({ product, onClose, onDelete }) => {
                 </div>
             </div>
 
-            {/* Delete Confirmation Modal */}
             {showDeleteConfirm && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] animate-in fade-in duration-200">
                     <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl">

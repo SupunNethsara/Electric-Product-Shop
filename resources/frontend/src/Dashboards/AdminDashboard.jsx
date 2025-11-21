@@ -3,7 +3,6 @@ import Statics from "./AdminRoutes/Statics.jsx";
 import { Routes, Route } from "react-router-dom";
 import Products from "./AdminRoutes/Products.jsx";
 import Orders from "./AdminRoutes/Orders.jsx";
-import Quotations from "./AdminRoutes/Quotations.jsx";
 import UserManage from "./AdminRoutes/UserManage.jsx";
 import Reports from "./Common/Reports/Reports.jsx";
 import Branding from "./AdminRoutes/Branding.jsx";
@@ -17,7 +16,6 @@ const AdminDashboard = () => {
                 <Route path="/statics" element={<Statics />} />
                 <Route path="/products" element={<Products />} />
                 <Route path="/orders" element={<Orders />} />
-                <Route path="/quotations" element={<Quotations />} />
                 <Route path="/branding" element={<Branding />} />
                 <Route path="/user-manage" element={<UserManage />} />
                 <Route path="reports" element={<Reports />} />

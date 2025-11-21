@@ -1,27 +1,36 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
-import { updateCartItem, removeFromCart, clearError, fetchCartItems } from '../../../Store/slices/cartSlice.js';
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { Trash2, Plus, Minus, ShoppingBag } from "lucide-react";
+import {
+    updateCartItem,
+    removeFromCart,
+    clearError,
+    fetchCartItems,
+} from "../../../Store/slices/cartSlice.js";
 import ConfirmationModal from "../../Common/ConfirmationModal.jsx";
 
 function CartSection() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { items, loading, error, totalItems, totalPrice } = useSelector((state) => state.cart);
+    const { items, loading, error, totalItems, totalPrice } = useSelector(
+        (state) => state.cart,
+    );
     const { isAuthenticated } = useSelector((state) => state.auth);
     const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
     const [selectedItemId, setSelectedItemId] = useState(null);
-    const [selectedItemName, setSelectedItemName] = useState('');
+    const [selectedItemName, setSelectedItemName] = useState("");
 
     const getProductPrice = (product) => {
         return parseFloat(product?.buy_now_price || product?.price || 0);
     };
 
     const hasDiscount = (product) => {
-        return product?.buy_now_price &&
+        return (
+            product?.buy_now_price &&
             product?.price &&
-            parseFloat(product.buy_now_price) < parseFloat(product.price);
+            parseFloat(product.buy_now_price) < parseFloat(product.price)
+        );
     };
 
     const getProductSavings = (product, quantity = 1) => {
@@ -59,12 +68,14 @@ function CartSection() {
         if (newQuantity < 1) return;
 
         try {
-            await dispatch(updateCartItem({
-                id: itemId,
-                quantity: newQuantity
-            })).unwrap();
+            await dispatch(
+                updateCartItem({
+                    id: itemId,
+                    quantity: newQuantity,
+                }),
+            ).unwrap();
         } catch (error) {
-            alert(error || 'Failed to update quantity');
+            alert(error || "Failed to update quantity");
         }
     };
 
@@ -78,19 +89,19 @@ function CartSection() {
         try {
             await dispatch(removeFromCart(selectedItemId)).unwrap();
         } catch (error) {
-            alert(error || 'Failed to remove item');
+            alert(error || "Failed to remove item");
         } finally {
             setSelectedItemId(null);
-            setSelectedItemName('');
+            setSelectedItemName("");
         }
     };
 
     const handleProceedToCheckout = () => {
         if (items.length === 0) {
-            alert('Your cart is empty');
+            alert("Your cart is empty");
             return;
         }
-        navigate('/checkout');
+        navigate("/checkout");
     };
 
     if (loading) {
@@ -105,11 +116,18 @@ function CartSection() {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
-                    <ShoppingBag size={64} className="mx-auto text-gray-400 mb-4" />
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Please Login</h2>
-                    <p className="text-gray-600 mb-6">You need to be logged in to view your cart</p>
+                    <ShoppingBag
+                        size={64}
+                        className="mx-auto text-gray-400 mb-4"
+                    />
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                        Please Login
+                    </h2>
+                    <p className="text-gray-600 mb-6">
+                        You need to be logged in to view your cart
+                    </p>
                     <button
-                        onClick={() => navigate('/')}
+                        onClick={() => navigate("/")}
                         className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
                     >
                         Login Now
@@ -125,11 +143,15 @@ function CartSection() {
                 <div className="container mx-auto px-4 py-2">
                     <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Shopping Cart</h1>
-                            <p className="text-gray-500 text-sm mt-1">{totalItems} items</p>
+                            <h1 className="text-2xl font-bold text-gray-900">
+                                Shopping Cart
+                            </h1>
+                            <p className="text-gray-500 text-sm mt-1">
+                                {totalItems} items
+                            </p>
                         </div>
                         <button
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate("/")}
                             className="text-green-600 hover:text-green-700 text-sm font-medium transition-colors"
                         >
                             Continue Shopping
@@ -138,11 +160,18 @@ function CartSection() {
 
                     {items.length === 0 ? (
                         <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-                            <ShoppingBag size={64} className="mx-auto text-gray-400 mb-4" />
-                            <h2 className="text-xl font-semibold text-gray-900 mb-2">Your cart is empty</h2>
-                            <p className="text-gray-600 mb-6">Add some products to your cart to see them here</p>
+                            <ShoppingBag
+                                size={64}
+                                className="mx-auto text-gray-400 mb-4"
+                            />
+                            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                                Your cart is empty
+                            </h2>
+                            <p className="text-gray-600 mb-6">
+                                Add some products to your cart to see them here
+                            </p>
                             <button
-                                onClick={() => navigate('/shop')}
+                                onClick={() => navigate("/shop")}
                                 className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
                             >
                                 Browse Products
@@ -153,24 +182,45 @@ function CartSection() {
                             <div className="lg:col-span-2">
                                 <div className="bg-white rounded-lg border border-gray-200">
                                     <div className="px-6 py-4 border-b border-gray-200">
-                                        <h2 className="font-semibold text-gray-900">Cart Items</h2>
+                                        <h2 className="font-semibold text-gray-900">
+                                            Cart Items
+                                        </h2>
                                     </div>
 
                                     <div className="divide-y divide-gray-200">
                                         {items.map((item) => {
-                                            const productPrice = getProductPrice(item.product);
-                                            const itemTotal = productPrice * item.quantity;
-                                            const productHasDiscount = hasDiscount(item.product);
-                                            const itemSavings = getProductSavings(item.product, item.quantity);
+                                            const productPrice =
+                                                getProductPrice(item.product);
+                                            const itemTotal =
+                                                productPrice * item.quantity;
+                                            const productHasDiscount =
+                                                hasDiscount(item.product);
+                                            const itemSavings =
+                                                getProductSavings(
+                                                    item.product,
+                                                    item.quantity,
+                                                );
 
                                             return (
-                                                <div key={item.id} className="p-6 hover:bg-gray-50 transition-colors">
+                                                <div
+                                                    key={item.id}
+                                                    className="p-6 hover:bg-gray-50 transition-colors"
+                                                >
                                                     <div className="flex gap-4">
                                                         <div className="flex-shrink-0">
                                                             <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden border">
                                                                 <img
-                                                                    src={item.product.image || '/placeholder-image.jpg'}
-                                                                    alt={item.product.name}
+                                                                    src={
+                                                                        item
+                                                                            .product
+                                                                            .image ||
+                                                                        "/placeholder-image.jpg"
+                                                                    }
+                                                                    alt={
+                                                                        item
+                                                                            .product
+                                                                            .name
+                                                                    }
                                                                     className="w-full h-full object-cover"
                                                                 />
                                                             </div>
@@ -180,37 +230,73 @@ function CartSection() {
                                                             <div className="flex justify-between items-start">
                                                                 <div className="flex-1">
                                                                     <h3 className="font-semibold text-gray-900 text-sm mb-1">
-                                                                        {item.product.name}
+                                                                        {
+                                                                            item
+                                                                                .product
+                                                                                .name
+                                                                        }
                                                                     </h3>
                                                                     <p className="text-gray-500 text-xs mb-1">
-                                                                        {item.product.model}
+                                                                        {
+                                                                            item
+                                                                                .product
+                                                                                .model
+                                                                        }
                                                                     </p>
                                                                     <div className="flex items-center gap-2">
                                                                         {productHasDiscount && (
                                                                             <span className="text-gray-500 text-sm line-through">
-                                                                                Rs. {parseFloat(item.product.price).toLocaleString()}
+                                                                                Rs.{" "}
+                                                                                {parseFloat(
+                                                                                    item
+                                                                                        .product
+                                                                                        .price,
+                                                                                ).toLocaleString()}
                                                                             </span>
                                                                         )}
-                                                                        <p className={`font-semibold ${
-                                                                            productHasDiscount ? 'text-green-600' : 'text-green-600'
-                                                                        }`}>
-                                                                            Rs. {productPrice.toLocaleString()}
+                                                                        <p
+                                                                            className={`font-semibold ${
+                                                                                productHasDiscount
+                                                                                    ? "text-green-600"
+                                                                                    : "text-green-600"
+                                                                            }`}
+                                                                        >
+                                                                            Rs.{" "}
+                                                                            {productPrice.toLocaleString()}
                                                                         </p>
                                                                     </div>
-                                                                    {productHasDiscount && itemSavings > 0 && (
-                                                                        <div className="mt-1">
-                                                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                                                                You save Rs. {itemSavings.toLocaleString()}
-                                                                            </span>
-                                                                        </div>
-                                                                    )}
+                                                                    {productHasDiscount &&
+                                                                        itemSavings >
+                                                                            0 && (
+                                                                            <div className="mt-1">
+                                                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                                                    You
+                                                                                    save
+                                                                                    Rs.{" "}
+                                                                                    {itemSavings.toLocaleString()}
+                                                                                </span>
+                                                                            </div>
+                                                                        )}
                                                                 </div>
                                                                 <button
-                                                                    onClick={() => handleRemoveItem(item.id, item.product.name)}
+                                                                    onClick={() =>
+                                                                        handleRemoveItem(
+                                                                            item.id,
+                                                                            item
+                                                                                .product
+                                                                                .name,
+                                                                        )
+                                                                    }
                                                                     className="text-gray-400 hover:text-red-500 transition-colors p-2 rounded hover:bg-red-50"
-                                                                    disabled={loading}
+                                                                    disabled={
+                                                                        loading
+                                                                    }
                                                                 >
-                                                                    <Trash2 size={18} />
+                                                                    <Trash2
+                                                                        size={
+                                                                            18
+                                                                        }
+                                                                    />
                                                                 </button>
                                                             </div>
 
@@ -218,28 +304,59 @@ function CartSection() {
                                                                 <div className="flex items-center border border-gray-300 rounded">
                                                                     <div className="flex items-center gap-2 mt-3">
                                                                         <button
-                                                                            onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                                                                            onClick={() =>
+                                                                                handleQuantityChange(
+                                                                                    item.id,
+                                                                                    item.quantity -
+                                                                                        1,
+                                                                                )
+                                                                            }
                                                                             className="p-1 text-gray-600 hover:bg-gray-100 rounded"
-                                                                            disabled={item.quantity <= 1}
+                                                                            disabled={
+                                                                                item.quantity <=
+                                                                                1
+                                                                            }
                                                                         >
-                                                                            <Minus size={16} />
+                                                                            <Minus
+                                                                                size={
+                                                                                    16
+                                                                                }
+                                                                            />
                                                                         </button>
-                                                                        <span className="w-8 text-center">{item.quantity}</span>
+                                                                        <span className="w-8 text-center">
+                                                                            {
+                                                                                item.quantity
+                                                                            }
+                                                                        </span>
                                                                         <button
-                                                                            onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                                                                            onClick={() =>
+                                                                                handleQuantityChange(
+                                                                                    item.id,
+                                                                                    item.quantity +
+                                                                                        1,
+                                                                                )
+                                                                            }
                                                                             className="p-1 text-gray-600 hover:bg-gray-100 rounded"
                                                                         >
-                                                                            <Plus size={16} />
+                                                                            <Plus
+                                                                                size={
+                                                                                    16
+                                                                                }
+                                                                            />
                                                                         </button>
                                                                     </div>
                                                                 </div>
                                                                 <div className="text-right">
                                                                     <p className="font-semibold text-gray-900">
-                                                                        Rs. {itemTotal.toLocaleString()}
+                                                                        Rs.{" "}
+                                                                        {itemTotal.toLocaleString()}
                                                                     </p>
-                                                                    {item.quantity > 1 && (
+                                                                    {item.quantity >
+                                                                        1 && (
                                                                         <p className="text-gray-500 text-xs">
-                                                                            Rs. {productPrice.toLocaleString()} each
+                                                                            Rs.{" "}
+                                                                            {productPrice.toLocaleString()}{" "}
+                                                                            each
                                                                         </p>
                                                                     )}
                                                                 </div>
@@ -256,27 +373,40 @@ function CartSection() {
                             <div className="lg:col-span-1">
                                 <div className="bg-white rounded-lg border border-gray-200 sticky top-6">
                                     <div className="px-6 py-4 border-b border-gray-200">
-                                        <h2 className="font-semibold text-gray-900">Order Summary</h2>
+                                        <h2 className="font-semibold text-gray-900">
+                                            Order Summary
+                                        </h2>
                                     </div>
 
                                     <div className="p-6 space-y-4">
                                         <div className="space-y-3 pt-4 border-t border-gray-200">
                                             {totalSavings > 0 && (
                                                 <div className="flex justify-between bg-green-50 p-3 rounded-lg">
-                                                    <span className="text-green-700 font-medium">Total Savings</span>
+                                                    <span className="text-green-700 font-medium">
+                                                        Total Savings
+                                                    </span>
                                                     <span className="text-green-700 font-bold">
-                                                        - Rs. {totalSavings.toLocaleString()}
+                                                        - Rs.{" "}
+                                                        {totalSavings.toLocaleString()}
                                                     </span>
                                                 </div>
                                             )}
 
                                             <div className="flex justify-between text-gray-600">
-                                                <span>Subtotal ({totalItems} items)</span>
-                                                <span>Rs. {totalPrice.toLocaleString()}</span>
+                                                <span>
+                                                    Subtotal ({totalItems}{" "}
+                                                    items)
+                                                </span>
+                                                <span>
+                                                    Rs.{" "}
+                                                    {totalPrice.toLocaleString()}
+                                                </span>
                                             </div>
                                             <div className="flex justify-between text-gray-600">
                                                 <span>Shipping</span>
-                                                <span className="text-green-600">Free</span>
+                                                <span className="text-green-600">
+                                                    Free
+                                                </span>
                                             </div>
                                             <div className="flex justify-between text-gray-600">
                                                 <span>Tax</span>
@@ -285,13 +415,17 @@ function CartSection() {
                                             {discount > 0 && (
                                                 <div className="flex justify-between text-green-600">
                                                     <span>Discount</span>
-                                                    <span>- Rs. {discount.toLocaleString()}</span>
+                                                    <span>
+                                                        - Rs.{" "}
+                                                        {discount.toLocaleString()}
+                                                    </span>
                                                 </div>
                                             )}
                                             <div className="flex justify-between font-bold text-lg text-gray-900 pt-3 border-t border-gray-200">
                                                 <span>Total</span>
                                                 <span>
-                                                    Rs. {grandTotal.toLocaleString()}
+                                                    Rs.{" "}
+                                                    {grandTotal.toLocaleString()}
                                                 </span>
                                             </div>
                                         </div>
@@ -299,7 +433,12 @@ function CartSection() {
                                         {totalSavings > 0 && (
                                             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                                                 <p className="text-green-700 text-sm text-center">
-                                                    🎉 You're saving <strong>Rs. {totalSavings.toLocaleString()}</strong> on this order!
+                                                    🎉 You're saving{" "}
+                                                    <strong>
+                                                        Rs.{" "}
+                                                        {totalSavings.toLocaleString()}
+                                                    </strong>{" "}
+                                                    on this order!
                                                 </p>
                                             </div>
                                         )}

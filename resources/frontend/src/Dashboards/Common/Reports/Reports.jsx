@@ -42,16 +42,20 @@ const Reports = () => {
             const params = new URLSearchParams({
                 start_date: dateRange.start,
                 end_date: dateRange.end,
-                ...(statusFilter !== 'all' && { status: statusFilter })
+                ...(statusFilter !== "all" && { status: statusFilter }),
             });
 
-            const response = await axios.get(`http://127.0.0.1:8000/api/reports/orders?${params}`);
+            const response = await axios.get(
+                `http://127.0.0.1:8000/api/reports/orders?${params}`,
+            );
             if (response.data.success) {
                 const filteredOrders = response.data.orders || [];
                 setOrders(filteredOrders);
 
                 if (filteredOrders.length === 0) {
-                    showError("No orders found for the selected date range and filters");
+                    showError(
+                        "No orders found for the selected date range and filters",
+                    );
                 }
             } else {
                 showError(response.data.message || "Failed to load orders");
@@ -70,10 +74,12 @@ const Reports = () => {
         try {
             const params = new URLSearchParams({
                 start_date: dateRange.start,
-                end_date: dateRange.end
+                end_date: dateRange.end,
             });
 
-            const response = await axios.get(`http://127.0.0.1:8000/api/reports/stats?${params}`);
+            const response = await axios.get(
+                `http://127.0.0.1:8000/api/reports/stats?${params}`,
+            );
             if (response.data.success) {
                 setStats(response.data.stats || {});
             }
@@ -86,15 +92,23 @@ const Reports = () => {
     const fetchMostViewedProducts = async () => {
         setProductsLoading(true);
         try {
-            const response = await axios.get("http://127.0.0.1:8000/api/products/most-viewed");
+            const response = await axios.get(
+                "http://127.0.0.1:8000/api/products/most-viewed",
+            );
             if (response.data.success) {
-                const products = response.data.products !== undefined
-                    ? response.data.products
-                    : (response.data.product ? [response.data.product] : []);
+                const products =
+                    response.data.products !== undefined
+                        ? response.data.products
+                        : response.data.product
+                          ? [response.data.product]
+                          : [];
 
                 setMostViewedProducts(products);
             } else {
-                showError(response.data.message || "Failed to load most viewed products");
+                showError(
+                    response.data.message ||
+                        "Failed to load most viewed products",
+                );
                 setMostViewedProducts([]);
             }
         } catch (error) {
@@ -115,7 +129,7 @@ const Reports = () => {
     };
 
     const handleDateRangeChange = (type, value) => {
-        setDateRange(prev => {
+        setDateRange((prev) => {
             const newDateRange = { ...prev, [type]: value };
 
             if (newDateRange.start && newDateRange.end) {
@@ -142,7 +156,7 @@ const Reports = () => {
             dateRange,
             statusFilter,
             fetchMostViewedProducts,
-            setStatusFilter
+            setStatusFilter,
         };
 
         switch (activeTab) {
@@ -162,10 +176,7 @@ const Reports = () => {
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
-                <ReportHeader
-                    loading={loading}
-                    onRefresh={handleRefresh}
-                />
+                <ReportHeader loading={loading} onRefresh={handleRefresh} />
 
                 <FilterSection
                     dateRange={dateRange}

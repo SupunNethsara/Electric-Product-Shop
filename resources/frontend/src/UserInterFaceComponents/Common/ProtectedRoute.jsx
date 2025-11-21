@@ -1,8 +1,10 @@
-import { useSelector } from 'react-redux';
-import { Navigate, useLocation } from 'react-router-dom';
+import { useSelector } from "react-redux";
+import { Navigate, useLocation } from "react-router-dom";
 
 export const ProtectedRoute = ({ children }) => {
-    const { isAuthenticated, isLoading, appLoaded } = useSelector((state) => state.auth);
+    const { isAuthenticated, isLoading, appLoaded } = useSelector(
+        (state) => state.auth,
+    );
     const location = useLocation();
 
     if (isLoading && !appLoaded) {
@@ -20,7 +22,9 @@ export const ProtectedRoute = ({ children }) => {
 };
 
 export const AdminRoute = ({ children }) => {
-    const { isAuthenticated, role, isLoading, appLoaded } = useSelector((state) => state.auth);
+    const { isAuthenticated, role, isLoading, appLoaded } = useSelector(
+        (state) => state.auth,
+    );
     const location = useLocation();
 
     if (isLoading && !appLoaded) {
@@ -35,7 +39,7 @@ export const AdminRoute = ({ children }) => {
         return <Navigate to="/" state={{ from: location }} replace />;
     }
 
-    if (!['admin', 'super_admin'].includes(role)) {
+    if (!["admin", "super_admin"].includes(role)) {
         return <Navigate to="/unauthorized" replace />;
     }
 
@@ -43,7 +47,9 @@ export const AdminRoute = ({ children }) => {
 };
 
 export const SuperAdminRoute = ({ children }) => {
-    const { isAuthenticated, role, isLoading, appLoaded } = useSelector((state) => state.auth);
+    const { isAuthenticated, role, isLoading, appLoaded } = useSelector(
+        (state) => state.auth,
+    );
     const location = useLocation();
 
     if (isLoading && !appLoaded) {
@@ -58,7 +64,7 @@ export const SuperAdminRoute = ({ children }) => {
         return <Navigate to="/home" state={{ from: location }} replace />;
     }
 
-    if (role !== 'super_admin') {
+    if (role !== "super_admin") {
         return <Navigate to="/unauthorized" replace />;
     }
 

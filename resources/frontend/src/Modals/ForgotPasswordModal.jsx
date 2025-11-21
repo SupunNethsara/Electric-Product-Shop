@@ -1,35 +1,38 @@
-import { useState } from 'react';
-import { X, Mail, Loader2, CheckCircle, ArrowLeft } from 'lucide-react';
+import { useState } from "react";
+import { X, Mail, Loader2, CheckCircle, ArrowLeft } from "lucide-react";
 
 const ForgotPasswordModal = ({ isOpen, onClose, onSwitchToLogin }) => {
-    const [email, setEmail] = useState('');
+    const [email, setEmail] = useState("");
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [error, setError] = useState("");
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        setError('');
+        setError("");
 
         try {
-            const response = await fetch('http://localhost:8000/api/forgot-password', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+            const response = await fetch(
+                "http://localhost:8000/api/forgot-password",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ email }),
                 },
-                body: JSON.stringify({ email }),
-            });
+            );
 
             const data = await response.json();
 
             if (data.status) {
                 setIsSubmitted(true);
             } else {
-                setError(data.message || 'Failed to send reset link');
+                setError(data.message || "Failed to send reset link");
             }
         } catch (err) {
-            setError('Network error. Please try again.');
+            setError("Network error. Please try again.");
         } finally {
             setIsLoading(false);
         }
@@ -49,9 +52,9 @@ const ForgotPasswordModal = ({ isOpen, onClose, onSwitchToLogin }) => {
     };
 
     const resetForm = () => {
-        setEmail('');
+        setEmail("");
         setIsSubmitted(false);
-        setError('');
+        setError("");
         setIsLoading(false);
     };
 
@@ -85,13 +88,14 @@ const ForgotPasswordModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                     )}
                     <div className="text-center">
                         <h2 className="text-2xl font-bold text-white mb-2">
-                            {isSubmitted ? 'Check Your Email' : 'Reset Your Password'}
+                            {isSubmitted
+                                ? "Check Your Email"
+                                : "Reset Your Password"}
                         </h2>
                         <p className="text-blue-100">
                             {isSubmitted
-                                ? 'We sent you a reset link'
-                                : 'Enter your email to reset password'
-                            }
+                                ? "We sent you a reset link"
+                                : "Enter your email to reset password"}
                         </p>
                     </div>
                 </div>
@@ -107,14 +111,18 @@ const ForgotPasswordModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                     {isSubmitted ? (
                         <div className="text-center space-y-4">
                             <div className="flex justify-center">
-                                <CheckCircle size={48} className="text-green-500" />
+                                <CheckCircle
+                                    size={48}
+                                    className="text-green-500"
+                                />
                             </div>
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                                     Check Your Email
                                 </h3>
                                 <p className="text-gray-600">
-                                    We've sent a password reset link to <strong>{email}</strong>
+                                    We've sent a password reset link to{" "}
+                                    <strong>{email}</strong>
                                 </p>
                                 <p className="text-sm text-gray-500 mt-2">
                                     The link will expire in 1 hour.
@@ -141,7 +149,10 @@ const ForgotPasswordModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                         <>
                             <div className="space-y-4">
                                 <div className="relative">
-                                    <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+                                    <label
+                                        htmlFor="email"
+                                        className="block text-sm font-medium text-slate-700 mb-2"
+                                    >
                                         Email Address
                                     </label>
                                     <div className="relative">
@@ -157,7 +168,9 @@ const ForgotPasswordModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                                             className="w-full pl-12 pr-4 py-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-slate-50/50"
                                             placeholder="Enter your email"
                                             value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
+                                            onChange={(e) =>
+                                                setEmail(e.target.value)
+                                            }
                                         />
                                     </div>
                                 </div>
@@ -170,17 +183,20 @@ const ForgotPasswordModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                             >
                                 {isLoading ? (
                                     <div className="flex items-center justify-center gap-2">
-                                        <Loader2 size={20} className="animate-spin" />
+                                        <Loader2
+                                            size={20}
+                                            className="animate-spin"
+                                        />
                                         Sending...
                                     </div>
                                 ) : (
-                                    'Send Reset Link'
+                                    "Send Reset Link"
                                 )}
                             </button>
 
                             <div className="text-center pt-4 border-t border-slate-100">
                                 <p className="text-slate-600">
-                                    Remember your password?{' '}
+                                    Remember your password?{" "}
                                     <button
                                         type="button"
                                         onClick={handleBackToLogin}

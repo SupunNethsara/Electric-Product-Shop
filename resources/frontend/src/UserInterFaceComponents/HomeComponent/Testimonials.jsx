@@ -1,5 +1,5 @@
-import React from 'react';
-import { Star, Quote } from 'lucide-react';
+import React from "react";
+import { Star, Quote } from "lucide-react";
 
 const Testimonials = () => {
     const testimonials = [
@@ -8,25 +8,28 @@ const Testimonials = () => {
             name: "Nimal de silva",
             role: "Tech Enthusiast",
             image: "/profile.webp",
-            content: "Amazing product quality and fast delivery! The customer support team was incredibly helpful throughout the process.",
-            rating: 5
+            content:
+                "Amazing product quality and fast delivery! The customer support team was incredibly helpful throughout the process.",
+            rating: 5,
         },
         {
             id: 2,
             name: "Predeep Gamage",
             role: "Business Owner",
             image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
-            content: "I've been shopping here for over a year now. The product range and prices are unbeatable in the market.",
-            rating: 5
+            content:
+                "I've been shopping here for over a year now. The product range and prices are unbeatable in the market.",
+            rating: 5,
         },
         {
             id: 3,
             name: "Rasika Frenando",
             role: "Student",
             image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150",
-            content: "Great deals for students! The laptop I bought works perfectly and the warranty gives me peace of mind.",
-            rating: 4
-        }
+            content:
+                "Great deals for students! The laptop I bought works perfectly and the warranty gives me peace of mind.",
+            rating: 4,
+        },
     ];
 
     return (
@@ -37,7 +40,8 @@ const Testimonials = () => {
                         What Our Customers Say
                     </h2>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        Don't just take our word for it - hear from our satisfied customers
+                        Don't just take our word for it - hear from our
+                        satisfied customers
                     </p>
                 </div>
 
@@ -55,8 +59,8 @@ const Testimonials = () => {
                                         key={i}
                                         className={`w-4 h-4 ${
                                             i < testimonial.rating
-                                                ? 'text-yellow-400 fill-current'
-                                                : 'text-gray-300'
+                                                ? "text-yellow-400 fill-current"
+                                                : "text-gray-300"
                                         }`}
                                     />
                                 ))}

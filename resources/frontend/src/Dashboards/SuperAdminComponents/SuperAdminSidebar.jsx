@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
     LayoutDashboard,
     Users,
@@ -8,8 +8,8 @@ import {
     UserPlus,
     UserCheck,
     Building,
-    LogOut
-} from 'lucide-react';
+    LogOut,
+} from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -19,36 +19,35 @@ function SuperAdminSidebar() {
 
     const navigationItems = [
         {
-            name: 'Dashboard',
-            href: '/super-admin',
+            name: "Dashboard",
+            href: "/super-admin",
             icon: LayoutDashboard,
-            current: location.pathname === '/super-admin'
+            current: location.pathname === "/super-admin",
         },
         {
-            name: 'Admin Management',
-            href: '/super-admin/adminManage',
+            name: "Admin Management",
+            href: "/super-admin/adminManage",
             icon: UserPlus,
-            current: location.pathname.includes('/super-admin/adminManage')
+            current: location.pathname.includes("/super-admin/adminManage"),
         },
         {
-            name: 'System Users',
-            href: '/super-admin/userManage',
+            name: "System Users",
+            href: "/super-admin/userManage",
             icon: Users,
-            current: location.pathname.includes('/super-admin/userManage')
+            current: location.pathname.includes("/super-admin/userManage"),
         },
         {
-            name: 'System Settings',
-            href: '/super-admin/settings',
+            name: "System Settings",
+            href: "/super-admin/settings",
             icon: Settings,
-            current: location.pathname.includes('/super-admin/settings')
+            current: location.pathname.includes("/super-admin/settings"),
         },
         {
-            name: 'System Reports',
-            href: '/super-admin/reports',
+            name: "System Reports",
+            href: "/super-admin/reports",
             icon: BarChart3,
-            current: location.pathname.includes('/super-admin/reports')
-        }
-
+            current: location.pathname.includes("/super-admin/reports"),
+        },
     ];
 
     return (
@@ -80,10 +79,11 @@ function SuperAdminSidebar() {
                             to={item.href}
                             className={`
                                 flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200
-                                ${item.current
-                                ? 'bg-green-50 text-green-700 border border-green-200'
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                            }
+                                ${
+                                    item.current
+                                        ? "bg-green-50 text-green-700 border border-green-200"
+                                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                }
                             `}
                         >
                             <Icon size={20} className="mr-3" />
@@ -93,10 +93,11 @@ function SuperAdminSidebar() {
                 })}
             </nav>
 
-
             <div className="px-4 mt-4 mb-4">
                 <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-4 text-white">
-                    <h3 className="text-sm font-semibold mb-2">System Controls</h3>
+                    <h3 className="text-sm font-semibold mb-2">
+                        System Controls
+                    </h3>
                     <p className="text-xs text-green-100 mb-3">
                         Manage system-wide settings and access
                     </p>

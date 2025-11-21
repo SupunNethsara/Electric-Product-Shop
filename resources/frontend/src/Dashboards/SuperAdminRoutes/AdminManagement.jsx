@@ -114,7 +114,6 @@ function AdminManagement() {
                 role: formData.role,
                 status: formData.status
             };
-console.log(submitData);
             const response = await axios.post('http://127.0.0.1:8000/api/superadmin/add-admin', submitData, {
                 headers: {
                     'Authorization': `Bearer ${token}`,

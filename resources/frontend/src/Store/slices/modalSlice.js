@@ -1,15 +1,15 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 const modalSlice = createSlice({
-    name: 'modal',
+    name: "modal",
     initialState: {
         isLoginModalOpen: false,
         isRegisterModalOpen: false,
         isConfirmationModalOpen: false,
         confirmationModalProps: {
-            message: '',
+            message: "",
             onConfirm: null,
-            onCancel: null
+            onCancel: null,
         },
         redirectAfterLogin: null,
     },
@@ -30,7 +30,7 @@ const modalSlice = createSlice({
             state.isConfirmationModalOpen = true;
             state.confirmationModalProps = {
                 ...state.confirmationModalProps,
-                ...action.payload
+                ...action.payload,
             };
         },
         closeModals: (state) => {
@@ -39,9 +39,9 @@ const modalSlice = createSlice({
             state.isConfirmationModalOpen = false;
             state.redirectAfterLogin = null;
             state.confirmationModalProps = {
-                message: '',
+                message: "",
                 onConfirm: null,
-                onCancel: null
+                onCancel: null,
             };
         },
         confirmAction: (state) => {
@@ -50,9 +50,9 @@ const modalSlice = createSlice({
             }
             state.isConfirmationModalOpen = false;
             state.confirmationModalProps = {
-                message: '',
+                message: "",
                 onConfirm: null,
-                onCancel: null
+                onCancel: null,
             };
         },
         cancelAction: (state) => {
@@ -61,9 +61,9 @@ const modalSlice = createSlice({
             }
             state.isConfirmationModalOpen = false;
             state.confirmationModalProps = {
-                message: '',
+                message: "",
                 onConfirm: null,
-                onCancel: null
+                onCancel: null,
             };
         },
         switchToRegister: (state) => {

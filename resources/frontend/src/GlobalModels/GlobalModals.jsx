@@ -1,15 +1,22 @@
-import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import LoginModal from "../Modals/Login.jsx";
 import RegisterModal from "../Modals/Register.jsx";
-import { closeModals, switchToRegister, switchToLogin } from "../Store/slices/modalSlice.js";
+import {
+    closeModals,
+    switchToRegister,
+    switchToLogin,
+} from "../Store/slices/modalSlice.js";
 import ForgotPasswordModal from "../Modals/ForgotPasswordModal.jsx";
 
 const GlobalModals = () => {
     const dispatch = useDispatch();
-    const { isLoginModalOpen, isRegisterModalOpen } = useSelector((state) => state.modal);
+    const { isLoginModalOpen, isRegisterModalOpen } = useSelector(
+        (state) => state.modal,
+    );
 
-    const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
+    const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] =
+        useState(false);
 
     const handleOpenForgotPassword = () => {
         dispatch(closeModals());

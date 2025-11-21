@@ -163,7 +163,7 @@ class ProductController extends Controller
     {
         $products = Product::where('status', 'active')
             ->orderBy('created_at', 'desc')
-            ->take(15)
+            ->take(40)
             ->get();
 
         return response()->json($products);
@@ -768,6 +768,74 @@ class ProductController extends Controller
                 'from' => $products->firstItem(),
                 'to' => $products->lastItem(),
             ]
+        ]);
+    }
+    public function searchProducts(Request $request)
+    {
+        $request->validate([
+            'query' => 'required|string|min:2|max:255'
+        ]);
+
+        $query = $request->input('query');
+
+        $products = Product::where('status', 'active')
+            ->where(function($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                    ->orWhere('item_code', 'like', "%{$query}%")
+                    ->orWhere('model', 'like', "%{$query}%")
+                    ->orWhere('description', 'like', "%{$query}%")
+                    ->orWhere('category_1', 'like', "%{$query}%")
+                    ->orWhere('category_2', 'like', "%{$query}%")
+                    ->orWhere('category_3', 'like', "%{$query}%")
+                    ->orWhere('tags', 'like', "%{$query}%");
+            })
+            ->select('id', 'name', 'item_code', 'model', 'price', 'image', 'category_1', 'category_2')
+            ->orderBy('name')
+            ->limit(10)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'products' => $products,
+            'total' => $products->count()
+        ]);
+    }
+
+    /**
+     * Get search suggestions for autocomplete
+     */
+    public function getSearchSuggestions(Request $request)
+    {
+        $request->validate([
+            'query' => 'required|string|min:2'
+        ]);
+
+        $query = $request->input('query');
+
+        $suggestions = Product::where('status', 'active')
+            ->where(function($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                    ->orWhere('item_code', 'like', "%{$query}%")
+                    ->orWhere('model', 'like', "%{$query}%")
+                    ->orWhere('category_1', 'like', "%{$query}%")
+                    ->orWhere('category_2', 'like', "%{$query}%");
+            })
+            ->select('name', 'item_code', 'model', 'category_1', 'category_2')
+            ->distinct()
+            ->limit(8)
+            ->get()
+            ->map(function($product) {
+                return [
+                    'name' => $product->name,
+                    'item_code' => $product->item_code,
+                    'model' => $product->model,
+                    'category' => $product->category_1 . ($product->category_2 ? ' > ' . $product->category_2 : '')
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'suggestions' => $suggestions
         ]);
     }
 }

@@ -12,7 +12,7 @@ const categories = [
     "Door Lock",
     "Exit Switch",
     "Lock Bracket",
-    "DC Power"
+    "DC Power",
 ];
 
 const CategoriesMarquee = () => {
@@ -21,7 +21,13 @@ const CategoriesMarquee = () => {
             <div className="absolute left-0 top-0 h-full w-20 z-10 bg-gradient-to-r from-white to-transparent" />
 
             <div className="flex animate-marquee group-hover:pause">
-                {[...categories, ...categories, ...categories, ...categories, ...categories].map((category, index) => (
+                {[
+                    ...categories,
+                    ...categories,
+                    ...categories,
+                    ...categories,
+                    ...categories,
+                ].map((category, index) => (
                     <div key={index} className="mx-2 flex-shrink-0">
                         <button className="px-6 py-3 bg-gray-100 rounded-lg text-gray-600 text-sm hover:bg-gray-600 hover:text-white transition-all duration-300 whitespace-nowrap">
                             {category}
@@ -38,7 +44,7 @@ const CategoriesMarquee = () => {
                     100% { transform: translateX(-50%); }
                 }
                 .animate-marquee {
-                    animation: marquee 30s linear infinite;
+                    animation: marquee 60s linear infinite;
                     display: flex;
                     width: max-content;
                 }

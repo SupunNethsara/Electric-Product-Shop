@@ -20,6 +20,10 @@ return new class extends Migration
             $table->string('logo')->nullable();
             $table->string('logo_url')->nullable();
             $table->text('site_description')->nullable();
+            $table->text('google_maps_embed')->nullable();
+            $table->string('contact_email')->nullable();
+            $table->text('business_hours')->nullable();
+            $table->json('social_links')->nullable();
             $table->integer('items_per_page')->default(24);
             $table->timestamps();
         });

@@ -1,7 +1,22 @@
-import React, { useState } from 'react';
-import { Camera, X,Eye,ToggleRight ,ToggleLeft, Upload, AlertCircle, CheckCircle, Info } from 'lucide-react';
+import React, { useState } from "react";
+import {
+    Camera,
+    X,
+    Eye,
+    ToggleRight,
+    ToggleLeft,
+    Upload,
+    AlertCircle,
+    CheckCircle,
+    Info,
+} from "lucide-react";
 
-const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) => {
+const ProductRow = ({
+    product,
+    onImagesUpload,
+    onViewDetails,
+    onStatusToggle,
+}) => {
     const [showImageModal, setShowImageModal] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [mainImageIndex, setMainImageIndex] = useState(0);
@@ -15,9 +30,12 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
 
         setIsToggling(true);
         try {
-            await onStatusToggle(product.id, product.status === 'active' ? 'disabled' : 'active');
+            await onStatusToggle(
+                product.id,
+                product.status === "active" ? "disabled" : "active",
+            );
         } catch (error) {
-            console.error('Failed to toggle status:', error);
+            console.error("Failed to toggle status:", error);
         } finally {
             setIsToggling(false);
         }
@@ -25,8 +43,8 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
     const handleFileSelect = (event) => {
         const files = Array.from(event.target.files);
         if (files.length > 4) {
-            alert('You can only upload up to 4 images!');
-            event.target.value = '';
+            alert("You can only upload up to 4 images!");
+            event.target.value = "";
             return;
         }
 
@@ -37,23 +55,28 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
             setSelectedFiles(files);
             setShowImageModal(true);
         }
-        event.target.value = '';
+        event.target.value = "";
     };
 
     const handleUpload = async () => {
         if (selectedFiles.length === 0) {
-            alert('Please select at least one image!');
+            alert("Please select at least one image!");
             return;
         }
 
         setUploading(true);
         try {
-            await onImagesUpload(product.id, product.item_code, selectedFiles, mainImageIndex);
+            await onImagesUpload(
+                product.id,
+                product.item_code,
+                selectedFiles,
+                mainImageIndex,
+            );
             setShowImageModal(false);
             setShowInstructions(false);
             setSelectedFiles([]);
         } catch (error) {
-            console.error('Upload error:', error);
+            console.error("Upload error:", error);
         } finally {
             setUploading(false);
         }
@@ -65,10 +88,15 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
     };
 
     const productImages = product.images
-        ? (typeof product.images === 'string' ? JSON.parse(product.images) : product.images)
-        : product.image ? [product.image] : [];
+        ? typeof product.images === "string"
+            ? JSON.parse(product.images)
+            : product.images
+        : product.image
+          ? [product.image]
+          : [];
 
-    const mainImage = product.image || (productImages.length > 0 ? productImages[0] : null);
+    const mainImage =
+        product.image || (productImages.length > 0 ? productImages[0] : null);
 
     return (
         <>
@@ -97,7 +125,9 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
                             />
                         ))}
                         {productImages.length === 0 && (
-                            <span className="text-gray-400 text-xs flex items-center">No images</span>
+                            <span className="text-gray-400 text-xs flex items-center">
+                                No images
+                            </span>
                         )}
                     </div>
                 </td>
@@ -106,7 +136,9 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div className="flex items-center gap-2">
-                        <span className="truncate max-w-[120px]">{product.name}</span>
+                        <span className="truncate max-w-[120px]">
+                            {product.name}
+                        </span>
                         <button
                             onClick={() => setShowProductDetails(true)}
                             className="sm:hidden p-1 hover:bg-gray-100 rounded transition-colors"
@@ -124,11 +156,13 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
                     Rs:{product.price}
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        product.availability > 0
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                    }`}>
+                    <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            product.availability > 0
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                        }`}
+                    >
                         {product.availability} in stock
                     </span>
                 </td>
@@ -151,21 +185,27 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
                         onClick={handleStatusToggle}
                         disabled={isToggling}
                         className={`inline-flex items-center px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
-                            product.status === 'active'
-                                ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        } ${isToggling ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        title={product.status === 'active' ? 'Deactivate Product' : 'Activate Product'}
+                            product.status === "active"
+                                ? "bg-green-100 text-green-800 hover:bg-green-200"
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        } ${isToggling ? "opacity-50 cursor-not-allowed" : ""}`}
+                        title={
+                            product.status === "active"
+                                ? "Deactivate Product"
+                                : "Activate Product"
+                        }
                     >
                         {isToggling ? (
                             <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-1"></div>
-                        ) : product.status === 'active' ? (
+                        ) : product.status === "active" ? (
                             <ToggleRight className="w-4 h-4 mr-1" />
                         ) : (
                             <ToggleLeft className="w-4 h-4 mr-1" />
                         )}
                         <span className="hidden sm:inline">
-                            {product.status === 'active' ? 'Active' : 'Inactive'}
+                            {product.status === "active"
+                                ? "Active"
+                                : "Inactive"}
                         </span>
                     </button>
                 </td>
@@ -185,7 +225,9 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 sm:hidden">
                     <div className="bg-white rounded-2xl w-full max-w-sm transform transition-all">
                         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                            <h3 className="text-lg font-semibold text-gray-900">Product Details</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">
+                                Product Details
+                            </h3>
                             <button
                                 onClick={() => setShowProductDetails(false)}
                                 className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
@@ -195,28 +237,48 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
                         </div>
                         <div className="p-4 space-y-3">
                             <div>
-                                <label className="text-xs font-medium text-gray-500">Item Code</label>
-                                <p className="text-sm text-gray-900">{product.item_code}</p>
+                                <label className="text-xs font-medium text-gray-500">
+                                    Item Code
+                                </label>
+                                <p className="text-sm text-gray-900">
+                                    {product.item_code}
+                                </p>
                             </div>
                             <div>
-                                <label className="text-xs font-medium text-gray-500">Name</label>
-                                <p className="text-sm text-gray-900">{product.name}</p>
+                                <label className="text-xs font-medium text-gray-500">
+                                    Name
+                                </label>
+                                <p className="text-sm text-gray-900">
+                                    {product.name}
+                                </p>
                             </div>
                             <div>
-                                <label className="text-xs font-medium text-gray-500">Model</label>
-                                <p className="text-sm text-gray-900">{product.model || 'N/A'}</p>
+                                <label className="text-xs font-medium text-gray-500">
+                                    Model
+                                </label>
+                                <p className="text-sm text-gray-900">
+                                    {product.model || "N/A"}
+                                </p>
                             </div>
                             <div>
-                                <label className="text-xs font-medium text-gray-500">Description</label>
-                                <p className="text-sm text-gray-900">{product.description || 'No description'}</p>
+                                <label className="text-xs font-medium text-gray-500">
+                                    Description
+                                </label>
+                                <p className="text-sm text-gray-900">
+                                    {product.description || "No description"}
+                                </p>
                             </div>
                             <div>
-                                <label className="text-xs font-medium text-gray-500">Stock</label>
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                    product.availability > 0
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-red-100 text-red-800'
-                                }`}>
+                                <label className="text-xs font-medium text-gray-500">
+                                    Stock
+                                </label>
+                                <span
+                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                        product.availability > 0
+                                            ? "bg-green-100 text-green-800"
+                                            : "bg-red-100 text-red-800"
+                                    }`}
+                                >
                                     {product.availability} in stock
                                 </span>
                             </div>
@@ -284,7 +346,9 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
 
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-600">Selected Images</span>
+                                    <span className="text-gray-600">
+                                        Selected Images
+                                    </span>
                                     <span className="font-semibold text-blue-600">
                                         {selectedFiles.length}/4
                                     </span>
@@ -292,7 +356,10 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
 
                                 <div className="grid grid-cols-2 gap-3">
                                     {selectedFiles.map((file, index) => (
-                                        <div key={index} className="relative group">
+                                        <div
+                                            key={index}
+                                            className="relative group"
+                                        >
                                             <img
                                                 src={URL.createObjectURL(file)}
                                                 alt={`Preview ${index + 1}`}
@@ -312,8 +379,9 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
                                 <div className="flex items-start gap-2">
                                     <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                                     <p className="text-sm text-yellow-800">
-                                        <strong>Maximum 4 images</strong> allowed per product.
-                                        You can set one as the main display image.
+                                        <strong>Maximum 4 images</strong>{" "}
+                                        allowed per product. You can set one as
+                                        the main display image.
                                     </p>
                                 </div>
                             </div>
@@ -354,7 +422,8 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
                                         Upload Product Images
                                     </h3>
                                     <p className="text-sm text-gray-500">
-                                        {selectedFiles.length} of 4 images selected
+                                        {selectedFiles.length} of 4 images
+                                        selected
                                     </p>
                                 </div>
                             </div>
@@ -381,7 +450,10 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
                                     {selectedFiles.map((file, index) => (
-                                        <div key={index} className="relative group">
+                                        <div
+                                            key={index}
+                                            className="relative group"
+                                        >
                                             <img
                                                 src={URL.createObjectURL(file)}
                                                 alt={`Preview ${index + 1}`}
@@ -389,14 +461,18 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
                                             />
                                             <div className="absolute bottom-2 left-2 right-2">
                                                 <button
-                                                    onClick={() => setMainImageIndex(index)}
+                                                    onClick={() =>
+                                                        setMainImageIndex(index)
+                                                    }
                                                     className={`w-full py-1.5 text-xs font-medium rounded transition-colors ${
                                                         mainImageIndex === index
-                                                            ? 'bg-green-600 text-white shadow-lg'
-                                                            : 'bg-white text-gray-700 bg-opacity-90 hover:bg-opacity-100 shadow-md'
+                                                            ? "bg-green-600 text-white shadow-lg"
+                                                            : "bg-white text-gray-700 bg-opacity-90 hover:bg-opacity-100 shadow-md"
                                                     }`}
                                                 >
-                                                    {mainImageIndex === index ? '✓ Main Image' : 'Set as Main'}
+                                                    {mainImageIndex === index
+                                                        ? "✓ Main Image"
+                                                        : "Set as Main"}
                                                 </button>
                                             </div>
                                             {mainImageIndex === index && (
@@ -415,7 +491,8 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
                                 <div className="flex items-center gap-2 text-sm text-gray-600">
                                     <AlertCircle className="w-4 h-4" />
                                     <span>
-                                        The <strong>main image</strong> will be displayed as the primary product photo.
+                                        The <strong>main image</strong> will be
+                                        displayed as the primary product photo.
                                     </span>
                                 </div>
                             </div>
@@ -434,7 +511,9 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
                             </button>
                             <button
                                 onClick={handleUpload}
-                                disabled={uploading || selectedFiles.length === 0}
+                                disabled={
+                                    uploading || selectedFiles.length === 0
+                                }
                                 className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {uploading ? (
@@ -445,7 +524,8 @@ const ProductRow = ({ product, onImagesUpload, onViewDetails, onStatusToggle }) 
                                 ) : (
                                     <>
                                         <Upload className="w-4 h-4" />
-                                        Upload {selectedFiles.length} Image{selectedFiles.length !== 1 ? 's' : ''}
+                                        Upload {selectedFiles.length} Image
+                                        {selectedFiles.length !== 1 ? "s" : ""}
                                     </>
                                 )}
                             </button>

@@ -1,23 +1,33 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { User, MapPin, Edit3, Phone, Calendar, MapPin as LocationIcon, Home, Mail, ShoppingBag } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
+import { toast } from "react-toastify";
+import {
+    User,
+    MapPin,
+    Edit3,
+    Phone,
+    Calendar,
+    MapPin as LocationIcon,
+    Home,
+    Mail,
+    ShoppingBag,
+} from "lucide-react";
 
 function PersonalDetails() {
     const [profile, setProfile] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [formData, setFormData] = useState({
-        phone: '',
-        address: '',
-        city: '',
-        postal_code: '',
-        country: '',
-        bio: '',
-        birth_date: '',
-        gender: ''
+        phone: "",
+        address: "",
+        city: "",
+        postal_code: "",
+        country: "",
+        bio: "",
+        birth_date: "",
+        gender: "",
     });
 
     const navigate = useNavigate();
@@ -31,26 +41,30 @@ function PersonalDetails() {
 
     const fetchProfile = async () => {
         try {
-            const response = await axios.get('http://127.0.0.1:8000/api/profile', {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
-                }
-            });
+            const response = await axios.get(
+                "http://127.0.0.1:8000/api/profile",
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                },
+            );
 
             if (response.data.profile) {
                 setProfile(response.data.profile);
-                setFormData(prev => ({
+                setFormData((prev) => ({
                     ...prev,
                     ...response.data.profile,
-                    birth_date: response.data.profile.birth_date?.split('T')[0] || ''
+                    birth_date:
+                        response.data.profile.birth_date?.split("T")[0] || "",
                 }));
             }
         } catch (error) {
-            console.error('Error fetching profile:', error);
+            console.error("Error fetching profile:", error);
             if (error.response?.status === 401) {
-                navigate('/');
+                navigate("/");
             } else {
-                toast.error('Failed to load profile data');
+                toast.error("Failed to load profile data");
             }
         } finally {
             setIsLoading(false);
@@ -60,19 +74,25 @@ function PersonalDetails() {
     const handleSaveProfile = async () => {
         try {
             setIsLoading(true);
-            const response = await axios.post('http://127.0.0.1:8000/api/profile', formData, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const response = await axios.post(
+                "http://127.0.0.1:8000/api/profile",
+                formData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        "Content-Type": "application/json",
+                    },
+                },
+            );
 
             setProfile(response.data.profile);
             setIsEditing(false);
-            toast.success('Profile updated successfully!');
+            toast.success("Profile updated successfully!");
         } catch (error) {
-            console.error('Error updating profile:', error);
-            toast.error(error.response?.data?.message || 'Failed to update profile');
+            console.error("Error updating profile:", error);
+            toast.error(
+                error.response?.data?.message || "Failed to update profile",
+            );
         } finally {
             setIsLoading(false);
         }
@@ -80,9 +100,9 @@ function PersonalDetails() {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
-            [name]: value
+            [name]: value,
         }));
     };
 
@@ -102,8 +122,12 @@ function PersonalDetails() {
         <div className="max-w-4xl w-full">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
-                    <p className="text-gray-600 mt-1">Manage your personal information</p>
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        My Profile
+                    </h1>
+                    <p className="text-gray-600 mt-1">
+                        Manage your personal information
+                    </p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
@@ -114,12 +138,20 @@ function PersonalDetails() {
                         Go to Previous Page
                     </button>
                     <button
-                        onClick={isEditing ? handleSaveProfile : () => setIsEditing(true)}
+                        onClick={
+                            isEditing
+                                ? handleSaveProfile
+                                : () => setIsEditing(true)
+                        }
                         disabled={isLoading}
                         className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
                     >
                         <Edit3 size={16} />
-                        {isLoading ? 'Saving...' : isEditing ? 'Save Changes' : 'Edit Profile'}
+                        {isLoading
+                            ? "Saving..."
+                            : isEditing
+                              ? "Save Changes"
+                              : "Edit Profile"}
                     </button>
                 </div>
             </div>
@@ -128,23 +160,23 @@ function PersonalDetails() {
                 <div className="lg:col-span-1">
                     <div className="bg-gray-50 rounded-xl p-6 text-center">
                         <div className="relative inline-block">
-                            <div className="w-32 h-32 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white text-4xl font-bold mx-auto mb-4">
-                                {user?.name?.charAt(0).toUpperCase() || 'U'}
+                            <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center text-white text-4xl font-bold mx-auto mb-4">
+                                {user?.name?.charAt(0).toUpperCase() || "U"}
                             </div>
                         </div>
 
                         <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                            {user?.name || 'User Name'}
+                            {user?.name || "User Name"}
                         </h3>
 
                         <div className="flex items-center justify-center gap-2 text-gray-600 text-sm mb-4">
                             <Mail size={14} />
-                            <span>{user?.email || 'user@example.com'}</span>
+                            <span>{user?.email || "user@example.com"}</span>
                         </div>
 
                         <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
                             <MapPin size={14} />
-                            <span>{profile?.city || 'Add location'}</span>
+                            <span>{profile?.city || "Add location"}</span>
                         </div>
                     </div>
                 </div>
@@ -173,8 +205,14 @@ function PersonalDetails() {
                                         />
                                     ) : (
                                         <div className="flex items-center gap-2 text-gray-900 p-2">
-                                            <Phone size={16} className="text-gray-400" />
-                                            <span className="text-sm">{profile?.phone || 'Not provided'}</span>
+                                            <Phone
+                                                size={16}
+                                                className="text-gray-400"
+                                            />
+                                            <span className="text-sm">
+                                                {profile?.phone ||
+                                                    "Not provided"}
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -193,8 +231,14 @@ function PersonalDetails() {
                                         />
                                     ) : (
                                         <div className="flex items-center gap-2 text-gray-900 p-2">
-                                            <Calendar size={16} className="text-gray-400" />
-                                            <span className="text-sm">{profile?.birth_date || 'Not provided'}</span>
+                                            <Calendar
+                                                size={16}
+                                                className="text-gray-400"
+                                            />
+                                            <span className="text-sm">
+                                                {profile?.birth_date ||
+                                                    "Not provided"}
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -210,14 +254,18 @@ function PersonalDetails() {
                                             onChange={handleInputChange}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                         >
-                                            <option value="">Select Gender</option>
+                                            <option value="">
+                                                Select Gender
+                                            </option>
                                             <option value="Male">Male</option>
-                                            <option value="Female">Female</option>
+                                            <option value="Female">
+                                                Female
+                                            </option>
                                             <option value="Other">Other</option>
                                         </select>
                                     ) : (
                                         <div className="text-gray-900 p-2 text-sm">
-                                            {profile?.gender || 'Not specified'}
+                                            {profile?.gender || "Not specified"}
                                         </div>
                                     )}
                                 </div>
@@ -238,8 +286,14 @@ function PersonalDetails() {
                                     />
                                 ) : (
                                     <div className="flex items-start gap-2 text-gray-900 p-2">
-                                        <Home size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
-                                        <span className="text-sm">{profile?.address || 'No address provided'}</span>
+                                        <Home
+                                            size={16}
+                                            className="text-gray-400 mt-0.5 flex-shrink-0"
+                                        />
+                                        <span className="text-sm">
+                                            {profile?.address ||
+                                                "No address provided"}
+                                        </span>
                                     </div>
                                 )}
                             </div>
@@ -260,8 +314,14 @@ function PersonalDetails() {
                                         />
                                     ) : (
                                         <div className="flex items-center gap-2 text-gray-900 p-2">
-                                            <LocationIcon size={16} className="text-gray-400" />
-                                            <span className="text-sm">{profile?.city || 'Not provided'}</span>
+                                            <LocationIcon
+                                                size={16}
+                                                className="text-gray-400"
+                                            />
+                                            <span className="text-sm">
+                                                {profile?.city ||
+                                                    "Not provided"}
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -281,7 +341,8 @@ function PersonalDetails() {
                                         />
                                     ) : (
                                         <div className="text-gray-900 p-2 text-sm">
-                                            {profile?.postal_code || 'Not provided'}
+                                            {profile?.postal_code ||
+                                                "Not provided"}
                                         </div>
                                     )}
                                 </div>
@@ -301,7 +362,7 @@ function PersonalDetails() {
                                         />
                                     ) : (
                                         <div className="text-gray-900 p-2 text-sm">
-                                            {profile?.country || 'Not provided'}
+                                            {profile?.country || "Not provided"}
                                         </div>
                                     )}
                                 </div>
@@ -322,7 +383,7 @@ function PersonalDetails() {
                                     />
                                 ) : (
                                     <p className="text-gray-900 p-2 text-sm">
-                                        {profile?.bio || 'No bio provided'}
+                                        {profile?.bio || "No bio provided"}
                                     </p>
                                 )}
                             </div>

@@ -25,7 +25,7 @@ function TopProduct() {
             image: "/CCTV.png",
             button_text: "Secure Your Home",
             theme_color: "primary",
-            is_active: true
+            is_active: true,
         },
         {
             id: 2,
@@ -37,8 +37,8 @@ function TopProduct() {
             image: "/cctv2.png",
             button_text: "Buy Now",
             theme_color: "secondary",
-            is_active: true
-        }
+            is_active: true,
+        },
     ];
 
     useEffect(() => {
@@ -47,12 +47,17 @@ function TopProduct() {
 
     const fetchProducts = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/api/top-products', {
-                timeout: 5000
-            });
+            const response = await axios.get(
+                "http://localhost:8000/api/top-products",
+                {
+                    timeout: 5000,
+                },
+            );
 
             if (response.data && Array.isArray(response.data)) {
-                const activeProducts = response.data.filter(product => product.is_active);
+                const activeProducts = response.data.filter(
+                    (product) => product.is_active,
+                );
                 if (activeProducts.length > 0) {
                     setProducts(activeProducts);
                 } else {
@@ -62,7 +67,7 @@ function TopProduct() {
                 setProducts(defaultProducts);
             }
         } catch (error) {
-            console.error('Error fetching top products:', error);
+            console.error("Error fetching top products:", error);
             setProducts(defaultProducts);
         } finally {
             setLoading(false);
@@ -79,62 +84,74 @@ function TopProduct() {
                     >
                         <div
                             className="w-1/2 flex items-center justify-center p-3 sm:p-4 animate-pulse"
-                            style={{ backgroundColor: `${themeColors.primary}10` }}
+                            style={{
+                                backgroundColor: `${themeColors.primary}10`,
+                            }}
                         >
                             <div className="w-full h-full flex items-center justify-center">
                                 <div
                                     className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-300 rounded-2xl flex items-center justify-center"
-                                    style={{ backgroundColor: `${themeColors.primary}15` }}
-                                >
-                                    <div
-                                        className="animate-spin rounded-full h-8 w-8 border-2"
-                                        style={{
-                                            borderColor: `${themeColors.primary}30`,
-                                            borderTopColor: themeColors.primary,
-                                        }}
-                                    ></div>
-                                </div>
+                                    style={{
+                                        backgroundColor: `${themeColors.primary}15`,
+                                    }}
+                                ></div>
                             </div>
                         </div>
 
                         <div className="w-1/2 flex flex-col justify-center p-4 sm:p-6 space-y-3">
                             <div
                                 className="h-4 bg-gray-300 rounded w-1/3 animate-pulse"
-                                style={{ backgroundColor: `${themeColors.primary}20` }}
+                                style={{
+                                    backgroundColor: `${themeColors.primary}20`,
+                                }}
                             ></div>
                             <div className="space-y-2">
                                 <div
                                     className="h-6 bg-gray-300 rounded w-3/4 animate-pulse"
-                                    style={{ backgroundColor: `${themeColors.primary}25` }}
+                                    style={{
+                                        backgroundColor: `${themeColors.primary}25`,
+                                    }}
                                 ></div>
                                 <div
                                     className="h-4 bg-gray-300 rounded w-1/2 animate-pulse"
-                                    style={{ backgroundColor: `${themeColors.primary}20` }}
+                                    style={{
+                                        backgroundColor: `${themeColors.primary}20`,
+                                    }}
                                 ></div>
                             </div>
 
                             <div
                                 className="h-3 bg-gray-300 rounded w-full animate-pulse hidden sm:block"
-                                style={{ backgroundColor: `${themeColors.primary}15` }}
+                                style={{
+                                    backgroundColor: `${themeColors.primary}15`,
+                                }}
                             ></div>
                             <div
                                 className="h-3 bg-gray-300 rounded w-2/3 animate-pulse hidden sm:block"
-                                style={{ backgroundColor: `${themeColors.primary}15` }}
+                                style={{
+                                    backgroundColor: `${themeColors.primary}15`,
+                                }}
                             ></div>
 
                             <div className="flex items-center gap-2 mt-1">
                                 <div
                                     className="h-7 w-20 bg-gray-300 rounded animate-pulse"
-                                    style={{ backgroundColor: `${themeColors.primary}25` }}
+                                    style={{
+                                        backgroundColor: `${themeColors.primary}25`,
+                                    }}
                                 ></div>
                                 <div
                                     className="h-5 w-16 bg-gray-300 rounded animate-pulse hidden sm:block"
-                                    style={{ backgroundColor: `${themeColors.primary}15` }}
+                                    style={{
+                                        backgroundColor: `${themeColors.primary}15`,
+                                    }}
                                 ></div>
                             </div>
                             <div
                                 className="h-10 w-full bg-gray-300 rounded-lg animate-pulse mt-2"
-                                style={{ backgroundColor: `${themeColors.primary}30` }}
+                                style={{
+                                    backgroundColor: `${themeColors.primary}30`,
+                                }}
                             ></div>
                         </div>
                     </div>
@@ -151,7 +168,9 @@ function TopProduct() {
                         <div className="flex justify-center mb-3">
                             <div
                                 className="w-12 h-12 rounded-full flex items-center justify-center"
-                                style={{ backgroundColor: `${themeColors.primary}10` }}
+                                style={{
+                                    backgroundColor: `${themeColors.primary}10`,
+                                }}
                             >
                                 <svg
                                     className="w-6 h-6"
@@ -160,11 +179,18 @@ function TopProduct() {
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
                                 >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                                    />
                                 </svg>
                             </div>
                         </div>
-                        <p className="text-lg font-medium mb-2">No products available</p>
+                        <p className="text-lg font-medium mb-2">
+                            No products available
+                        </p>
                         <p className="text-sm">Please check your admin panel</p>
                     </div>
                 </div>
@@ -182,9 +208,10 @@ function TopProduct() {
                     <div
                         className="w-1/2 flex items-center justify-center p-3 sm:p-4"
                         style={{
-                            backgroundColor: product.theme_color === 'primary'
-                                ? `${themeColors.primary}10`
-                                : `${themeColors.secondary}10`
+                            backgroundColor:
+                                product.theme_color === "primary"
+                                    ? `${themeColors.primary}10`
+                                    : `${themeColors.secondary}10`,
                         }}
                     >
                         <img
@@ -192,13 +219,19 @@ function TopProduct() {
                             alt={product.title}
                             className="w-full h-full object-contain drop-shadow-xl group-hover:scale-[1.1] transition-transform duration-500"
                             onError={(e) => {
-                                console.error('Image failed to load:', product.image);
-                                if (product.image.includes('CCTV.png')) {
-                                    e.target.src = '/CCTV.png';
-                                } else if (product.image.includes('cctv2.png')) {
-                                    e.target.src = '/cctv2.png';
+                                console.error(
+                                    "Image failed to load:",
+                                    product.image,
+                                );
+                                if (product.image.includes("CCTV.png")) {
+                                    e.target.src = "/CCTV.png";
+                                } else if (
+                                    product.image.includes("cctv2.png")
+                                ) {
+                                    e.target.src = "/cctv2.png";
                                 } else {
-                                    e.target.src = 'https://via.placeholder.com/200x200?text=Image+Not+Found';
+                                    e.target.src =
+                                        "https://via.placeholder.com/200x200?text=Image+Not+Found";
                                 }
                             }}
                         />
@@ -219,9 +252,10 @@ function TopProduct() {
                             <p
                                 className="text-lg sm:text-xl font-extrabold leading-none"
                                 style={{
-                                    color: product.theme_color === 'primary'
-                                        ? themeColors.primary
-                                        : themeColors.secondary
+                                    color:
+                                        product.theme_color === "primary"
+                                            ? themeColors.primary
+                                            : themeColors.secondary,
                                 }}
                             >
                                 {product.price}
@@ -233,22 +267,26 @@ function TopProduct() {
                             )}
                         </div>
 
-                        <button onClick={()=>navigate('/shop')}
+                        <button
+                            onClick={() => navigate("/shop")}
                             className="mt-2 sm:mt-3 w-full text-xs sm:text-sm font-semibold text-white py-2 rounded-lg transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
                             style={{
-                                backgroundColor: product.theme_color === 'primary'
-                                    ? themeColors.primary
-                                    : themeColors.secondary,
+                                backgroundColor:
+                                    product.theme_color === "primary"
+                                        ? themeColors.primary
+                                        : themeColors.secondary,
                             }}
                             onMouseOver={(e) =>
-                                (e.target.style.backgroundColor = product.theme_color === 'primary'
-                                    ? themeColors.primaryHover
-                                    : themeColors.secondaryHover)
+                                (e.target.style.backgroundColor =
+                                    product.theme_color === "primary"
+                                        ? themeColors.primaryHover
+                                        : themeColors.secondaryHover)
                             }
                             onMouseOut={(e) =>
-                                (e.target.style.backgroundColor = product.theme_color === 'primary'
-                                    ? themeColors.primary
-                                    : themeColors.secondary)
+                                (e.target.style.backgroundColor =
+                                    product.theme_color === "primary"
+                                        ? themeColors.primary
+                                        : themeColors.secondary)
                             }
                         >
                             {product.button_text}

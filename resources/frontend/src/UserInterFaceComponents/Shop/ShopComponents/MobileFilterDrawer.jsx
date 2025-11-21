@@ -2,35 +2,37 @@ import React from "react";
 import { X } from "lucide-react";
 
 function MobileFilterDrawer({
-                                setIsFilterOpen,
-                                selectedCategories,
-                                priceRange,
-                                availability,
-                                categories,
-                                toggleCategory,
-                                setPriceRange,
-                                setAvailability,
-                                clearAllFilters,
-                            }) {
-
-    // Group categories for mobile view
+    setIsFilterOpen,
+    selectedCategories,
+    priceRange,
+    availability,
+    categories,
+    toggleCategory,
+    setPriceRange,
+    setAvailability,
+    clearAllFilters,
+}) {
     const categoryTree = categories.reduce((acc, category) => {
         if (category.level === 0) {
             if (!acc[category.id]) {
                 acc[category.id] = { ...category, children: [] };
             }
         } else if (category.level === 1) {
-            const parent = Object.values(acc).find(cat => cat.name === category.parent);
+            const parent = Object.values(acc).find(
+                (cat) => cat.name === category.parent,
+            );
             if (parent) {
-                if (!parent.children.find(c => c.id === category.id)) {
+                if (!parent.children.find((c) => c.id === category.id)) {
                     parent.children.push({ ...category, children: [] });
                 }
             }
         } else if (category.level === 2) {
-            Object.values(acc).forEach(parent => {
-                const child = parent.children.find(c => c.name === category.parent);
+            Object.values(acc).forEach((parent) => {
+                const child = parent.children.find(
+                    (c) => c.name === category.parent,
+                );
                 if (child) {
-                    if (!child.children.find(c => c.id === category.id)) {
+                    if (!child.children.find((c) => c.id === category.id)) {
                         child.children.push(category);
                     }
                 }
@@ -40,8 +42,8 @@ function MobileFilterDrawer({
     }, {});
 
     const renderCategoryTree = (categoryList, level = 0) => {
-        return categoryList.map(category => (
-            <div key={category.id} className={`${level > 0 ? 'ml-4' : ''}`}>
+        return categoryList.map((category) => (
+            <div key={category.id} className={`${level > 0 ? "ml-4" : ""}`}>
                 <label className="flex items-center gap-2 cursor-pointer py-1">
                     <input
                         type="checkbox"
@@ -49,9 +51,15 @@ function MobileFilterDrawer({
                         onChange={() => toggleCategory(category.id)}
                         className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
                     />
-                    <span className={`text-sm text-gray-700 ${
-                        level === 0 ? 'font-semibold' : level === 1 ? 'font-medium' : 'text-gray-600'
-                    }`}>
+                    <span
+                        className={`text-sm text-gray-700 ${
+                            level === 0
+                                ? "font-semibold"
+                                : level === 1
+                                  ? "font-medium"
+                                  : "text-gray-600"
+                        }`}
+                    >
                         {category.name}
                     </span>
                 </label>
@@ -119,9 +127,13 @@ function MobileFilterDrawer({
                             </h3>
                             <div className="space-y-1 max-h-60 overflow-y-auto">
                                 {categories.length > 0 ? (
-                                    renderCategoryTree(Object.values(categoryTree))
+                                    renderCategoryTree(
+                                        Object.values(categoryTree),
+                                    )
                                 ) : (
-                                    <p className="text-sm text-gray-500">No categories available</p>
+                                    <p className="text-sm text-gray-500">
+                                        No categories available
+                                    </p>
                                 )}
                             </div>
                         </div>

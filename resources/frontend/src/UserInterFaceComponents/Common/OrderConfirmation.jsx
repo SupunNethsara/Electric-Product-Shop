@@ -5,7 +5,7 @@ import InvoicePDF from "./InvoicePDF";
 function OrderConfirmation() {
     const location = useLocation();
     const { order, user, orderSummary, items, deliveryOption } =
-    location.state || {};
+        location.state || {};
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
     const getProductPrice = (product) => {
@@ -13,9 +13,11 @@ function OrderConfirmation() {
     };
 
     const hasDiscount = (product) => {
-        return product?.buy_now_price &&
+        return (
+            product?.buy_now_price &&
             product?.price &&
-            parseFloat(product.buy_now_price) < parseFloat(product.price);
+            parseFloat(product.buy_now_price) < parseFloat(product.price)
+        );
     };
 
     const getProductSavings = (product, quantity = 1) => {
@@ -74,9 +76,15 @@ function OrderConfirmation() {
     const handleGeneratePDF = async () => {
         setIsGeneratingPDF(true);
         try {
-            await InvoicePDF.generate({ order, user, orderSummary, items, deliveryOption });
+            await InvoicePDF.generate({
+                order,
+                user,
+                orderSummary,
+                items,
+                deliveryOption,
+            });
         } catch (error) {
-            alert('Error generating PDF. Please try again.');
+            alert("Error generating PDF. Please try again.");
         } finally {
             setIsGeneratingPDF(false);
         }
@@ -130,19 +138,27 @@ function OrderConfirmation() {
                                     const images =
                                         typeof item.product?.images === "string"
                                             ? JSON.parse(
-                                                item.product.images.replace(
-                                                    /\\([^\\])/g,
-                                                    "$1",
-                                                ),
-                                            )
+                                                  item.product.images.replace(
+                                                      /\\([^\\])/g,
+                                                      "$1",
+                                                  ),
+                                              )
                                             : item.product?.images || [];
                                     const mainImage =
                                         images[0] || item.product?.image;
 
-                                    const productPrice = getProductPrice(item.product);
-                                    const itemTotal = productPrice * item.quantity;
-                                    const productHasDiscount = hasDiscount(item.product);
-                                    const itemSavings = getProductSavings(item.product, item.quantity);
+                                    const productPrice = getProductPrice(
+                                        item.product,
+                                    );
+                                    const itemTotal =
+                                        productPrice * item.quantity;
+                                    const productHasDiscount = hasDiscount(
+                                        item.product,
+                                    );
+                                    const itemSavings = getProductSavings(
+                                        item.product,
+                                        item.quantity,
+                                    );
 
                                     return (
                                         <div
@@ -176,25 +192,39 @@ function OrderConfirmation() {
                                                     {productHasDiscount ? (
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-gray-500 line-through">
-                                                                Rs. {parseFloat(item.product.price).toFixed(2)}
+                                                                Rs.{" "}
+                                                                {parseFloat(
+                                                                    item.product
+                                                                        .price,
+                                                                ).toFixed(2)}
                                                             </span>
                                                             <span className="font-semibold text-green-600">
-                                                                Rs. {productPrice.toFixed(2)}
+                                                                Rs.{" "}
+                                                                {productPrice.toFixed(
+                                                                    2,
+                                                                )}
                                                             </span>
                                                         </div>
                                                     ) : (
                                                         <span className="font-semibold text-gray-900">
-                                                            Rs. {productPrice.toFixed(2)}
+                                                            Rs.{" "}
+                                                            {productPrice.toFixed(
+                                                                2,
+                                                            )}
                                                         </span>
                                                     )}
                                                 </div>
-                                                {productHasDiscount && itemSavings > 0 && (
-                                                    <div className="mt-2">
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                                            You saved Rs. {itemSavings.toFixed(2)}
-                                                        </span>
-                                                    </div>
-                                                )}
+                                                {productHasDiscount &&
+                                                    itemSavings > 0 && (
+                                                        <div className="mt-2">
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                                You saved Rs.{" "}
+                                                                {itemSavings.toFixed(
+                                                                    2,
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                    )}
                                             </div>
                                             <div className="text-right">
                                                 <p className="font-semibold text-gray-900 text-lg">
@@ -485,8 +515,8 @@ function OrderConfirmation() {
                         disabled={isGeneratingPDF}
                         className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
                             isGeneratingPDF
-                                ? 'bg-gray-400 cursor-not-allowed text-white'
-                                : 'bg-green-600 hover:bg-green-700 text-white'
+                                ? "bg-gray-400 cursor-not-allowed text-white"
+                                : "bg-green-600 hover:bg-green-700 text-white"
                         }`}
                     >
                         {isGeneratingPDF ? (
@@ -496,8 +526,18 @@ function OrderConfirmation() {
                             </>
                         ) : (
                             <>
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                    />
                                 </svg>
                                 Download Invoice PDF
                             </>
@@ -507,8 +547,18 @@ function OrderConfirmation() {
                         onClick={() => window.print()}
                         className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center justify-center gap-2"
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                            />
                         </svg>
                         Print Receipt
                     </button>
@@ -517,6 +567,12 @@ function OrderConfirmation() {
                         className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                     >
                         Continue Shopping
+                    </button>
+                    <button
+                        onClick={() => (window.location.href = "/profile")}
+                        className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium"
+                    >
+                        View My Orders
                     </button>
                 </div>
             </div>

@@ -101,7 +101,6 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
     const handleOtpVerificationSuccess = (data) => {
         setShowOtpModal(false);
         onClose();
-        console.log('User verified and registered successfully:', data);
     };
 
     const handleOverlayClick = (e) => {
