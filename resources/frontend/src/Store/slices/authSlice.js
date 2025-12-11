@@ -1,14 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import api from "../../api/axiosConfig.js";
 
-const BASE_URL = "http://localhost:8000/api";
 
-const api = axios.create({
-    baseURL: BASE_URL,
-    headers: {
-        "Content-Type": "application/json",
-    },
-});
 
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem("token");
@@ -39,10 +32,10 @@ export const registerUser = createAsyncThunk(
             return response.data;
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || "Registration failed",
+                error.response?.data?.message || "Registration failed"
             );
         }
-    },
+    }
 );
 
 export const verifyOtp = createAsyncThunk(
